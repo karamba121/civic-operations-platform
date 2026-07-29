@@ -5,5 +5,6 @@ public sealed record RequestListItem(
     string ProtocolNumber,
     string Title,
     string Status,
+    Guid? ResponsibleUserId,
     DateTimeOffset CreatedAtUtc,
     Guid Version);

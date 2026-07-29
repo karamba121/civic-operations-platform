@@ -44,6 +44,9 @@ internal sealed class RequestConfiguration : IEntityTypeConfiguration<Request>
             .HasMaxLength(32)
             .IsRequired();
 
+        builder.Property(request => request.ResponsibleUserId)
+            .HasColumnName("responsible_user_id");
+
         builder.Property(request => request.CreatedAtUtc)
             .HasColumnName("created_at_utc")
             .IsRequired();
@@ -68,5 +71,16 @@ internal sealed class RequestConfiguration : IEntityTypeConfiguration<Request>
                     request.CreatedAtUtc
                 })
             .HasDatabaseName("ix_administrative_requests_tenant_status_created_at");
+
+        builder.HasIndex(
+                request => new
+                {
+                    request.TenantId,
+                    request.ResponsibleUserId,
+                    request.Status,
+                    request.CreatedAtUtc
+                })
+            .HasDatabaseName(
+                "ix_administrative_requests_tenant_responsible_status_created_at");
     }
 }

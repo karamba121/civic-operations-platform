@@ -61,4 +61,83 @@ public sealed class RequestTests
 
         Assert.Throws<DomainException>(action);
     }
+
+    [Fact]
+    public void AssignResponsible_ShouldUpdateResponsibleAndVersion()
+    {
+        var request = CreateRequest();
+        var previousVersion = request.Version;
+        var responsibleUserId = Guid.NewGuid();
+
+        request.AssignResponsible(responsibleUserId, previousVersion);
+
+        Assert.Equal(responsibleUserId, request.ResponsibleUserId);
+        Assert.NotEqual(previousVersion, request.Version);
+    }
+
+    [Fact]
+    public void AssignResponsible_ShouldRejectStaleVersion()
+    {
+        var request = CreateRequest();
+
+        var action = () =>
+            request.AssignResponsible(Guid.NewGuid(), Guid.NewGuid());
+
+        Assert.Throws<RequestConcurrencyException>(action);
+    }
+
+    [Fact]
+    public void AssignResponsible_ShouldRejectTerminalRequest()
+    {
+        var request = CreateRequest();
+        request.ChangeStatus(RequestStatus.Cancelled, request.Version);
+
+        var action = () =>
+            request.AssignResponsible(Guid.NewGuid(), request.Version);
+
+        Assert.Throws<DomainException>(action);
+    }
+
+    [Fact]
+    public void ChangeStatus_ShouldFollowAllowedWorkflow()
+    {
+        var request = CreateRequest();
+
+        request.ChangeStatus(RequestStatus.InProgress, request.Version);
+        request.ChangeStatus(RequestStatus.Completed, request.Version);
+
+        Assert.Equal(RequestStatus.Completed, request.Status);
+    }
+
+    [Fact]
+    public void ChangeStatus_ShouldRejectInvalidTransition()
+    {
+        var request = CreateRequest();
+
+        var action = () =>
+            request.ChangeStatus(RequestStatus.Completed, request.Version);
+
+        Assert.Throws<DomainException>(action);
+    }
+
+    [Fact]
+    public void ChangeStatus_ShouldNotChangeVersionForNoOp()
+    {
+        var request = CreateRequest();
+        var version = request.Version;
+
+        request.ChangeStatus(RequestStatus.Submitted, version);
+
+        Assert.Equal(version, request.Version);
+    }
+
+    private static Request CreateRequest()
+    {
+        return Request.Create(
+            TenantId,
+            ProtocolNumber.Create(2026, 1),
+            "Título",
+            "Descrição",
+            DateTimeOffset.UtcNow);
+    }
 }

@@ -18,7 +18,7 @@ comandos documentados.
 
 - [x] criar solicitação com idempotência e gerar protocolo por tenant;
 - [x] listar, filtrar e consultar detalhes;
-- atribuir responsável e alterar situação;
+- [x] atribuir responsável e alterar situação;
 - registrar comentário e prazo;
 - implementar concorrência otimista;
 - registrar auditoria e evento na Outbox.

@@ -9,8 +9,9 @@ microsserviço artificial.
 
 > **Status:** primeiro fluxo vertical em construção. Criação idempotente,
 > protocolo por tenant, listagem paginada com filtros e consulta de detalhes já
-> estão implementados; as demais funcionalidades continuam identificadas como
-> planejadas.
+> estão implementados. Atribuição de responsável, transições de situação e
+> concorrência otimista também estão funcionais; as demais funcionalidades
+> continuam identificadas como planejadas.
 
 ## Por que um monólito modular?
 

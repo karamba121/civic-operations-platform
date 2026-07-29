@@ -1,4 +1,6 @@
 using CivicOps.Modules.Requests.Application.Abstractions;
+using CivicOps.Modules.Requests.Application.AssignResponsible;
+using CivicOps.Modules.Requests.Application.ChangeRequestStatus;
 using CivicOps.Modules.Requests.Application.CreateRequest;
 using CivicOps.Modules.Requests.Application.GetRequestDetails;
 using CivicOps.Modules.Requests.Application.ListRequests;
@@ -32,6 +34,8 @@ public static class DependencyInjection
         services.AddScoped<IRequestIdempotencyStore, PostgresRequestIdempotencyStore>();
         services.AddScoped<IRequestsUnitOfWork, RequestsUnitOfWork>();
         services.AddScoped<CreateRequestHandler>();
+        services.AddScoped<AssignResponsibleHandler>();
+        services.AddScoped<ChangeRequestStatusHandler>();
         services.AddScoped<ListRequestsHandler>();
         services.AddScoped<GetRequestDetailsHandler>();
         services.AddSingleton(TimeProvider.System);

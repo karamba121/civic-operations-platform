@@ -1,8 +1,13 @@
+using CivicOps.Modules.Requests.Application;
 using CivicOps.Modules.Requests.Application.CreateRequest;
+using CivicOps.Modules.Requests.Application.AssignResponsible;
+using CivicOps.Modules.Requests.Application.ChangeRequestStatus;
 using CivicOps.Modules.Requests.Application.GetRequestDetails;
 using CivicOps.Modules.Requests.Application.ListRequests;
 using CivicOps.Modules.Requests.Domain.Requests;
 using CivicOps.Modules.Requests.Presentation.CreateRequest;
+using CivicOps.Modules.Requests.Presentation.AssignResponsible;
+using CivicOps.Modules.Requests.Presentation.ChangeRequestStatus;
 using CivicOps.Modules.Requests.Presentation.GetRequestDetails;
 using CivicOps.Modules.Requests.Presentation.ListRequests;
 using Microsoft.AspNetCore.Builder;
@@ -108,6 +113,7 @@ public static class RequestEndpoints
                             item.ProtocolNumber,
                             item.Title,
                             item.Status,
+                            item.ResponsibleUserId,
                             item.CreatedAtUtc,
                             item.Version))
                         .ToList();
@@ -153,6 +159,7 @@ public static class RequestEndpoints
                             result.Title,
                             result.Description,
                             result.Status,
+                            result.ResponsibleUserId,
                             result.CreatedAtUtc,
                             result.Version));
                 })
@@ -161,7 +168,92 @@ public static class RequestEndpoints
             .Produces(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status400BadRequest);
 
+        group.MapPatch(
+                "/{requestId:guid}/assignment",
+                async (
+                    Guid requestId,
+                    AssignResponsibleRequest body,
+                    HttpContext httpContext,
+                    AssignResponsibleHandler handler,
+                    CancellationToken cancellationToken) =>
+                {
+                    if (!TryGetTenantId(httpContext, out var tenantId))
+                    {
+                        return InvalidTenantProblem();
+                    }
+
+                    var result = await handler.HandleAsync(
+                        new AssignResponsibleCommand(
+                            tenantId,
+                            requestId,
+                            body.ResponsibleUserId,
+                            body.Version),
+                        cancellationToken);
+
+                    return result is null
+                        ? Results.NotFound()
+                        : Results.Ok(ToMutationResponse(result));
+                })
+            .WithName("AssignRequestResponsible")
+            .Produces<RequestMutationResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict)
+            .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
+
+        group.MapPatch(
+                "/{requestId:guid}/status",
+                async (
+                    Guid requestId,
+                    ChangeRequestStatusRequest body,
+                    HttpContext httpContext,
+                    ChangeRequestStatusHandler handler,
+                    CancellationToken cancellationToken) =>
+                {
+                    if (!TryGetTenantId(httpContext, out var tenantId))
+                    {
+                        return InvalidTenantProblem();
+                    }
+
+                    if (!TryParseStatus(body.Status, out var status) || status is null)
+                    {
+                        return Results.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Situação inválida",
+                            detail:
+                                $"Valores aceitos: {string.Join(", ", Enum.GetNames<RequestStatus>())}.");
+                    }
+
+                    var result = await handler.HandleAsync(
+                        new ChangeRequestStatusCommand(
+                            tenantId,
+                            requestId,
+                            status.Value,
+                            body.Version),
+                        cancellationToken);
+
+                    return result is null
+                        ? Results.NotFound()
+                        : Results.Ok(ToMutationResponse(result));
+                })
+            .WithName("ChangeRequestStatus")
+            .Produces<RequestMutationResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status409Conflict)
+            .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
+
         return endpoints;
+    }
+
+    private static RequestMutationResponse ToMutationResponse(
+        RequestMutationResult result)
+    {
+        return new RequestMutationResponse(
+            result.Id,
+            result.ProtocolNumber,
+            result.Status,
+            result.ResponsibleUserId,
+            result.Version);
     }
 
     private static IResult InvalidTenantProblem()

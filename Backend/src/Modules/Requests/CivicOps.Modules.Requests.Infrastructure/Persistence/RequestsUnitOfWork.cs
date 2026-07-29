@@ -1,4 +1,5 @@
 using CivicOps.Modules.Requests.Application.Abstractions;
+using CivicOps.Modules.Requests.Domain.Requests;
 using Microsoft.EntityFrameworkCore;
 
 namespace CivicOps.Modules.Requests.Infrastructure.Persistence;
@@ -11,16 +12,23 @@ internal sealed class RequestsUnitOfWork(RequestsDbContext dbContext) : IRequest
     {
         var executionStrategy = dbContext.Database.CreateExecutionStrategy();
 
-        return await executionStrategy.ExecuteAsync(async () =>
+        try
         {
-            await using var transaction =
-                await dbContext.Database.BeginTransactionAsync(cancellationToken);
+            return await executionStrategy.ExecuteAsync(async () =>
+            {
+                await using var transaction =
+                    await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-            var result = await action(cancellationToken);
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+                var result = await action(cancellationToken);
+                await dbContext.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
 
-            return result;
-        });
+                return result;
+            });
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            throw new RequestConcurrencyException();
+        }
     }
 }

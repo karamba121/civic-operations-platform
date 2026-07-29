@@ -53,6 +53,7 @@ internal sealed partial class EfRequestReadService(RequestsDbContext dbContext)
                 request.ProtocolNumber.Value,
                 request.Title,
                 request.Status.ToString(),
+                request.ResponsibleUserId,
                 request.CreatedAtUtc,
                 request.Version))
             .ToListAsync(cancellationToken);
@@ -85,6 +86,7 @@ internal sealed partial class EfRequestReadService(RequestsDbContext dbContext)
                 request.Title,
                 request.Description,
                 request.Status.ToString(),
+                request.ResponsibleUserId,
                 request.CreatedAtUtc,
                 request.Version))
             .SingleOrDefaultAsync(cancellationToken);

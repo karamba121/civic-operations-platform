@@ -43,6 +43,8 @@ public sealed class Request : AggregateRoot<Guid>
 
     public RequestStatus Status { get; private set; }
 
+    public Guid? ResponsibleUserId { get; private set; }
+
     public DateTimeOffset CreatedAtUtc { get; private set; }
 
     public Guid Version { get; private set; }
@@ -79,6 +81,75 @@ public sealed class Request : AggregateRoot<Guid>
             title,
             description,
             createdAtUtc);
+    }
+
+    public void AssignResponsible(Guid responsibleUserId, Guid expectedVersion)
+    {
+        EnsureExpectedVersion(expectedVersion);
+
+        if (responsibleUserId == Guid.Empty)
+        {
+            throw new DomainException("O responsável é obrigatório.");
+        }
+
+        EnsureNotTerminal("atribuir um responsável");
+
+        if (ResponsibleUserId == responsibleUserId)
+        {
+            return;
+        }
+
+        ResponsibleUserId = responsibleUserId;
+        Version = Guid.NewGuid();
+    }
+
+    public void ChangeStatus(RequestStatus newStatus, Guid expectedVersion)
+    {
+        EnsureExpectedVersion(expectedVersion);
+
+        if (Status == newStatus)
+        {
+            return;
+        }
+
+        if (!CanTransitionTo(newStatus))
+        {
+            throw new DomainException(
+                $"Não é permitido alterar a situação de {Status} para {newStatus}.");
+        }
+
+        Status = newStatus;
+        Version = Guid.NewGuid();
+    }
+
+    private bool CanTransitionTo(RequestStatus newStatus)
+    {
+        return Status switch
+        {
+            RequestStatus.Submitted =>
+                newStatus is RequestStatus.InProgress or RequestStatus.Cancelled,
+            RequestStatus.InProgress =>
+                newStatus is RequestStatus.Completed or RequestStatus.Cancelled,
+            RequestStatus.Completed or RequestStatus.Cancelled => false,
+            _ => false
+        };
+    }
+
+    private void EnsureExpectedVersion(Guid expectedVersion)
+    {
+        if (expectedVersion == Guid.Empty || Version != expectedVersion)
+        {
+            throw new RequestConcurrencyException();
+        }
+    }
+
+    private void EnsureNotTerminal(string operation)
+    {
+        if (Status is RequestStatus.Completed or RequestStatus.Cancelled)
+        {
+            throw new DomainException(
+                $"Não é possível {operation} em uma solicitação {Status}.");
+        }
     }
 
     private static string RequiredText(string value, string requiredMessage, int maxLength)

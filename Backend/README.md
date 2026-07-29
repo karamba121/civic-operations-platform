@@ -46,9 +46,23 @@ As leituras disponíveis são:
 - `GET /api/v1/requests`: listagem 1-based com `page`, `pageSize`, `search`,
   `status`, `createdFromUtc` e `createdToUtc`;
 - `GET /api/v1/requests/{id}`: detalhe da solicitação dentro do tenant atual.
+- `PATCH /api/v1/requests/{id}/assignment`: atribui um responsável;
+- `PATCH /api/v1/requests/{id}/status`: executa uma transição de situação.
 
 `pageSize` aceita de 1 a 100. A busca é case-insensitive sobre título e
 descrição e também aceita um número de protocolo completo.
+
+Os dois comandos de alteração exigem a `version` retornada pela leitura anterior.
+Uma versão desatualizada retorna `409 Conflict`. As transições permitidas são:
+
+```text
+Submitted -> InProgress | Cancelled
+InProgress -> Completed | Cancelled
+Completed | Cancelled -> estado terminal
+```
+
+O responsável é armazenado como UUID sem foreign key até a implementação do
+módulo de identidade.
 
 ## Testes
 
@@ -66,6 +80,8 @@ Os testes de integração usam tenants aleatórios e verificam no PostgreSQL rea
 - conflito ao reutilizar uma chave com outro conteúdo.
 - paginação, filtros e busca executados no PostgreSQL;
 - isolamento entre tenants nas listagens e nos detalhes.
+- atribuição de responsável e workflow de situação;
+- concorrência otimista, inclusive com atualizações simultâneas.
 
 ## Migration
 
