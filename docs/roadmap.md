@@ -17,7 +17,7 @@ comandos documentados.
 ## 2. Primeira fatia vertical: solicitações
 
 - [x] criar solicitação com idempotência e gerar protocolo por tenant;
-- listar, filtrar e consultar detalhes;
+- [x] listar, filtrar e consultar detalhes;
 - atribuir responsável e alterar situação;
 - registrar comentário e prazo;
 - implementar concorrência otimista;

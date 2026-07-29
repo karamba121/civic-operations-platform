@@ -7,9 +7,9 @@ O objetivo deste projeto é demonstrar como construir um sistema empresarial
 consistente e observável em .NET sem transformar cada limite lógico em um
 microsserviço artificial.
 
-> **Status:** primeiro fluxo vertical em construção. A criação idempotente de
-> solicitações e a geração atômica de protocolo por tenant já estão
-> implementadas; as demais funcionalidades continuam identificadas como
+> **Status:** primeiro fluxo vertical em construção. Criação idempotente,
+> protocolo por tenant, listagem paginada com filtros e consulta de detalhes já
+> estão implementados; as demais funcionalidades continuam identificadas como
 > planejadas.
 
 ## Por que um monólito modular?

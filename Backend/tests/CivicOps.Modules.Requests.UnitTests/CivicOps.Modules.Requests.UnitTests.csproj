@@ -12,6 +12,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="../../src/Modules/Requests/CivicOps.Modules.Requests.Application/CivicOps.Modules.Requests.Application.csproj" />
     <ProjectReference Include="../../src/Modules/Requests/CivicOps.Modules.Requests.Domain/CivicOps.Modules.Requests.Domain.csproj" />
   </ItemGroup>
 </Project>

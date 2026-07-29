@@ -1,5 +1,7 @@
 using CivicOps.Modules.Requests.Application.Abstractions;
 using CivicOps.Modules.Requests.Application.CreateRequest;
+using CivicOps.Modules.Requests.Application.GetRequestDetails;
+using CivicOps.Modules.Requests.Application.ListRequests;
 using CivicOps.Modules.Requests.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -25,10 +27,13 @@ public static class DependencyInjection
                     "requests")));
 
         services.AddScoped<IRequestRepository, RequestRepository>();
+        services.AddScoped<IRequestReadService, EfRequestReadService>();
         services.AddScoped<IProtocolNumberGenerator, PostgresProtocolNumberGenerator>();
         services.AddScoped<IRequestIdempotencyStore, PostgresRequestIdempotencyStore>();
         services.AddScoped<IRequestsUnitOfWork, RequestsUnitOfWork>();
         services.AddScoped<CreateRequestHandler>();
+        services.AddScoped<ListRequestsHandler>();
+        services.AddScoped<GetRequestDetailsHandler>();
         services.AddSingleton(TimeProvider.System);
 
         return services;

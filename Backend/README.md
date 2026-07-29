@@ -41,6 +41,15 @@ mesma chave, tenant e conteúdo retorna a solicitação originalmente criada sem
 consumir outro número de protocolo. Reutilizar a chave com conteúdo diferente
 retorna `409 Conflict`.
 
+As leituras disponíveis são:
+
+- `GET /api/v1/requests`: listagem 1-based com `page`, `pageSize`, `search`,
+  `status`, `createdFromUtc` e `createdToUtc`;
+- `GET /api/v1/requests/{id}`: detalhe da solicitação dentro do tenant atual.
+
+`pageSize` aceita de 1 a 100. A busca é case-insensitive sobre título e
+descrição e também aceita um número de protocolo completo.
+
 ## Testes
 
 Com o PostgreSQL do Compose em execução:
@@ -55,6 +64,8 @@ Os testes de integração usam tenants aleatórios e verificam no PostgreSQL rea
 - geração atômica sob requisições concorrentes;
 - retries sequenciais e concorrentes com a mesma chave de idempotência;
 - conflito ao reutilizar uma chave com outro conteúdo.
+- paginação, filtros e busca executados no PostgreSQL;
+- isolamento entre tenants nas listagens e nos detalhes.
 
 ## Migration
 

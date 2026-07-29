@@ -1,5 +1,6 @@
 using CivicOps.BuildingBlocks.Domain;
 using CivicOps.Modules.Requests.Application.CreateRequest;
+using CivicOps.Modules.Requests.Application.ListRequests;
 using CivicOps.Modules.Requests.Infrastructure;
 using CivicOps.Modules.Requests.Presentation;
 using Microsoft.AspNetCore.Diagnostics;
@@ -10,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<DomainExceptionHandler>();
 builder.Services.AddExceptionHandler<IdempotencyConflictExceptionHandler>();
+builder.Services.AddExceptionHandler<RequestQueryValidationExceptionHandler>();
 builder.Services.AddRequestsModule(builder.Configuration);
 
 var app = builder.Build();
@@ -82,6 +84,36 @@ internal sealed class IdempotencyConflictExceptionHandler(
                     Status = StatusCodes.Status409Conflict,
                     Title = "Conflito de idempotência",
                     Detail = conflictException.Message
+                },
+                Exception = exception
+            });
+    }
+}
+
+internal sealed class RequestQueryValidationExceptionHandler(
+    IProblemDetailsService problemDetailsService) : IExceptionHandler
+{
+    public async ValueTask<bool> TryHandleAsync(
+        HttpContext httpContext,
+        Exception exception,
+        CancellationToken cancellationToken)
+    {
+        if (exception is not RequestQueryValidationException validationException)
+        {
+            return false;
+        }
+
+        httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+
+        return await problemDetailsService.TryWriteAsync(
+            new ProblemDetailsContext
+            {
+                HttpContext = httpContext,
+                ProblemDetails = new ProblemDetails
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Parâmetros de consulta inválidos",
+                    Detail = validationException.Message
                 },
                 Exception = exception
             });

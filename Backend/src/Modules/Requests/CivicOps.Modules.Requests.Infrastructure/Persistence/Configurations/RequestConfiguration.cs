@@ -59,5 +59,14 @@ internal sealed class RequestConfiguration : IEntityTypeConfiguration<Request>
 
         builder.HasIndex(request => new { request.TenantId, request.CreatedAtUtc })
             .HasDatabaseName("ix_administrative_requests_tenant_created_at");
+
+        builder.HasIndex(
+                request => new
+                {
+                    request.TenantId,
+                    request.Status,
+                    request.CreatedAtUtc
+                })
+            .HasDatabaseName("ix_administrative_requests_tenant_status_created_at");
     }
 }

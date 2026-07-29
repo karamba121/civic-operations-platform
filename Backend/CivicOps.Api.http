@@ -15,3 +15,17 @@ Idempotency-Key: request-demo-001
   "title": "Manutenção da iluminação pública",
   "description": "Poste sem iluminação na Avenida Central."
 }
+
+###
+
+GET {{host}}/api/v1/requests?page=1&pageSize=20&search=iluminação&status=Submitted
+Accept: application/json
+X-Tenant-Id: {{tenantId}}
+
+###
+
+@requestId = 00000000-0000-0000-0000-000000000000
+
+GET {{host}}/api/v1/requests/{{requestId}}
+Accept: application/json
+X-Tenant-Id: {{tenantId}}
