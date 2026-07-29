@@ -44,6 +44,8 @@ public static class DependencyInjection
             RequestAttachmentRepository>();
         services.AddScoped<IRequestAttachmentReadService,
             EfRequestAttachmentReadService>();
+        services.AddScoped<IRequestSensitiveDataAudit,
+            RequestSensitiveDataAudit>();
         services.AddSingleton<IAttachmentContentStore,
             FileSystemAttachmentContentStore>();
         services.AddScoped<IRequestReadService, EfRequestReadService>();

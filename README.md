@@ -7,11 +7,10 @@ O objetivo deste projeto é demonstrar como construir um sistema empresarial
 consistente e observável em .NET sem transformar cada limite lógico em um
 microsserviço artificial.
 
-> **Status:** primeiro fluxo vertical em construção. Criação idempotente,
-> protocolo por tenant, listagem paginada com filtros e consulta de detalhes já
-> estão implementados. Atribuição de responsável, transições de situação e
-> concorrência otimista também estão funcionais; as demais funcionalidades
-> continuam identificadas como planejadas.
+> **Status:** a primeira fatia vertical do backend está implementada, incluindo
+> solicitações, integração assíncrona, anexos, papéis por tenant e auditoria de
+> acessos sensíveis. A interface Angular e as evidências operacionais continuam
+> em evolução conforme o roadmap.
 
 ## Por que um monólito modular?
 
@@ -109,6 +108,7 @@ partem de eventos gravados na Outbox.
 - [ADR-005: conteúdo de anexos fora do banco relacional](docs/adr/005-attachment-content-storage.md)
 - [ADR-006: segurança básica de anexos](docs/adr/006-attachment-security-baseline.md)
 - [ADR-007: papéis e permissões por tenant](docs/adr/007-tenant-roles-and-permissions.md)
+- [ADR-008: auditoria de dados sensíveis](docs/adr/008-sensitive-data-audit.md)
 - [Roadmap orientado a evidências](docs/roadmap.md)
 
 ## Execução local

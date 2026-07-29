@@ -58,3 +58,10 @@ Testes unitários cobrem combinações permitidas, incompatibilidade de MIME,
 assinaturas e acesso do autor/responsável. Testes de integração contra
 PostgreSQL real cobrem `403`, `413`, `415`, isolamento entre tenants e remoção
 dos arquivos temporários rejeitados.
+
+## Evolução
+
+A restrição temporária ao autor ou responsável foi ampliada por papéis e
+permissões no [ADR-007](007-tenant-roles-and-permissions.md). A auditoria das
+leituras autorizadas foi definida no
+[ADR-008](008-sensitive-data-audit.md).

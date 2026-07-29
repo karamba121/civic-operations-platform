@@ -1,4 +1,5 @@
 using CivicOps.Modules.Requests.Application.Abstractions;
+using System.Text.Json;
 
 namespace CivicOps.Modules.Requests.Application.DownloadRequestAttachment;
 
@@ -6,7 +7,9 @@ public sealed class DownloadRequestAttachmentHandler(
     IRequestRepository requestRepository,
     RequestAttachmentAuthorization authorization,
     IRequestAttachmentReadService readService,
-    IAttachmentContentStore contentStore)
+    IAttachmentContentStore contentStore,
+    IRequestSensitiveDataAudit audit,
+    TimeProvider timeProvider)
 {
     public async Task<DownloadRequestAttachmentResult?> HandleAsync(
         DownloadRequestAttachmentQuery query,
@@ -44,10 +47,28 @@ public sealed class DownloadRequestAttachmentHandler(
             ?? throw new AttachmentContentUnavailableException(
                 attachment.Id);
 
-        return new DownloadRequestAttachmentResult(
-            content,
-            attachment.FileName,
-            attachment.ContentType,
-            attachment.SizeBytes);
+        try
+        {
+            await audit.RecordAsync(
+                query.TenantId,
+                query.RequestId,
+                query.UserId,
+                RequestSensitiveDataAuditActions.AttachmentDownloaded,
+                JsonSerializer.Serialize(
+                    new { attachmentId = attachment.Id }),
+                timeProvider.GetUtcNow(),
+                cancellationToken);
+
+            return new DownloadRequestAttachmentResult(
+                content,
+                attachment.FileName,
+                attachment.ContentType,
+                attachment.SizeBytes);
+        }
+        catch
+        {
+            await content.DisposeAsync();
+            throw;
+        }
     }
 }

@@ -3,6 +3,7 @@ namespace CivicOps.Modules.IdentityAccess;
 public sealed class BootstrapTenantAdministratorHandler(
     ITenantMembershipRepository repository,
     IIdentityAccessUnitOfWork unitOfWork,
+    IIdentityAccessAuditWriter auditWriter,
     TimeProvider timeProvider)
 {
     public Task<MembershipResult> HandleAsync(
@@ -31,6 +32,14 @@ public sealed class BootstrapTenantAdministratorHandler(
                     userId,
                     timeProvider.GetUtcNow());
                 repository.Add(membership);
+                auditWriter.Add(
+                    tenantId,
+                    userId,
+                    userId,
+                    IdentityAccessAuditActions
+                        .TenantAdministratorBootstrapped,
+                    """{"role":"Administrator"}""",
+                    membership.CreatedAtUtc);
 
                 return ToResult(membership);
             },

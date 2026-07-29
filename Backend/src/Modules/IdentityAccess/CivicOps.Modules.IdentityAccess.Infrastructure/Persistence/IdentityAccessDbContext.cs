@@ -8,6 +8,9 @@ public sealed class IdentityAccessDbContext(
     public DbSet<TenantMembership> TenantMemberships =>
         Set<TenantMembership>();
 
+    internal DbSet<IdentityAccessAuditRecord> AuditRecords =>
+        Set<IdentityAccessAuditRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema("identity_access");

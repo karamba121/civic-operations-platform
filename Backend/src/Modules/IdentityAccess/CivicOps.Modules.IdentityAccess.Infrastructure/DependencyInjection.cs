@@ -29,6 +29,9 @@ public static class DependencyInjection
         services.AddScoped<
             IIdentityAccessUnitOfWork,
             IdentityAccessUnitOfWork>();
+        services.AddScoped<
+            IIdentityAccessAuditWriter,
+            IdentityAccessAuditWriter>();
         services.AddScoped<IPermissionAuthorizer, PermissionAuthorizer>();
         services.AddScoped<BootstrapTenantAdministratorHandler>();
         services.AddScoped<SetTenantMemberRoleHandler>();

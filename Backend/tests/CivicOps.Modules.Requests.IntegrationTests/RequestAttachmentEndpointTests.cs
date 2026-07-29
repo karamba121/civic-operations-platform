@@ -1,6 +1,7 @@
 using CivicOps.Modules.Requests.Infrastructure.Persistence;
 using CivicOps.Modules.Requests.Presentation.Attachments;
 using CivicOps.Modules.Requests.Presentation.CreateRequest;
+using CivicOps.Modules.IdentityAccess.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -146,6 +147,34 @@ public sealed class RequestAttachmentEndpointTests
             Assert.Equal(
                 "application/pdf",
                 downloadResponse.Content.Headers.ContentType?.MediaType);
+            Assert.Equal(
+                1,
+                await CountRecordsAsync(
+                    dbContext,
+                    """
+                    SELECT COUNT(*)
+                    FROM requests.request_audit
+                    WHERE tenant_id = @tenant_id
+                      AND request_id = @request_id
+                      AND action = 'AttachmentMetadataListed';
+                    """,
+                    tenantId,
+                    request.Id,
+                    cancellationToken));
+            Assert.Equal(
+                1,
+                await CountRecordsAsync(
+                    dbContext,
+                    """
+                    SELECT COUNT(*)
+                    FROM requests.request_audit
+                    WHERE tenant_id = @tenant_id
+                      AND request_id = @request_id
+                      AND action = 'AttachmentDownloaded';
+                    """,
+                    tenantId,
+                    request.Id,
+                    cancellationToken));
 
             using var isolatedList = await SendForTenantAsync(
                 client,
@@ -180,6 +209,23 @@ public sealed class RequestAttachmentEndpointTests
             Assert.Equal(
                 HttpStatusCode.Forbidden,
                 forbiddenDownload.StatusCode);
+
+            Assert.Equal(
+                2,
+                await CountRecordsAsync(
+                    dbContext,
+                    """
+                    SELECT COUNT(*)
+                    FROM requests.request_audit
+                    WHERE tenant_id = @tenant_id
+                      AND request_id = @request_id
+                      AND action IN (
+                          'AttachmentMetadataListed',
+                          'AttachmentDownloaded');
+                    """,
+                    tenantId,
+                    request.Id,
+                    cancellationToken));
         }
         finally
         {
@@ -411,6 +457,28 @@ public sealed class RequestAttachmentEndpointTests
             Assert.NotNull(memberships);
             Assert.Equal(3, memberships.Count);
 
+            Assert.Equal(
+                1,
+                await CountAccessAuditRecordsAsync(
+                    factory,
+                    tenantId,
+                    "TenantAdministratorBootstrapped",
+                    cancellationToken));
+            Assert.Equal(
+                2,
+                await CountAccessAuditRecordsAsync(
+                    factory,
+                    tenantId,
+                    "TenantMemberRoleSet",
+                    cancellationToken));
+            Assert.Equal(
+                1,
+                await CountAccessAuditRecordsAsync(
+                    factory,
+                    tenantId,
+                    "TenantMembersListed",
+                    cancellationToken));
+
             using var otherTenantAccess = await SendForTenantAsync(
                 client,
                 HttpMethod.Get,
@@ -459,6 +527,14 @@ public sealed class RequestAttachmentEndpointTests
                     response.Dispose();
                 }
             }
+
+            Assert.Equal(
+                1,
+                await CountAccessAuditRecordsAsync(
+                    factory,
+                    concurrentTenantId,
+                    "TenantAdministratorBootstrapped",
+                    cancellationToken));
         }
         finally
         {
@@ -652,6 +728,37 @@ public sealed class RequestAttachmentEndpointTests
             command,
             "request_id_text",
             requestId.ToString());
+        return Convert.ToInt64(
+            await command.ExecuteScalarAsync(cancellationToken));
+    }
+
+    private static async Task<long> CountAccessAuditRecordsAsync(
+        WebApplicationFactory<Program> factory,
+        Guid tenantId,
+        string action,
+        CancellationToken cancellationToken)
+    {
+        await using var scope = factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider
+            .GetRequiredService<IdentityAccessDbContext>();
+        var connection = dbContext.Database.GetDbConnection();
+
+        if (connection.State != ConnectionState.Open)
+        {
+            await connection.OpenAsync(cancellationToken);
+        }
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT COUNT(*)
+            FROM identity_access.access_audit
+            WHERE tenant_id = @tenant_id
+              AND action = @action;
+            """;
+        AddParameter(command, "tenant_id", tenantId);
+        AddParameter(command, "action", action);
+
         return Convert.ToInt64(
             await command.ExecuteScalarAsync(cancellationToken));
     }

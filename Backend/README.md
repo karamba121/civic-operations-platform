@@ -152,6 +152,10 @@ padrão e deve ser ativado somente durante o provisionamento inicial. Depois
 dele, apenas `Administrator` pode conceder papéis e listar membros. O último
 administrador não pode ser rebaixado.
 
+Bootstrap, concessão ou alteração de papel e listagem de membros são gravados
+atomicamente em `identity_access.access_audit`. O registro contém somente
+identificadores, ação, instante e metadados mínimos.
+
 ## Anexos
 
 O PostgreSQL armazena somente metadados em
@@ -164,6 +168,10 @@ configurável por `AttachmentStorage:RootPath`. O limite padrão é 25 MiB,
 configurável por `AttachmentStorage:MaximumSizeBytes`. A escrita usa arquivo
 temporário, cálculo incremental de SHA-256 e rename atômico. Se o commit dos
 metadados falhar, o conteúdo é removido como compensação.
+
+Listagens de metadados e downloads autorizados são registrados em
+`requests.request_audit`. Essas leituras não publicam eventos na Outbox e não
+copiam nome, hash ou conteúdo do arquivo para o payload da auditoria.
 
 O nome informado pelo cliente nunca participa da chave física. A implementação
 filesystem mantém o desenvolvimento local autocontido; a porta permite
@@ -212,6 +220,8 @@ Os testes de integração usam tenants aleatórios e verificam no PostgreSQL rea
   limite durante streaming e limpeza de arquivos rejeitados;
 - papéis por tenant, menor privilégio, concessão administrativa, proteção do
   último administrador e bootstrap concorrente.
+- auditoria de leituras de anexos e operações administrativas de acesso, sem
+  registrar tentativas negadas como acessos bem-sucedidos.
 
 ## Migration
 

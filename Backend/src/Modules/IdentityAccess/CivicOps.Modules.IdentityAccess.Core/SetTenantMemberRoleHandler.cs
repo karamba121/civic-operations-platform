@@ -1,4 +1,5 @@
 using CivicOps.BuildingBlocks.Domain;
+using System.Text.Json;
 
 namespace CivicOps.Modules.IdentityAccess;
 
@@ -6,6 +7,7 @@ public sealed class SetTenantMemberRoleHandler(
     ITenantMembershipRepository repository,
     IIdentityAccessUnitOfWork unitOfWork,
     IPermissionAuthorizer authorizer,
+    IIdentityAccessAuditWriter auditWriter,
     TimeProvider timeProvider)
 {
     public async Task<MembershipResult> HandleAsync(
@@ -36,6 +38,7 @@ public sealed class SetTenantMemberRoleHandler(
                     tenantId,
                     targetUserId,
                     transactionCancellationToken);
+                var previousRole = membership?.Role.ToString();
 
                 if (membership is null)
                 {
@@ -64,6 +67,19 @@ public sealed class SetTenantMemberRoleHandler(
                         actorUserId,
                         timeProvider.GetUtcNow());
                 }
+
+                auditWriter.Add(
+                    tenantId,
+                    actorUserId,
+                    targetUserId,
+                    IdentityAccessAuditActions.TenantMemberRoleSet,
+                    JsonSerializer.Serialize(
+                        new
+                        {
+                            previousRole,
+                            newRole = role.ToString()
+                        }),
+                    membership.UpdatedAtUtc);
 
                 return ToResult(membership);
             },

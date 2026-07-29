@@ -69,3 +69,6 @@ adicionais por papel. `Reader` pode listar e baixar anexos; `Operator` e
 Os testes cobrem catálogo de menor privilégio, concessão administrativa,
 negação para leitor, acesso de operador, isolamento entre tenants, proteção do
 último administrador e bootstrap concorrente com um único vencedor.
+
+A auditoria de bootstrap, alteração de papel e listagem de membros é definida
+no [ADR-008](008-sensitive-data-audit.md).
