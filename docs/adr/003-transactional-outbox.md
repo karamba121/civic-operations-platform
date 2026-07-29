@@ -19,8 +19,8 @@ pendentes, publicará no RabbitMQ e registrará o resultado.
 O contrato assume entrega `at-least-once`. Consumidores usarão um identificador
 estável da mensagem para impedir efeitos duplicados.
 
-Falhas transitórias terão retry com backoff. Mensagens que excederem o limite de
-tentativas serão movidas para estado de falha e expostas operacionalmente.
+Falhas transitórias no consumidor terão retry com backoff. Mensagens que
+excederem o limite de tentativas serão movidas para uma dead-letter queue.
 
 ## Consequências
 

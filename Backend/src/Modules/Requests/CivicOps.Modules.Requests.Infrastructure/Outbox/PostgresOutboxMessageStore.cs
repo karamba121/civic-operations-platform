@@ -44,9 +44,12 @@ internal sealed class PostgresOutboxMessageStore(RequestsDbContext dbContext)
              WHERE message.id = candidates.id
             RETURNING message.id,
                       message.tenant_id,
-                      message.type,
-                      message.payload::text,
-                      message.occurred_at_utc;
+                message.type,
+                message.payload::text,
+                message.occurred_at_utc,
+                message.trace_parent,
+                message.trace_state,
+                message.baggage;
             """;
         command.Parameters.AddWithValue("lock_id", NpgsqlDbType.Uuid, lockId);
         command.Parameters.AddWithValue(
@@ -73,7 +76,10 @@ internal sealed class PostgresOutboxMessageStore(RequestsDbContext dbContext)
                     reader.GetGuid(1),
                     reader.GetString(2),
                     reader.GetString(3),
-                    reader.GetFieldValue<DateTimeOffset>(4)));
+                    reader.GetFieldValue<DateTimeOffset>(4),
+                    reader.IsDBNull(5) ? null : reader.GetString(5),
+                    reader.IsDBNull(6) ? null : reader.GetString(6),
+                    reader.IsDBNull(7) ? null : reader.GetString(7)));
         }
 
         await reader.CloseAsync();

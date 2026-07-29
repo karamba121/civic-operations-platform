@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using System.Data;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text;
@@ -147,6 +148,13 @@ public sealed class NotificationIdempotencyTests
         var observerQueueName = $"{queueName}.observer";
         const int retryQueueCount = 3;
         var processor = new AlwaysFailingProcessor();
+        var expectedTraceId = ActivityTraceId.CreateRandom();
+        var incomingSpanId = ActivitySpanId.CreateRandom();
+        var incomingTraceParent =
+            $"00-{expectedTraceId}-{incomingSpanId}-01";
+        const string incomingTraceState = "civicops=retry-test";
+        const string incomingBaggage =
+            "municipality=retry-test";
         var factory = CreateFactory(
             queueName,
             exchangeName,
@@ -185,6 +193,10 @@ public sealed class NotificationIdempotencyTests
                 payload,
                 queueName,
                 exchangeName,
+                new TraceTestContext(
+                    incomingTraceParent,
+                    incomingTraceState,
+                    incomingBaggage),
                 cancellationToken);
 
             var deadLetter = await WaitForDeadLetterAsync(
@@ -210,6 +222,37 @@ public sealed class NotificationIdempotencyTests
                 GetStringHeader(
                     deadLetter.Headers,
                     "x-civicops-original-queue"));
+            var deadLetterTraceParent = GetStringHeader(
+                deadLetter.Headers,
+                "traceparent");
+            var deadLetterTraceState = GetStringHeader(
+                deadLetter.Headers,
+                "tracestate");
+            var deadLetterBaggage = GetStringHeader(
+                deadLetter.Headers,
+                "baggage");
+            Assert.True(ActivityContext.TryParse(
+                deadLetterTraceParent,
+                deadLetterTraceState,
+                isRemote: true,
+                out var deadLetterContext));
+            Assert.Equal(
+                expectedTraceId,
+                deadLetterContext.TraceId);
+            Assert.NotEqual(
+                incomingSpanId,
+                deadLetterContext.SpanId);
+            Assert.Equal(
+                incomingTraceState,
+                deadLetterTraceState);
+            Assert.Contains(
+                "municipality",
+                deadLetterBaggage,
+                StringComparison.Ordinal);
+            Assert.Contains(
+                "retry-test",
+                deadLetterBaggage,
+                StringComparison.Ordinal);
             Assert.Equal(
                 1u,
                 await GetQueueMessageCountAsync(
@@ -265,6 +308,7 @@ public sealed class NotificationIdempotencyTests
                 "{}",
                 queueName,
                 exchangeName,
+                traceContext: null,
                 cancellationToken);
 
             var deadLetter = await WaitForDeadLetterAsync(
@@ -519,6 +563,7 @@ public sealed class NotificationIdempotencyTests
         string payload,
         string queueName,
         string exchangeName,
+        TraceTestContext? traceContext,
         CancellationToken cancellationToken)
     {
         await WaitUntilQueueExistsAsync(
@@ -540,7 +585,15 @@ public sealed class NotificationIdempotencyTests
             Persistent = true,
             ContentType = "application/json",
             MessageId = messageId.ToString(),
-            Type = "requests.responsible-assigned.v1"
+            Type = "requests.responsible-assigned.v1",
+            Headers = traceContext is null
+                ? null
+                : new Dictionary<string, object?>
+                {
+                    ["traceparent"] = traceContext.TraceParent,
+                    ["tracestate"] = traceContext.TraceState,
+                    ["baggage"] = traceContext.Baggage
+                }
         };
 
         await channel.BasicPublishAsync(
@@ -844,6 +897,11 @@ public sealed class NotificationIdempotencyTests
 
     private sealed record DeadLetterTestMessage(
         IDictionary<string, object?>? Headers);
+
+    private sealed record TraceTestContext(
+        string TraceParent,
+        string TraceState,
+        string Baggage);
 
     private sealed class AlwaysFailingProcessor :
         IRequestAssignedNotificationProcessor

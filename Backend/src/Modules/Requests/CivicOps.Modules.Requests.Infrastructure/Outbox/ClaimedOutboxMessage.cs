@@ -5,4 +5,7 @@ internal sealed record ClaimedOutboxMessage(
     Guid TenantId,
     string Type,
     string Payload,
-    DateTimeOffset OccurredAtUtc);
+    DateTimeOffset OccurredAtUtc,
+    string? TraceParent,
+    string? TraceState,
+    string? Baggage);

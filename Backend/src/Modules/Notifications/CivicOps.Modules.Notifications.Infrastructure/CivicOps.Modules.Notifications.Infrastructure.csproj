@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <ProjectReference Include="../../../BuildingBlocks/CivicOps.BuildingBlocks.Observability/CivicOps.BuildingBlocks.Observability.csproj" />
     <ProjectReference Include="../CivicOps.Modules.Notifications.Application/CivicOps.Modules.Notifications.Application.csproj" />
     <ProjectReference Include="../CivicOps.Modules.Notifications.Domain/CivicOps.Modules.Notifications.Domain.csproj" />
   </ItemGroup>

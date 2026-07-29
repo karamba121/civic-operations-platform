@@ -13,7 +13,10 @@ internal sealed class OutboxMessage
         Guid tenantId,
         string type,
         string payload,
-        DateTimeOffset occurredAtUtc)
+        DateTimeOffset occurredAtUtc,
+        string? traceParent,
+        string? traceState,
+        string? baggage)
     {
         Id = id;
         TenantId = tenantId;
@@ -21,6 +24,9 @@ internal sealed class OutboxMessage
         Payload = payload;
         OccurredAtUtc = occurredAtUtc;
         NextAttemptAtUtc = occurredAtUtc;
+        TraceParent = traceParent;
+        TraceState = traceState;
+        Baggage = baggage;
     }
 
     public Guid Id { get; private init; }
@@ -32,6 +38,12 @@ internal sealed class OutboxMessage
     public string Payload { get; private init; }
 
     public DateTimeOffset OccurredAtUtc { get; private init; }
+
+    public string? TraceParent { get; private init; }
+
+    public string? TraceState { get; private init; }
+
+    public string? Baggage { get; private init; }
 
     public DateTimeOffset NextAttemptAtUtc { get; private init; }
 
@@ -50,13 +62,19 @@ internal sealed class OutboxMessage
         Guid tenantId,
         string type,
         string payload,
-        DateTimeOffset occurredAtUtc)
+        DateTimeOffset occurredAtUtc,
+        string? traceParent,
+        string? traceState,
+        string? baggage)
     {
         return new OutboxMessage(
             eventId,
             tenantId,
             type,
             payload,
-            occurredAtUtc);
+            occurredAtUtc,
+            traceParent,
+            traceState,
+            baggage);
     }
 }

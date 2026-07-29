@@ -113,6 +113,22 @@ diretamente para essa DLQ, sem retry. Os headers `x-civicops-retry-count`,
 `x-civicops-last-error`, `x-civicops-failed-at` e
 `x-civicops-dead-letter-reason` preservam o contexto operacional.
 
+O contexto W3C da requisição (`traceparent`, `tracestate` e `baggage`) é
+persistido junto da Outbox. O publisher restaura esse contexto, cria um span
+`Producer` e o injeta nos headers AMQP. Notifications cria spans `Consumer` e
+novos spans `Producer` para retry e DLQ, preservando o mesmo `traceId` durante
+todo o fluxo, inclusive após reinicialização do processo. Os ActivitySources
+usados são `CivicOps.Requests` e `CivicOps.Notifications`.
+
+O SDK OpenTelemetry e a instrumentação ASP.NET Core estão ativos. O exportador
+OTLP é opcional para que o backend continue executável sem collector:
+
+```powershell
+$env:OpenTelemetry__Otlp__Enabled = "true"
+$env:OpenTelemetry__Otlp__Endpoint = "http://localhost:4317"
+dotnet run --project src/CivicOps.Api/CivicOps.Api.csproj
+```
+
 ## Testes
 
 Com PostgreSQL e RabbitMQ do Compose em execução:
@@ -141,7 +157,9 @@ Os testes de integração usam tenants aleatórios e verificam no PostgreSQL rea
 - retry real no RabbitMQ com backoff, publisher confirm e encaminhamento para
   DLQ após esgotar as tentativas;
 - encaminhamento direto de mensagens inválidas para DLQ, sem executar o
-  processador de aplicação.
+  processador de aplicação;
+- preservação do mesmo `traceId` entre HTTP, Outbox, publicação confirmada,
+  retries e DLQ.
 
 ## Migration
 

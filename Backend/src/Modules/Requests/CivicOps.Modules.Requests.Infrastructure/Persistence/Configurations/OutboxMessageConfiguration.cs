@@ -28,6 +28,18 @@ internal sealed class OutboxMessageConfiguration
         builder.Property(message => message.OccurredAtUtc)
             .HasColumnName("occurred_at_utc")
             .IsRequired();
+
+        builder.Property(message => message.TraceParent)
+            .HasColumnName("trace_parent")
+            .HasMaxLength(512);
+
+        builder.Property(message => message.TraceState)
+            .HasColumnName("trace_state")
+            .HasMaxLength(512);
+
+        builder.Property(message => message.Baggage)
+            .HasColumnName("baggage")
+            .HasMaxLength(4_096);
         builder.Property(message => message.NextAttemptAtUtc)
             .HasColumnName("next_attempt_at_utc")
             .IsRequired();

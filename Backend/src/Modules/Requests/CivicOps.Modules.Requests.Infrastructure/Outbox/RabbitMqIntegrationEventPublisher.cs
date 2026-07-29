@@ -1,4 +1,6 @@
+using CivicOps.BuildingBlocks.Observability;
 using RabbitMQ.Client;
+using System.Diagnostics;
 using System.Text;
 
 namespace CivicOps.Modules.Requests.Infrastructure.Outbox;
@@ -14,6 +16,33 @@ internal sealed class RabbitMqIntegrationEventPublisher(
         ClaimedOutboxMessage message,
         CancellationToken cancellationToken)
     {
+        var persistedTraceContext = new TraceContext(
+            message.TraceParent,
+            message.TraceState,
+            message.Baggage);
+        var parentContext =
+            TraceContextPropagation.ExtractParent(
+                persistedTraceContext);
+        using var activity =
+            CivicOpsActivitySources.Requests.StartActivity(
+                $"{message.Type} publish",
+                ActivityKind.Producer,
+                parentContext);
+        TraceContextPropagation.ApplyBaggage(
+            activity,
+            persistedTraceContext);
+        activity?.SetTag("messaging.system", "rabbitmq");
+        activity?.SetTag(
+            "messaging.destination.name",
+            options.ExchangeName);
+        activity?.SetTag("messaging.operation.type", "publish");
+        activity?.SetTag(
+            "messaging.message.id",
+            message.Id);
+        activity?.SetTag(
+            "civicops.tenant.id",
+            message.TenantId);
+
         await _channelLock.WaitAsync(cancellationToken);
 
         try
@@ -33,6 +62,11 @@ internal sealed class RabbitMqIntegrationEventPublisher(
                     ["tenant-id"] = message.TenantId.ToString()
                 }
             };
+            TraceContextPropagation.Inject(
+                activity is null
+                    ? persistedTraceContext
+                    : TraceContextPropagation.Capture(activity),
+                properties.Headers);
 
             await channel.BasicPublishAsync(
                 options.ExchangeName,
@@ -41,9 +75,13 @@ internal sealed class RabbitMqIntegrationEventPublisher(
                 properties,
                 Encoding.UTF8.GetBytes(message.Payload),
                 cancellationToken);
+            activity?.SetStatus(ActivityStatusCode.Ok);
         }
-        catch
+        catch (Exception exception)
         {
+            CivicOpsActivitySources.RecordException(
+                activity,
+                exception);
             await ResetConnectionAsync();
             throw;
         }

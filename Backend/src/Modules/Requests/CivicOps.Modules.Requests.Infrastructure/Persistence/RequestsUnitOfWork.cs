@@ -1,4 +1,5 @@
 using CivicOps.BuildingBlocks.Domain;
+using CivicOps.BuildingBlocks.Observability;
 using CivicOps.Modules.Requests.Application.Abstractions;
 using CivicOps.Modules.Requests.Domain.Requests;
 using CivicOps.Modules.Requests.Domain.Requests.Events;
@@ -61,6 +62,8 @@ internal sealed class RequestsUnitOfWork(RequestsDbContext dbContext) : IRequest
         var domainEvents = aggregates
             .SelectMany(aggregate => aggregate.DomainEvents)
             .Cast<IRequestDomainEvent>();
+        var traceContext =
+            TraceContextPropagation.CaptureCurrent();
 
         foreach (var domainEvent in domainEvents)
         {
@@ -85,7 +88,10 @@ internal sealed class RequestsUnitOfWork(RequestsDbContext dbContext) : IRequest
                     domainEvent.TenantId,
                     eventType,
                     payload,
-                    domainEvent.OccurredAtUtc));
+                    domainEvent.OccurredAtUtc,
+                    traceContext.TraceParent,
+                    traceContext.TraceState,
+                    traceContext.Baggage));
         }
     }
 

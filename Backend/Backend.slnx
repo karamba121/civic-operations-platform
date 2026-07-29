@@ -4,6 +4,7 @@
   </Folder>
   <Folder Name="/src/BuildingBlocks/">
     <Project Path="src/BuildingBlocks/CivicOps.BuildingBlocks.Domain/CivicOps.BuildingBlocks.Domain.csproj" />
+    <Project Path="src/BuildingBlocks/CivicOps.BuildingBlocks.Observability/CivicOps.BuildingBlocks.Observability.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Requests/">
     <Project Path="src/Modules/Requests/CivicOps.Modules.Requests.Application/CivicOps.Modules.Requests.Application.csproj" />

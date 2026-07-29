@@ -1,4 +1,5 @@
 using CivicOps.BuildingBlocks.Domain;
+using CivicOps.BuildingBlocks.Observability;
 using CivicOps.Modules.Requests.Application.CreateRequest;
 using CivicOps.Modules.Requests.Application.ListRequests;
 using CivicOps.Modules.Requests.Domain.Requests;
@@ -9,10 +10,42 @@ using CivicOps.Modules.Notifications.Infrastructure;
 using CivicOps.Modules.Notifications.Presentation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddProblemDetails();
+builder.Services
+    .AddOpenTelemetry()
+    .ConfigureResource(resource => resource.AddService(
+        builder.Configuration["OpenTelemetry:ServiceName"]
+            ?? "civic-operations-platform"))
+    .WithTracing(tracing =>
+    {
+        tracing
+            .AddAspNetCoreInstrumentation(options =>
+                options.Filter = context =>
+                    !context.Request.Path.StartsWithSegments("/health"))
+            .AddSource(
+                CivicOpsActivitySources.RequestsName,
+                CivicOpsActivitySources.NotificationsName);
+
+        if (builder.Configuration.GetValue<bool>(
+                "OpenTelemetry:Otlp:Enabled"))
+        {
+            tracing.AddOtlpExporter(options =>
+            {
+                var endpoint = builder.Configuration[
+                    "OpenTelemetry:Otlp:Endpoint"];
+
+                if (!string.IsNullOrWhiteSpace(endpoint))
+                {
+                    options.Endpoint = new Uri(endpoint);
+                }
+            });
+        }
+    });
 builder.Services.AddExceptionHandler<DomainExceptionHandler>();
 builder.Services.AddExceptionHandler<IdempotencyConflictExceptionHandler>();
 builder.Services.AddExceptionHandler<RequestQueryValidationExceptionHandler>();

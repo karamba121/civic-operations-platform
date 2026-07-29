@@ -1,9 +1,11 @@
+using CivicOps.BuildingBlocks.Observability;
 using CivicOps.Modules.Notifications.Application.ProcessRequestAssigned;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 
@@ -190,6 +192,29 @@ internal sealed class RequestAssignedNotificationsConsumer(
     {
         var channel =
             (IChannel)((AsyncEventingBasicConsumer)sender).Channel;
+        var incomingTraceContext =
+            TraceContextPropagation.Extract(
+                eventArgs.BasicProperties.Headers);
+        using var activity =
+            CivicOpsActivitySources.Notifications.StartActivity(
+                $"{eventArgs.BasicProperties.Type ?? MessageType} process",
+                ActivityKind.Consumer,
+                TraceContextPropagation.ExtractParent(
+                    incomingTraceContext));
+        TraceContextPropagation.ApplyBaggage(
+            activity,
+            incomingTraceContext);
+        activity?.SetTag("messaging.system", "rabbitmq");
+        activity?.SetTag(
+            "messaging.destination.name",
+            consumerOptions.QueueName);
+        activity?.SetTag("messaging.operation.type", "process");
+        activity?.SetTag(
+            "messaging.message.id",
+            eventArgs.BasicProperties.MessageId);
+        activity?.SetTag(
+            "messaging.message.retry.count",
+            GetRetryCount(eventArgs.BasicProperties.Headers));
 
         try
         {
@@ -241,10 +266,14 @@ internal sealed class RequestAssignedNotificationsConsumer(
                     ? "Mensagem {MessageId} processada e confirmada."
                     : "Mensagem duplicada {MessageId} confirmada sem novo efeito.",
                 messageId);
+            activity?.SetStatus(ActivityStatusCode.Ok);
         }
         catch (Exception exception)
             when (exception is JsonException or InvalidDataException)
         {
+            CivicOpsActivitySources.RecordException(
+                activity,
+                exception);
             await MoveToDeadLetterOrRequeueAsync(
                 channel,
                 eventArgs,
@@ -258,6 +287,9 @@ internal sealed class RequestAssignedNotificationsConsumer(
         }
         catch (Exception exception)
         {
+            CivicOpsActivitySources.RecordException(
+                activity,
+                exception);
             await RetryOrDeadLetterAsync(
                 channel,
                 eventArgs,
@@ -284,6 +316,12 @@ internal sealed class RequestAssignedNotificationsConsumer(
         }
 
         var nextAttempt = retryCount + 1;
+        using var activity =
+            StartForwardActivity(
+                eventArgs,
+                "retry",
+                consumerOptions.RetryExchangeName,
+                nextAttempt);
 
         try
         {
@@ -311,6 +349,7 @@ internal sealed class RequestAssignedNotificationsConsumer(
                 eventArgs.BasicProperties.MessageId,
                 nextAttempt,
                 consumerOptions.RetryDelays[nextAttempt - 1]);
+            activity?.SetStatus(ActivityStatusCode.Ok);
         }
         catch (OperationCanceledException)
             when (eventArgs.CancellationToken.IsCancellationRequested)
@@ -319,6 +358,9 @@ internal sealed class RequestAssignedNotificationsConsumer(
         }
         catch (Exception routingException)
         {
+            CivicOpsActivitySources.RecordException(
+                activity,
+                routingException);
             await RequeueOriginalAsync(
                 channel,
                 eventArgs,
@@ -333,6 +375,13 @@ internal sealed class RequestAssignedNotificationsConsumer(
         Exception processingException,
         string reason)
     {
+        using var activity =
+            StartForwardActivity(
+                eventArgs,
+                "dead-letter",
+                consumerOptions.DeadLetterExchangeName,
+                GetRetryCount(eventArgs.BasicProperties.Headers));
+
         try
         {
             var retryCount = GetRetryCount(
@@ -362,6 +411,10 @@ internal sealed class RequestAssignedNotificationsConsumer(
                 eventArgs.BasicProperties.MessageId,
                 consumerOptions.DeadLetterQueueName,
                 reason);
+            activity?.SetTag(
+                "civicops.dead_letter.reason",
+                reason);
+            activity?.SetStatus(ActivityStatusCode.Ok);
         }
         catch (OperationCanceledException)
             when (eventArgs.CancellationToken.IsCancellationRequested)
@@ -370,6 +423,9 @@ internal sealed class RequestAssignedNotificationsConsumer(
         }
         catch (Exception routingException)
         {
+            CivicOpsActivitySources.RecordException(
+                activity,
+                routingException);
             await RequeueOriginalAsync(
                 channel,
                 eventArgs,
@@ -416,8 +472,42 @@ internal sealed class RequestAssignedNotificationsConsumer(
             exception.GetType().Name;
         properties.Headers[FailedAtHeader] =
             timeProvider.GetUtcNow().ToString("O");
+        var currentTraceContext =
+            TraceContextPropagation.CaptureCurrent();
+        if (!currentTraceContext.IsEmpty)
+        {
+            TraceContextPropagation.Inject(
+                currentTraceContext,
+                properties.Headers);
+        }
 
         return properties;
+    }
+
+    private static Activity? StartForwardActivity(
+        BasicDeliverEventArgs eventArgs,
+        string operation,
+        string destinationName,
+        int retryCount)
+    {
+        var activity =
+            CivicOpsActivitySources.Notifications.StartActivity(
+                $"{eventArgs.BasicProperties.Type ?? MessageType} {operation}",
+                ActivityKind.Producer);
+        activity?.SetTag("messaging.system", "rabbitmq");
+        activity?.SetTag(
+            "messaging.destination.name",
+            destinationName);
+        activity?.SetTag(
+            "messaging.operation.type",
+            operation);
+        activity?.SetTag(
+            "messaging.message.id",
+            eventArgs.BasicProperties.MessageId);
+        activity?.SetTag(
+            "messaging.message.retry.count",
+            retryCount);
+        return activity;
     }
 
     private static int GetRetryCount(

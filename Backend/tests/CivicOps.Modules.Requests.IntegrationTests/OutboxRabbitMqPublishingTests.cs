@@ -7,8 +7,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
 using System.Data;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using Xunit;
 
@@ -22,6 +24,13 @@ public sealed class OutboxRabbitMqPublishingTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var exchangeName =
             $"civicops.tests.outbox.{Guid.NewGuid():N}";
+        var expectedTraceId = ActivityTraceId.CreateRandom();
+        var incomingSpanId = ActivitySpanId.CreateRandom();
+        var incomingTraceParent =
+            $"00-{expectedTraceId}-{incomingSpanId}-01";
+        const string incomingTraceState = "civicops=test";
+        const string incomingBaggage =
+            "municipality=integration-test";
         var rabbitFactory = new ConnectionFactory
         {
             HostName = "localhost",
@@ -40,6 +49,8 @@ public sealed class OutboxRabbitMqPublishingTests
             autoDelete: false,
             arguments: null,
             cancellationToken: cancellationToken);
+        await using var exchangeCleanup =
+            new RabbitExchangeCleanup(channel, exchangeName);
         var queue = await channel.QueueDeclareAsync(
             queue: string.Empty,
             durable: false,
@@ -68,6 +79,15 @@ public sealed class OutboxRabbitMqPublishingTests
         request.Headers.Add("X-Tenant-Id", tenantId.ToString());
         request.Headers.Add("X-User-Id", actorUserId.ToString());
         request.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString());
+        request.Headers.TryAddWithoutValidation(
+            "traceparent",
+            incomingTraceParent);
+        request.Headers.TryAddWithoutValidation(
+            "tracestate",
+            incomingTraceState);
+        request.Headers.TryAddWithoutValidation(
+            "baggage",
+            incomingBaggage);
         request.Content = JsonContent.Create(
             new CreateRequestRequest(
                 "Publicação no RabbitMQ",
@@ -89,6 +109,32 @@ public sealed class OutboxRabbitMqPublishingTests
         Assert.NotNull(delivery);
         Assert.Equal("requests.request-created.v1", delivery.BasicProperties.Type);
         Assert.True(delivery.BasicProperties.Persistent);
+        var publishedTraceParent = GetHeader(
+            delivery.BasicProperties.Headers,
+            "traceparent");
+        var publishedTraceState = GetHeader(
+            delivery.BasicProperties.Headers,
+            "tracestate");
+        var publishedBaggage = GetHeader(
+            delivery.BasicProperties.Headers,
+            "baggage");
+
+        Assert.True(ActivityContext.TryParse(
+            publishedTraceParent,
+            publishedTraceState,
+            isRemote: true,
+            out var publishedContext));
+        Assert.Equal(expectedTraceId, publishedContext.TraceId);
+        Assert.NotEqual(incomingSpanId, publishedContext.SpanId);
+        Assert.Equal(incomingTraceState, publishedTraceState);
+        Assert.Contains(
+            "municipality",
+            publishedBaggage,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "integration-test",
+            publishedBaggage,
+            StringComparison.Ordinal);
 
         var processed = await WaitUntilProcessedAsync(
             factory,
@@ -98,10 +144,6 @@ public sealed class OutboxRabbitMqPublishingTests
 
         Assert.True(processed);
 
-        await channel.ExchangeDeleteAsync(
-            exchangeName,
-            ifUnused: false,
-            cancellationToken: cancellationToken);
     }
 
     private static WebApplicationFactory<Program> CreateFactory(
@@ -209,5 +251,38 @@ public sealed class OutboxRabbitMqPublishingTests
         }
 
         return false;
+    }
+
+    private static string? GetHeader(
+        IDictionary<string, object?>? headers,
+        string name)
+    {
+        if (headers is null ||
+            !headers.TryGetValue(name, out var value))
+        {
+            return null;
+        }
+
+        return value switch
+        {
+            byte[] bytes => Encoding.UTF8.GetString(bytes),
+            string text => text,
+            _ => value?.ToString()
+        };
+    }
+
+    private sealed class RabbitExchangeCleanup(
+        IChannel channel,
+        string exchangeName) : IAsyncDisposable
+    {
+        public async ValueTask DisposeAsync()
+        {
+            if (channel.IsOpen)
+            {
+                await channel.ExchangeDeleteAsync(
+                    exchangeName,
+                    ifUnused: false);
+            }
+        }
     }
 }
