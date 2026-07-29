@@ -4,6 +4,7 @@ namespace CivicOps.Modules.Requests.Application.ListRequestAttachments;
 
 public sealed class ListRequestAttachmentsHandler(
     IRequestRepository requestRepository,
+    RequestAttachmentAuthorization authorization,
     IRequestAttachmentReadService readService)
 {
     public async Task<IReadOnlyCollection<RequestAttachmentListItem>?> HandleAsync(
@@ -20,9 +21,10 @@ public sealed class ListRequestAttachmentsHandler(
             return null;
         }
 
-        RequestAttachmentAuthorization.EnsureCanAccess(
+        await authorization.EnsureCanReadAsync(
             request,
-            query.UserId);
+            query.UserId,
+            cancellationToken);
 
         return await readService.ListAsync(
             query.TenantId,

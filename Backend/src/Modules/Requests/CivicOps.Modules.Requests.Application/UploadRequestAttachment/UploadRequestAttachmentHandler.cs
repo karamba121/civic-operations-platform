@@ -8,6 +8,7 @@ public sealed class UploadRequestAttachmentHandler(
     IRequestRepository requestRepository,
     IRequestAttachmentRepository attachmentRepository,
     IAttachmentContentStore contentStore,
+    RequestAttachmentAuthorization authorization,
     IRequestsUnitOfWork unitOfWork,
     TimeProvider timeProvider)
 {
@@ -25,9 +26,10 @@ public sealed class UploadRequestAttachmentHandler(
             return null;
         }
 
-        RequestAttachmentAuthorization.EnsureCanAccess(
+        await authorization.EnsureCanWriteAsync(
             request,
-            command.UploadedByUserId);
+            command.UploadedByUserId,
+            cancellationToken);
 
         var fileName = NormalizeFileName(command.FileName);
         var attachmentType = AttachmentFilePolicy.ValidateDeclaredType(

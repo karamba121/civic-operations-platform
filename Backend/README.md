@@ -36,7 +36,8 @@ migrations são aplicadas na inicialização. O painel local do RabbitMQ fica em
 Uma requisição de exemplo está em [CivicOps.Api.http](CivicOps.Api.http). O
 cabeçalho `X-Tenant-Id` é provisório e será substituído pelo tenant obtido da
 identidade autenticada. Escritas também exigem `X-User-Id`, usado como autor da
-operação na auditoria e igualmente provisório até o módulo de identidade. As
+operação na auditoria e igualmente provisório até a integração de autenticação.
+As
 operações de anexos exigem ambos os cabeçalhos também nas leituras para aplicar
 a autorização do autor ou responsável.
 
@@ -58,7 +59,8 @@ As leituras disponíveis são:
 - `GET /api/v1/requests/{id}/attachments/{attachmentId}/content`: conteúdo do
   anexo com suporte a range;
 - `GET /api/v1/notifications`: notificações do usuário informado em
-  `X-User-Id`, sempre isoladas pelo tenant.
+  `X-User-Id`, sempre isoladas pelo tenant;
+- `GET /api/v1/access/members`: associações, papéis e permissões do tenant.
 
 As escritas disponíveis são:
 
@@ -67,7 +69,9 @@ As escritas disponíveis são:
 - `PATCH /api/v1/requests/{id}/due-date`: define ou remove o prazo;
 - `POST /api/v1/requests/{id}/comments`: registra um comentário append-only;
 - `POST /api/v1/requests/{id}/attachments`: envia um arquivo multipart no
-  campo `file`.
+  campo `file`;
+- `POST /api/v1/access/bootstrap`: cria o primeiro administrador do tenant;
+- `PUT /api/v1/access/members/{userId}`: concede um papel ao usuário.
 
 `pageSize` aceita de 1 a 100. A busca é case-insensitive sobre título e
 descrição e também aceita um número de protocolo completo.
@@ -136,6 +140,18 @@ $env:OpenTelemetry__Otlp__Endpoint = "http://localhost:4317"
 dotnet run --project src/CivicOps.Api/CivicOps.Api.csproj
 ```
 
+## Identity & Access
+
+As associações são independentes por tenant e usam os papéis
+`Administrator`, `Operator` e `Reader`. O catálogo de permissões é versionado
+no código e a associação fica em `identity_access.tenant_memberships`.
+
+O bootstrap do primeiro administrador usa lock transacional no PostgreSQL e é
+habilitado por `IdentityAccess:BootstrapEnabled`. Ele fica desabilitado por
+padrão e deve ser ativado somente durante o provisionamento inicial. Depois
+dele, apenas `Administrator` pode conceder papéis e listar membros. O último
+administrador não pode ser rebaixado.
+
 ## Anexos
 
 O PostgreSQL armazena somente metadados em
@@ -154,8 +170,9 @@ filesystem mantém o desenvolvimento local autocontido; a porta permite
 substituir o adapter por S3/MinIO sem alterar o domínio.
 
 São permitidos PDF, PNG e JPEG. Extensão, `Content-Type` e assinatura real do
-arquivo precisam corresponder. Autor e responsável da solicitação podem enviar,
-listar e baixar anexos; outro usuário do mesmo tenant recebe `403`. O tamanho é
+arquivo precisam corresponder. Autor e responsável preservam acesso direto;
+`Reader` pode listar e baixar, enquanto `Operator` e `Administrator` também
+podem enviar. Usuários sem vínculo ou permissão recebem `403`. O tamanho é
 conferido durante o streaming, sem confiar no valor declarado no multipart.
 
 ## Testes
@@ -192,7 +209,9 @@ Os testes de integração usam tenants aleatórios e verificam no PostgreSQL rea
 - upload multipart, metadados no PostgreSQL, conteúdo no filesystem, SHA-256,
   download, auditoria, Outbox e isolamento por tenant;
 - autorização negativa de anexos, allowlist de formatos, assinatura real,
-  limite durante streaming e limpeza de arquivos rejeitados.
+  limite durante streaming e limpeza de arquivos rejeitados;
+- papéis por tenant, menor privilégio, concessão administrativa, proteção do
+  último administrador e bootstrap concorrente.
 
 ## Migration
 
@@ -211,4 +230,11 @@ Para o módulo Notifications, altere `--project` e `--context` para:
 ```text
 src/Modules/Notifications/CivicOps.Modules.Notifications.Infrastructure
 NotificationsDbContext
+```
+
+Para o módulo Identity & Access:
+
+```text
+src/Modules/IdentityAccess/CivicOps.Modules.IdentityAccess.Infrastructure
+IdentityAccessDbContext
 ```

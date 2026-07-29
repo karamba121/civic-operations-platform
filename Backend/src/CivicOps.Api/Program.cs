@@ -1,5 +1,7 @@
 using CivicOps.BuildingBlocks.Domain;
 using CivicOps.BuildingBlocks.Observability;
+using CivicOps.Modules.IdentityAccess;
+using CivicOps.Modules.IdentityAccess.Infrastructure;
 using CivicOps.Modules.Requests.Application;
 using CivicOps.Modules.Requests.Application.CreateRequest;
 using CivicOps.Modules.Requests.Application.ListRequests;
@@ -55,8 +57,11 @@ builder.Services.AddExceptionHandler<NotificationQueryValidationExceptionHandler
 builder.Services.AddExceptionHandler<AttachmentContentTooLargeExceptionHandler>();
 builder.Services.AddExceptionHandler<AttachmentContentTypeNotAllowedExceptionHandler>();
 builder.Services.AddExceptionHandler<AttachmentAccessDeniedExceptionHandler>();
+builder.Services.AddExceptionHandler<IdentityAccessDeniedExceptionHandler>();
+builder.Services.AddExceptionHandler<TenantBootstrapConflictExceptionHandler>();
 builder.Services.AddExceptionHandler<AttachmentContentUnavailableExceptionHandler>();
 builder.Services.AddNotificationsModule(builder.Configuration);
+builder.Services.AddIdentityAccessModule(builder.Configuration);
 builder.Services.AddRequestsModule(builder.Configuration);
 
 var app = builder.Build();
@@ -69,9 +74,11 @@ app.MapGet("/health", () => Results.Ok(new { status = "healthy" }))
 app.MapRequestEndpoints();
 app.MapRequestAttachmentEndpoints();
 app.MapNotificationEndpoints();
+app.MapIdentityAccessEndpoints();
 
 if (app.Configuration.GetValue<bool>("Database:ApplyMigrations"))
 {
+    await app.Services.ApplyIdentityAccessMigrationsAsync();
     await app.Services.ApplyRequestsMigrationsAsync();
     await app.Services.ApplyNotificationsMigrationsAsync();
 }
@@ -345,6 +352,66 @@ internal sealed class AttachmentAccessDeniedExceptionHandler(
                     Status = StatusCodes.Status403Forbidden,
                     Title = "Acesso ao anexo negado",
                     Detail = denied.Message
+                },
+                Exception = exception
+            });
+    }
+}
+
+internal sealed class IdentityAccessDeniedExceptionHandler(
+    IProblemDetailsService problemDetailsService) : IExceptionHandler
+{
+    public async ValueTask<bool> TryHandleAsync(
+        HttpContext httpContext,
+        Exception exception,
+        CancellationToken cancellationToken)
+    {
+        if (exception is not IdentityAccessDeniedException denied)
+        {
+            return false;
+        }
+
+        httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
+
+        return await problemDetailsService.TryWriteAsync(
+            new ProblemDetailsContext
+            {
+                HttpContext = httpContext,
+                ProblemDetails = new ProblemDetails
+                {
+                    Status = StatusCodes.Status403Forbidden,
+                    Title = "Permissão insuficiente",
+                    Detail = denied.Message
+                },
+                Exception = exception
+            });
+    }
+}
+
+internal sealed class TenantBootstrapConflictExceptionHandler(
+    IProblemDetailsService problemDetailsService) : IExceptionHandler
+{
+    public async ValueTask<bool> TryHandleAsync(
+        HttpContext httpContext,
+        Exception exception,
+        CancellationToken cancellationToken)
+    {
+        if (exception is not TenantBootstrapConflictException conflict)
+        {
+            return false;
+        }
+
+        httpContext.Response.StatusCode = StatusCodes.Status409Conflict;
+
+        return await problemDetailsService.TryWriteAsync(
+            new ProblemDetailsContext
+            {
+                HttpContext = httpContext,
+                ProblemDetails = new ProblemDetails
+                {
+                    Status = StatusCodes.Status409Conflict,
+                    Title = "Bootstrap já realizado",
+                    Detail = conflict.Message
                 },
                 Exception = exception
             });

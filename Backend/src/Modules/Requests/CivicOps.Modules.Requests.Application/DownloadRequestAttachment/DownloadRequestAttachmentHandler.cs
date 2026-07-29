@@ -4,6 +4,7 @@ namespace CivicOps.Modules.Requests.Application.DownloadRequestAttachment;
 
 public sealed class DownloadRequestAttachmentHandler(
     IRequestRepository requestRepository,
+    RequestAttachmentAuthorization authorization,
     IRequestAttachmentReadService readService,
     IAttachmentContentStore contentStore)
 {
@@ -21,9 +22,10 @@ public sealed class DownloadRequestAttachmentHandler(
             return null;
         }
 
-        RequestAttachmentAuthorization.EnsureCanAccess(
+        await authorization.EnsureCanReadAsync(
             request,
-            query.UserId);
+            query.UserId,
+            cancellationToken);
 
         var attachment = await readService.GetAsync(
             query.TenantId,

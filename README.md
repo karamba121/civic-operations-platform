@@ -108,6 +108,7 @@ partem de eventos gravados na Outbox.
 - [ADR-004: contexto de observabilidade através da Outbox](docs/adr/004-observability-context-through-outbox.md)
 - [ADR-005: conteúdo de anexos fora do banco relacional](docs/adr/005-attachment-content-storage.md)
 - [ADR-006: segurança básica de anexos](docs/adr/006-attachment-security-baseline.md)
+- [ADR-007: papéis e permissões por tenant](docs/adr/007-tenant-roles-and-permissions.md)
 - [Roadmap orientado a evidências](docs/roadmap.md)
 
 ## Execução local

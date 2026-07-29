@@ -40,7 +40,7 @@ e recuperação sem perda ou duplicação do efeito.
 
 - [x] armazenar metadados e conteúdo fora do banco;
 - [x] validar tamanho, tipo e autorização;
-- implementar papéis e permissões por tenant;
+- [x] implementar papéis e permissões por tenant;
 - auditar leitura e alteração de dados sensíveis.
 
 **Evidência:** testes de autorização negativa, isolamento de tenant e ciclo de

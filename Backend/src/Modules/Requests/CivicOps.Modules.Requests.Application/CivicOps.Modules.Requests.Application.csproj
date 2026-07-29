@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <ProjectReference Include="../../IdentityAccess/CivicOps.Modules.IdentityAccess.Core/CivicOps.Modules.IdentityAccess.Core.csproj" />
     <ProjectReference Include="../CivicOps.Modules.Requests.Domain/CivicOps.Modules.Requests.Domain.csproj" />
   </ItemGroup>
 </Project>

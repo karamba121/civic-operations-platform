@@ -10,6 +10,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../BuildingBlocks/CivicOps.BuildingBlocks.Observability/CivicOps.BuildingBlocks.Observability.csproj" />
+    <ProjectReference Include="../Modules/IdentityAccess/CivicOps.Modules.IdentityAccess.Infrastructure/CivicOps.Modules.IdentityAccess.Infrastructure.csproj" />
     <ProjectReference Include="../Modules/Requests/CivicOps.Modules.Requests.Infrastructure/CivicOps.Modules.Requests.Infrastructure.csproj" />
     <ProjectReference Include="../Modules/Requests/CivicOps.Modules.Requests.Presentation/CivicOps.Modules.Requests.Presentation.csproj" />
     <ProjectReference Include="../Modules/Notifications/CivicOps.Modules.Notifications.Infrastructure/CivicOps.Modules.Notifications.Infrastructure.csproj" />

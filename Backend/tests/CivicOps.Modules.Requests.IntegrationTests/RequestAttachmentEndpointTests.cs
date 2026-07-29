@@ -271,9 +271,236 @@ public sealed class RequestAttachmentEndpointTests
         }
     }
 
+    [Fact]
+    public async Task TenantRoles_ShouldGrantPermissionsAndRemainTenantScoped()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var storageRoot = CreateStorageRoot();
+        var factory = CreateFactory(storageRoot);
+
+        try
+        {
+            using var client = factory.CreateClient();
+            var tenantId = Guid.NewGuid();
+            var requestCreatorId = Guid.NewGuid();
+            var administratorId = Guid.NewGuid();
+            var readerId = Guid.NewGuid();
+            var operatorId = Guid.NewGuid();
+            var request = await CreateRequestAsync(
+                client,
+                tenantId,
+                requestCreatorId,
+                cancellationToken);
+
+            using var creatorUpload = await UploadAsync(
+                client,
+                tenantId,
+                requestCreatorId,
+                request.Id,
+                "creator.pdf",
+                "application/pdf",
+                "%PDF-1.7 creator"u8.ToArray(),
+                cancellationToken);
+            Assert.Equal(HttpStatusCode.Created, creatorUpload.StatusCode);
+
+            using var bootstrap = await SendAccessAsync(
+                client,
+                HttpMethod.Post,
+                "/api/v1/access/bootstrap",
+                tenantId,
+                administratorId,
+                content: null,
+                cancellationToken);
+            Assert.Equal(HttpStatusCode.Created, bootstrap.StatusCode);
+
+            using var duplicateBootstrap = await SendAccessAsync(
+                client,
+                HttpMethod.Post,
+                "/api/v1/access/bootstrap",
+                tenantId,
+                Guid.NewGuid(),
+                content: null,
+                cancellationToken);
+            Assert.Equal(
+                HttpStatusCode.Conflict,
+                duplicateBootstrap.StatusCode);
+
+            using var grantReader = await SetRoleAsync(
+                client,
+                tenantId,
+                administratorId,
+                readerId,
+                "Reader",
+                cancellationToken);
+            grantReader.EnsureSuccessStatusCode();
+
+            using var grantOperator = await SetRoleAsync(
+                client,
+                tenantId,
+                administratorId,
+                operatorId,
+                "Operator",
+                cancellationToken);
+            grantOperator.EnsureSuccessStatusCode();
+
+            using var removeLastAdministrator = await SetRoleAsync(
+                client,
+                tenantId,
+                administratorId,
+                administratorId,
+                "Reader",
+                cancellationToken);
+            Assert.Equal(
+                HttpStatusCode.UnprocessableEntity,
+                removeLastAdministrator.StatusCode);
+
+            using var readerList = await SendForTenantAsync(
+                client,
+                HttpMethod.Get,
+                $"/api/v1/requests/{request.Id}/attachments",
+                tenantId,
+                readerId,
+                cancellationToken);
+            readerList.EnsureSuccessStatusCode();
+
+            using var readerUpload = await UploadAsync(
+                client,
+                tenantId,
+                readerId,
+                request.Id,
+                "reader.pdf",
+                "application/pdf",
+                "%PDF-1.7 reader"u8.ToArray(),
+                cancellationToken);
+            Assert.Equal(HttpStatusCode.Forbidden, readerUpload.StatusCode);
+
+            using var operatorUpload = await UploadAsync(
+                client,
+                tenantId,
+                operatorId,
+                request.Id,
+                "operator.pdf",
+                "application/pdf",
+                "%PDF-1.7 operator"u8.ToArray(),
+                cancellationToken);
+            Assert.Equal(HttpStatusCode.Created, operatorUpload.StatusCode);
+
+            using var forbiddenGrant = await SetRoleAsync(
+                client,
+                tenantId,
+                readerId,
+                Guid.NewGuid(),
+                "Reader",
+                cancellationToken);
+            Assert.Equal(
+                HttpStatusCode.Forbidden,
+                forbiddenGrant.StatusCode);
+
+            using var memberList = await SendAccessAsync(
+                client,
+                HttpMethod.Get,
+                "/api/v1/access/members",
+                tenantId,
+                administratorId,
+                content: null,
+                cancellationToken);
+            memberList.EnsureSuccessStatusCode();
+            var memberships = await memberList.Content
+                .ReadFromJsonAsync<List<System.Text.Json.JsonElement>>(
+                    cancellationToken);
+            Assert.NotNull(memberships);
+            Assert.Equal(3, memberships.Count);
+
+            using var otherTenantAccess = await SendForTenantAsync(
+                client,
+                HttpMethod.Get,
+                $"/api/v1/requests/{request.Id}/attachments",
+                Guid.NewGuid(),
+                readerId,
+                cancellationToken);
+            Assert.Equal(
+                HttpStatusCode.NotFound,
+                otherTenantAccess.StatusCode);
+
+            var concurrentTenantId = Guid.NewGuid();
+            var concurrentBootstraps = await Task.WhenAll(
+                SendAccessAsync(
+                    client,
+                    HttpMethod.Post,
+                    "/api/v1/access/bootstrap",
+                    concurrentTenantId,
+                    Guid.NewGuid(),
+                    content: null,
+                    cancellationToken),
+                SendAccessAsync(
+                    client,
+                    HttpMethod.Post,
+                    "/api/v1/access/bootstrap",
+                    concurrentTenantId,
+                    Guid.NewGuid(),
+                    content: null,
+                    cancellationToken));
+            try
+            {
+                Assert.Equal(
+                    [
+                        HttpStatusCode.Created,
+                        HttpStatusCode.Conflict
+                    ],
+                    concurrentBootstraps
+                        .Select(response => response.StatusCode)
+                        .Order()
+                        .ToArray());
+            }
+            finally
+            {
+                foreach (var response in concurrentBootstraps)
+                {
+                    response.Dispose();
+                }
+            }
+        }
+        finally
+        {
+            await factory.DisposeAsync();
+            DeleteStorageRoot(storageRoot);
+        }
+    }
+
+    [Fact]
+    public async Task Bootstrap_ShouldRequireExplicitConfiguration()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var storageRoot = CreateStorageRoot();
+        var factory = CreateFactory(
+            storageRoot,
+            bootstrapEnabled: false);
+
+        try
+        {
+            using var client = factory.CreateClient();
+            using var response = await SendAccessAsync(
+                client,
+                HttpMethod.Post,
+                "/api/v1/access/bootstrap",
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                content: null,
+                cancellationToken);
+
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+        finally
+        {
+            await factory.DisposeAsync();
+            DeleteStorageRoot(storageRoot);
+        }
+    }
+
     private static WebApplicationFactory<Program> CreateFactory(
         string storageRoot,
-        long maximumSizeBytes = 1_048_576)
+        long maximumSizeBytes = 1_048_576,
+        bool bootstrapEnabled = true)
     {
         return new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
@@ -289,6 +516,9 @@ public sealed class RequestAttachmentEndpointTests
                                 ["OutboxPublisher:Enabled"] = "false",
                                 ["NotificationsConsumer:Enabled"] =
                                 "false",
+                                ["IdentityAccess:BootstrapEnabled"] =
+                                bootstrapEnabled.ToString(
+                                    System.Globalization.CultureInfo.InvariantCulture),
                                 ["AttachmentStorage:RootPath"] =
                                 storageRoot,
                                 ["AttachmentStorage:MaximumSizeBytes"] =
@@ -363,6 +593,40 @@ public sealed class RequestAttachmentEndpointTests
         using var request = new HttpRequestMessage(method, path);
         request.Headers.Add("X-Tenant-Id", tenantId.ToString());
         request.Headers.Add("X-User-Id", userId.ToString());
+        return await client.SendAsync(request, cancellationToken);
+    }
+
+    private static Task<HttpResponseMessage> SetRoleAsync(
+        HttpClient client,
+        Guid tenantId,
+        Guid actorUserId,
+        Guid targetUserId,
+        string role,
+        CancellationToken cancellationToken)
+    {
+        return SendAccessAsync(
+            client,
+            HttpMethod.Put,
+            $"/api/v1/access/members/{targetUserId}",
+            tenantId,
+            actorUserId,
+            JsonContent.Create(new { role }),
+            cancellationToken);
+    }
+
+    private static async Task<HttpResponseMessage> SendAccessAsync(
+        HttpClient client,
+        HttpMethod method,
+        string path,
+        Guid tenantId,
+        Guid actorUserId,
+        HttpContent? content,
+        CancellationToken cancellationToken)
+    {
+        using var request = new HttpRequestMessage(method, path);
+        request.Headers.Add("X-Tenant-Id", tenantId.ToString());
+        request.Headers.Add("X-User-Id", actorUserId.ToString());
+        request.Content = content;
         return await client.SendAsync(request, cancellationToken);
     }
 

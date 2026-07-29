@@ -1,3 +1,4 @@
+using CivicOps.Modules.Requests.Application;
 using CivicOps.Modules.Requests.Application.Abstractions;
 using CivicOps.Modules.Requests.Application.AssignResponsible;
 using CivicOps.Modules.Requests.Application.AddRequestComment;
@@ -74,6 +75,7 @@ public static class DependencyInjection
         services.AddScoped<ListRequestsHandler>();
         services.AddScoped<GetRequestDetailsHandler>();
         services.AddScoped<UploadRequestAttachmentHandler>();
+        services.AddScoped<RequestAttachmentAuthorization>();
         services.AddScoped<ListRequestAttachmentsHandler>();
         services.AddScoped<DownloadRequestAttachmentHandler>();
         services.AddSingleton(TimeProvider.System);
