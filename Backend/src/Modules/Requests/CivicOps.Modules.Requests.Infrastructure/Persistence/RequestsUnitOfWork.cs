@@ -110,6 +110,8 @@ internal sealed class RequestsUnitOfWork(RequestsDbContext dbContext) : IRequest
                 ("requests.due-date-changed.v1", "DueDateChanged"),
             RequestCommentAddedDomainEvent =>
                 ("requests.comment-added.v1", "CommentAdded"),
+            RequestAttachmentAddedDomainEvent =>
+                ("requests.attachment-added.v1", "AttachmentAdded"),
             _ => throw new InvalidOperationException(
                 $"Evento de domínio não suportado: {domainEvent.GetType().Name}.")
         };

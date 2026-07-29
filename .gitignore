@@ -36,3 +36,4 @@ Thumbs.db
 # Containers and local data
 .docker-data/
 volumes/
+.data/

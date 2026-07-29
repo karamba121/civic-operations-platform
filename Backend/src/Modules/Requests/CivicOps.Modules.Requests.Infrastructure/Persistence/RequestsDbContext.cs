@@ -10,6 +10,9 @@ public sealed class RequestsDbContext(DbContextOptions<RequestsDbContext> option
 
     public DbSet<RequestComment> RequestComments => Set<RequestComment>();
 
+    public DbSet<RequestAttachment> RequestAttachments =>
+        Set<RequestAttachment>();
+
     internal DbSet<RequestAuditRecord> RequestAudit => Set<RequestAuditRecord>();
 
     internal DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();

@@ -52,6 +52,9 @@ As leituras disponíveis são:
   para o mais antigo;
 - `GET /api/v1/requests/{id}/audit`: histórico imutável e paginado das
   alterações da solicitação;
+- `GET /api/v1/requests/{id}/attachments`: metadados dos anexos;
+- `GET /api/v1/requests/{id}/attachments/{attachmentId}/content`: conteúdo do
+  anexo com suporte a range;
 - `GET /api/v1/notifications`: notificações do usuário informado em
   `X-User-Id`, sempre isoladas pelo tenant.
 
@@ -60,7 +63,9 @@ As escritas disponíveis são:
 - `PATCH /api/v1/requests/{id}/assignment`: atribui um responsável;
 - `PATCH /api/v1/requests/{id}/status`: executa uma transição de situação;
 - `PATCH /api/v1/requests/{id}/due-date`: define ou remove o prazo;
-- `POST /api/v1/requests/{id}/comments`: registra um comentário append-only.
+- `POST /api/v1/requests/{id}/comments`: registra um comentário append-only;
+- `POST /api/v1/requests/{id}/attachments`: envia um arquivo multipart no
+  campo `file`.
 
 `pageSize` aceita de 1 a 100. A busca é case-insensitive sobre título e
 descrição e também aceita um número de protocolo completo.
@@ -129,6 +134,23 @@ $env:OpenTelemetry__Otlp__Endpoint = "http://localhost:4317"
 dotnet run --project src/CivicOps.Api/CivicOps.Api.csproj
 ```
 
+## Anexos
+
+O PostgreSQL armazena somente metadados em
+`requests.request_attachments`: tenant, solicitação, autor, nome, content type,
+tamanho, SHA-256, chave interna e data. O conteúdo fica fora do banco através
+de `IAttachmentContentStore`.
+
+O adapter inicial grava em `.data/attachments`, caminho ignorado pelo Git e
+configurável por `AttachmentStorage:RootPath`. O limite padrão é 25 MiB,
+configurável por `AttachmentStorage:MaximumSizeBytes`. A escrita usa arquivo
+temporário, cálculo incremental de SHA-256 e rename atômico. Se o commit dos
+metadados falhar, o conteúdo é removido como compensação.
+
+O nome informado pelo cliente nunca participa da chave física. A implementação
+filesystem mantém o desenvolvimento local autocontido; a porta permite
+substituir o adapter por S3/MinIO sem alterar o domínio.
+
 ## Testes
 
 Com PostgreSQL e RabbitMQ do Compose em execução:
@@ -159,7 +181,9 @@ Os testes de integração usam tenants aleatórios e verificam no PostgreSQL rea
 - encaminhamento direto de mensagens inválidas para DLQ, sem executar o
   processador de aplicação;
 - preservação do mesmo `traceId` entre HTTP, Outbox, publicação confirmada,
-  retries e DLQ.
+  retries e DLQ;
+- upload multipart, metadados no PostgreSQL, conteúdo no filesystem, SHA-256,
+  download, auditoria, Outbox e isolamento por tenant.
 
 ## Migration
 

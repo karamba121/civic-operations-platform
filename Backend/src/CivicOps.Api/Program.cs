@@ -1,5 +1,6 @@
 using CivicOps.BuildingBlocks.Domain;
 using CivicOps.BuildingBlocks.Observability;
+using CivicOps.Modules.Requests.Application;
 using CivicOps.Modules.Requests.Application.CreateRequest;
 using CivicOps.Modules.Requests.Application.ListRequests;
 using CivicOps.Modules.Requests.Domain.Requests;
@@ -51,6 +52,8 @@ builder.Services.AddExceptionHandler<IdempotencyConflictExceptionHandler>();
 builder.Services.AddExceptionHandler<RequestQueryValidationExceptionHandler>();
 builder.Services.AddExceptionHandler<RequestConcurrencyExceptionHandler>();
 builder.Services.AddExceptionHandler<NotificationQueryValidationExceptionHandler>();
+builder.Services.AddExceptionHandler<AttachmentContentTooLargeExceptionHandler>();
+builder.Services.AddExceptionHandler<AttachmentContentUnavailableExceptionHandler>();
 builder.Services.AddNotificationsModule(builder.Configuration);
 builder.Services.AddRequestsModule(builder.Configuration);
 
@@ -62,6 +65,7 @@ app.MapGet("/health", () => Results.Ok(new { status = "healthy" }))
     .WithName("Health");
 
 app.MapRequestEndpoints();
+app.MapRequestAttachmentEndpoints();
 app.MapNotificationEndpoints();
 
 if (app.Configuration.GetValue<bool>("Database:ApplyMigrations"))
@@ -216,6 +220,68 @@ internal sealed class NotificationQueryValidationExceptionHandler(
                     Status = StatusCodes.Status400BadRequest,
                     Title = "Parâmetros de consulta inválidos",
                     Detail = validationException.Message
+                },
+                Exception = exception
+            });
+    }
+}
+
+internal sealed class AttachmentContentTooLargeExceptionHandler(
+    IProblemDetailsService problemDetailsService) : IExceptionHandler
+{
+    public async ValueTask<bool> TryHandleAsync(
+        HttpContext httpContext,
+        Exception exception,
+        CancellationToken cancellationToken)
+    {
+        if (exception is not AttachmentContentTooLargeException tooLarge)
+        {
+            return false;
+        }
+
+        httpContext.Response.StatusCode =
+            StatusCodes.Status413PayloadTooLarge;
+
+        return await problemDetailsService.TryWriteAsync(
+            new ProblemDetailsContext
+            {
+                HttpContext = httpContext,
+                ProblemDetails = new ProblemDetails
+                {
+                    Status = StatusCodes.Status413PayloadTooLarge,
+                    Title = "Anexo muito grande",
+                    Detail = tooLarge.Message
+                },
+                Exception = exception
+            });
+    }
+}
+
+internal sealed class AttachmentContentUnavailableExceptionHandler(
+    IProblemDetailsService problemDetailsService) : IExceptionHandler
+{
+    public async ValueTask<bool> TryHandleAsync(
+        HttpContext httpContext,
+        Exception exception,
+        CancellationToken cancellationToken)
+    {
+        if (exception is not AttachmentContentUnavailableException unavailable)
+        {
+            return false;
+        }
+
+        httpContext.Response.StatusCode =
+            StatusCodes.Status503ServiceUnavailable;
+
+        return await problemDetailsService.TryWriteAsync(
+            new ProblemDetailsContext
+            {
+                HttpContext = httpContext,
+                ProblemDetails = new ProblemDetails
+                {
+                    Status = StatusCodes.Status503ServiceUnavailable,
+                    Title = "Conteúdo temporariamente indisponível",
+                    Detail = unavailable.Message
                 },
                 Exception = exception
             });

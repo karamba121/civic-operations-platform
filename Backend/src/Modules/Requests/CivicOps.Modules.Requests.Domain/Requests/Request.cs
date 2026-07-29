@@ -235,6 +235,35 @@ public sealed class Request : AggregateRoot<Guid>
                 commentId));
     }
 
+    public void RegisterAttachment(
+        RequestAttachment attachment,
+        Guid actorUserId,
+        DateTimeOffset occurredAtUtc)
+    {
+        ArgumentNullException.ThrowIfNull(attachment);
+
+        if (attachment.TenantId != TenantId ||
+            attachment.RequestId != Id)
+        {
+            throw new DomainException(
+                "O anexo não pertence à solicitação.");
+        }
+
+        EnsureActorAndUtc(actorUserId, occurredAtUtc);
+        RaiseDomainEvent(
+            new RequestAttachmentAddedDomainEvent(
+                Guid.CreateVersion7(),
+                occurredAtUtc,
+                TenantId,
+                Id,
+                actorUserId,
+                attachment.Id,
+                attachment.FileName,
+                attachment.ContentType,
+                attachment.SizeBytes,
+                attachment.Sha256));
+    }
+
     private bool CanTransitionTo(RequestStatus newStatus)
     {
         return Status switch

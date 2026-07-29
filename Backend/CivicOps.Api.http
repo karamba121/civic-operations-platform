@@ -100,3 +100,24 @@ GET {{host}}/api/v1/notifications?page=1&pageSize=20
 Accept: application/json
 X-Tenant-Id: {{tenantId}}
 X-User-Id: {{responsibleUserId}}
+
+### Enviar anexo
+POST {{host}}/api/v1/requests/{{requestId}}/attachments
+X-Tenant-Id: {{tenantId}}
+X-User-Id: {{userId}}
+Content-Type: multipart/form-data; boundary=CivicOpsBoundary
+
+--CivicOpsBoundary
+Content-Disposition: form-data; name="file"; filename="evidence.txt"
+Content-Type: text/plain
+
+Conteúdo de exemplo do anexo.
+--CivicOpsBoundary--
+
+### Listar anexos
+GET {{host}}/api/v1/requests/{{requestId}}/attachments
+X-Tenant-Id: {{tenantId}}
+
+### Baixar anexo
+GET {{host}}/api/v1/requests/{{requestId}}/attachments/{{attachmentId}}/content
+X-Tenant-Id: {{tenantId}}
