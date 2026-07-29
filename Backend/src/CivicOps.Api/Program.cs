@@ -4,6 +4,9 @@ using CivicOps.Modules.Requests.Application.ListRequests;
 using CivicOps.Modules.Requests.Domain.Requests;
 using CivicOps.Modules.Requests.Infrastructure;
 using CivicOps.Modules.Requests.Presentation;
+using CivicOps.Modules.Notifications.Application.ListNotifications;
+using CivicOps.Modules.Notifications.Infrastructure;
+using CivicOps.Modules.Notifications.Presentation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,6 +17,8 @@ builder.Services.AddExceptionHandler<DomainExceptionHandler>();
 builder.Services.AddExceptionHandler<IdempotencyConflictExceptionHandler>();
 builder.Services.AddExceptionHandler<RequestQueryValidationExceptionHandler>();
 builder.Services.AddExceptionHandler<RequestConcurrencyExceptionHandler>();
+builder.Services.AddExceptionHandler<NotificationQueryValidationExceptionHandler>();
+builder.Services.AddNotificationsModule(builder.Configuration);
 builder.Services.AddRequestsModule(builder.Configuration);
 
 var app = builder.Build();
@@ -24,10 +29,12 @@ app.MapGet("/health", () => Results.Ok(new { status = "healthy" }))
     .WithName("Health");
 
 app.MapRequestEndpoints();
+app.MapNotificationEndpoints();
 
 if (app.Configuration.GetValue<bool>("Database:ApplyMigrations"))
 {
     await app.Services.ApplyRequestsMigrationsAsync();
+    await app.Services.ApplyNotificationsMigrationsAsync();
 }
 
 await app.RunAsync();
@@ -146,6 +153,36 @@ internal sealed class RequestConcurrencyExceptionHandler(
                     Status = StatusCodes.Status409Conflict,
                     Title = "Conflito de concorrência",
                     Detail = concurrencyException.Message
+                },
+                Exception = exception
+            });
+    }
+}
+
+internal sealed class NotificationQueryValidationExceptionHandler(
+    IProblemDetailsService problemDetailsService) : IExceptionHandler
+{
+    public async ValueTask<bool> TryHandleAsync(
+        HttpContext httpContext,
+        Exception exception,
+        CancellationToken cancellationToken)
+    {
+        if (exception is not NotificationQueryValidationException validationException)
+        {
+            return false;
+        }
+
+        httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+
+        return await problemDetailsService.TryWriteAsync(
+            new ProblemDetailsContext
+            {
+                HttpContext = httpContext,
+                ProblemDetails = new ProblemDetails
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Parâmetros de consulta inválidos",
+                    Detail = validationException.Message
                 },
                 Exception = exception
             });

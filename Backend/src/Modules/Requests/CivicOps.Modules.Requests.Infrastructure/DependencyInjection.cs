@@ -25,13 +25,6 @@ public static class DependencyInjection
         var connectionString = configuration.GetConnectionString("Postgres")
             ?? throw new InvalidOperationException(
                 "A connection string 'Postgres' não foi configurada.");
-        var outboxOptions = new OutboxPublisherOptions();
-        configuration.GetSection("OutboxPublisher").Bind(outboxOptions);
-        var rabbitMqOptions = new RabbitMqOptions();
-        configuration.GetSection("RabbitMq").Bind(rabbitMqOptions);
-
-        ValidateOptions(outboxOptions, rabbitMqOptions);
-
         services.AddDbContext<RequestsDbContext>(options =>
             options.UseNpgsql(
                 connectionString,
@@ -47,8 +40,12 @@ public static class DependencyInjection
         services.AddScoped<IRequestsUnitOfWork, RequestsUnitOfWork>();
         services.AddScoped<IOutboxMessageStore, PostgresOutboxMessageStore>();
         services.AddScoped<OutboxProcessor>();
-        services.AddSingleton(outboxOptions);
-        services.AddSingleton(rabbitMqOptions);
+        services.AddSingleton(serviceProvider =>
+            CreateOutboxOptions(
+                serviceProvider.GetRequiredService<IConfiguration>()));
+        services.AddSingleton(serviceProvider =>
+            CreateRabbitMqOptions(
+                serviceProvider.GetRequiredService<IConfiguration>()));
         services.AddSingleton<IIntegrationEventPublisher,
             RabbitMqIntegrationEventPublisher>();
         services.AddHostedService<OutboxPublisherWorker>();
@@ -66,32 +63,45 @@ public static class DependencyInjection
         return services;
     }
 
-    private static void ValidateOptions(
-        OutboxPublisherOptions outboxOptions,
-        RabbitMqOptions rabbitMqOptions)
+    private static OutboxPublisherOptions CreateOutboxOptions(
+        IConfiguration configuration)
     {
-        if (outboxOptions.BatchSize is < 1 or > 500)
+        var options = new OutboxPublisherOptions();
+        configuration.GetSection("OutboxPublisher").Bind(options);
+
+        if (options.BatchSize is < 1 or > 500)
         {
             throw new InvalidOperationException(
                 "OutboxPublisher:BatchSize deve estar entre 1 e 500.");
         }
 
-        if (outboxOptions.PollingInterval <= TimeSpan.Zero ||
-            outboxOptions.LockDuration <= TimeSpan.Zero ||
-            outboxOptions.FailureDelay <= TimeSpan.Zero)
+        if (options.PollingInterval <= TimeSpan.Zero ||
+            options.LockDuration <= TimeSpan.Zero ||
+            options.FailureDelay <= TimeSpan.Zero)
         {
             throw new InvalidOperationException(
                 "Os intervalos do publicador da Outbox devem ser positivos.");
         }
 
-        if (string.IsNullOrWhiteSpace(rabbitMqOptions.HostName) ||
-            rabbitMqOptions.Port is < 1 or > 65_535 ||
-            string.IsNullOrWhiteSpace(rabbitMqOptions.UserName) ||
-            string.IsNullOrWhiteSpace(rabbitMqOptions.ExchangeName))
+        return options;
+    }
+
+    private static RabbitMqOptions CreateRabbitMqOptions(
+        IConfiguration configuration)
+    {
+        var options = new RabbitMqOptions();
+        configuration.GetSection("RabbitMq").Bind(options);
+
+        if (string.IsNullOrWhiteSpace(options.HostName) ||
+            options.Port is < 1 or > 65_535 ||
+            string.IsNullOrWhiteSpace(options.UserName) ||
+            string.IsNullOrWhiteSpace(options.ExchangeName))
         {
             throw new InvalidOperationException(
                 "A configuração RabbitMq é inválida.");
         }
+
+        return options;
     }
 
     public static async Task ApplyRequestsMigrationsAsync(

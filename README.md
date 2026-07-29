@@ -79,7 +79,8 @@ automatizado, métrica ou decisão documentada.
 - **Identity & Access:** usuários, papéis e permissões.
 - **Requests:** solicitações, protocolo, situação, prioridade, prazo e responsável.
 - **Documents:** metadados, anexos e políticas de acesso.
-- **Notifications:** preferências, templates e entrega assíncrona.
+- **Notifications:** Inbox idempotente, notificações, preferências, templates e
+  entrega assíncrona.
 - **Auditing:** trilha imutável de operações relevantes.
 
 Os módulos não acessam diretamente as tabelas ou tipos internos uns dos outros.

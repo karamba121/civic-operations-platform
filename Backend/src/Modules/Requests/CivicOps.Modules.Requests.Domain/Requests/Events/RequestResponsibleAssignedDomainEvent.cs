@@ -6,6 +6,7 @@ public sealed record RequestResponsibleAssignedDomainEvent(
     Guid TenantId,
     Guid RequestId,
     Guid ActorUserId,
+    string ProtocolNumber,
     Guid? PreviousResponsibleUserId,
     Guid ResponsibleUserId,
     Guid Version) : IRequestDomainEvent;

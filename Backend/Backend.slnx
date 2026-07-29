@@ -11,7 +11,15 @@
     <Project Path="src/Modules/Requests/CivicOps.Modules.Requests.Infrastructure/CivicOps.Modules.Requests.Infrastructure.csproj" />
     <Project Path="src/Modules/Requests/CivicOps.Modules.Requests.Presentation/CivicOps.Modules.Requests.Presentation.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Notifications/">
+    <Project Path="src/Modules/Notifications/CivicOps.Modules.Notifications.Application/CivicOps.Modules.Notifications.Application.csproj" />
+    <Project Path="src/Modules/Notifications/CivicOps.Modules.Notifications.Domain/CivicOps.Modules.Notifications.Domain.csproj" />
+    <Project Path="src/Modules/Notifications/CivicOps.Modules.Notifications.Infrastructure/CivicOps.Modules.Notifications.Infrastructure.csproj" />
+    <Project Path="src/Modules/Notifications/CivicOps.Modules.Notifications.Presentation/CivicOps.Modules.Notifications.Presentation.csproj" />
+  </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/CivicOps.Modules.Notifications.IntegrationTests/CivicOps.Modules.Notifications.IntegrationTests.csproj" />
+    <Project Path="tests/CivicOps.Modules.Notifications.UnitTests/CivicOps.Modules.Notifications.UnitTests.csproj" />
     <Project Path="tests/CivicOps.Modules.Requests.IntegrationTests/CivicOps.Modules.Requests.IntegrationTests.csproj" />
     <Project Path="tests/CivicOps.Modules.Requests.UnitTests/CivicOps.Modules.Requests.UnitTests.csproj" />
   </Folder>

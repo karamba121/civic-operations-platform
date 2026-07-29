@@ -93,3 +93,10 @@ X-Tenant-Id: {{tenantId}}
 GET {{host}}/api/v1/requests/{{requestId}}/audit?page=1&pageSize=20
 Accept: application/json
 X-Tenant-Id: {{tenantId}}
+
+###
+
+GET {{host}}/api/v1/notifications?page=1&pageSize=20
+Accept: application/json
+X-Tenant-Id: {{tenantId}}
+X-User-Id: {{responsibleUserId}}

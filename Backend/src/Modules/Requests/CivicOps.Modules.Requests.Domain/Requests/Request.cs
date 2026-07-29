@@ -132,6 +132,7 @@ public sealed class Request : AggregateRoot<Guid>
                 TenantId,
                 Id,
                 actorUserId,
+                ProtocolNumber.Value,
                 previousResponsibleUserId,
                 responsibleUserId,
                 Version));

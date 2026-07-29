@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../CivicOps.Modules.Notifications.Domain/CivicOps.Modules.Notifications.Domain.csproj" />
+  </ItemGroup>
+</Project>

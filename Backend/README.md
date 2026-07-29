@@ -51,7 +51,9 @@ As leituras disponíveis são:
 - `GET /api/v1/requests/{id}/comments`: comentários paginados, do mais recente
   para o mais antigo;
 - `GET /api/v1/requests/{id}/audit`: histórico imutável e paginado das
-  alterações da solicitação.
+  alterações da solicitação;
+- `GET /api/v1/notifications`: notificações do usuário informado em
+  `X-User-Id`, sempre isoladas pelo tenant.
 
 As escritas disponíveis são:
 
@@ -93,6 +95,14 @@ duplicados. Um `BackgroundService` reivindica lotes com lease e
 broker. O contrato é `at-least-once`; retry exponencial e dead letter pertencem
 às próximas fatias.
 
+O módulo `Notifications` mantém schema, domínio e migrations próprios dentro do
+mesmo processo. O consumidor da fila
+`civicops.notifications.request-assigned` trata
+`requests.responsible-assigned.v1`. Antes de criar a notificação, reserva o
+`MessageId` em `notifications.processed_messages` na mesma transação do efeito.
+Uma entrega repetida recebe `ack` sem criar outra notificação; mensagens só
+recebem `ack` depois do commit no PostgreSQL.
+
 ## Testes
 
 Com PostgreSQL e RabbitMQ do Compose em execução:
@@ -115,7 +125,9 @@ Os testes de integração usam tenants aleatórios e verificam no PostgreSQL rea
 - registro, paginação e isolamento de comentários;
 - auditoria e Outbox atômicas, sem duplicação em replay idempotente ou falha;
 - publicação real no RabbitMQ com mensagem persistente, publisher confirm e
-  marcação posterior da Outbox.
+  marcação posterior da Outbox;
+- criação de notificação de atribuição e reprocessamento do mesmo `MessageId`
+  sem duplicar o efeito.
 
 ## Migration
 
@@ -127,4 +139,11 @@ dotnet ef migrations add NomeDaMigration `
   --startup-project src/CivicOps.Api/CivicOps.Api.csproj `
   --context RequestsDbContext `
   --output-dir Persistence/Migrations
+```
+
+Para o módulo Notifications, altere `--project` e `--context` para:
+
+```text
+src/Modules/Notifications/CivicOps.Modules.Notifications.Infrastructure
+NotificationsDbContext
 ```
