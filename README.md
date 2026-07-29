@@ -109,6 +109,7 @@ partem de eventos gravados na Outbox.
 - [ADR-006: segurança básica de anexos](docs/adr/006-attachment-security-baseline.md)
 - [ADR-007: papéis e permissões por tenant](docs/adr/007-tenant-roles-and-permissions.md)
 - [ADR-008: auditoria de dados sensíveis](docs/adr/008-sensitive-data-audit.md)
+- [ADR-009: projeções do dashboard](docs/adr/009-request-dashboard-projections.md)
 - [Roadmap orientado a evidências](docs/roadmap.md)
 
 ## Execução local

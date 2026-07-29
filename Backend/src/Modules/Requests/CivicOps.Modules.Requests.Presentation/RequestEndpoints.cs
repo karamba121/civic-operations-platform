@@ -4,6 +4,7 @@ using CivicOps.Modules.Requests.Application.CreateRequest;
 using CivicOps.Modules.Requests.Application.AssignResponsible;
 using CivicOps.Modules.Requests.Application.ChangeRequestStatus;
 using CivicOps.Modules.Requests.Application.GetRequestDetails;
+using CivicOps.Modules.Requests.Application.GetRequestDashboard;
 using CivicOps.Modules.Requests.Application.ListRequests;
 using CivicOps.Modules.Requests.Application.ListRequestComments;
 using CivicOps.Modules.Requests.Application.ListRequestAudit;
@@ -14,6 +15,7 @@ using CivicOps.Modules.Requests.Presentation.AddRequestComment;
 using CivicOps.Modules.Requests.Presentation.AssignResponsible;
 using CivicOps.Modules.Requests.Presentation.ChangeRequestStatus;
 using CivicOps.Modules.Requests.Presentation.GetRequestDetails;
+using CivicOps.Modules.Requests.Presentation.GetRequestDashboard;
 using CivicOps.Modules.Requests.Presentation.ListRequests;
 using CivicOps.Modules.Requests.Presentation.ListRequestComments;
 using CivicOps.Modules.Requests.Presentation.ListRequestAudit;
@@ -144,6 +146,49 @@ public static class RequestEndpoints
                 })
             .WithName("ListRequests")
             .Produces<PagedRequestsResponse>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest);
+
+        group.MapGet(
+                "/dashboard",
+                async (
+                    HttpContext httpContext,
+                    GetRequestDashboardHandler handler,
+                    CancellationToken cancellationToken) =>
+                {
+                    if (!TryGetTenantId(httpContext, out var tenantId))
+                    {
+                        return InvalidTenantProblem();
+                    }
+
+                    var result = await handler.HandleAsync(
+                        tenantId,
+                        cancellationToken);
+                    var recent = result.Recent
+                        .Select(item =>
+                            new RequestDashboardRecentItemResponse(
+                                item.Id,
+                                item.ProtocolNumber,
+                                item.Title,
+                                item.Status,
+                                item.ResponsibleUserId,
+                                item.DueDateUtc,
+                                item.CreatedAtUtc))
+                        .ToArray();
+
+                    return Results.Ok(
+                        new RequestDashboardResponse(
+                            result.Total,
+                            result.Submitted,
+                            result.InProgress,
+                            result.Completed,
+                            result.Cancelled,
+                            result.Overdue,
+                            result.DueSoon,
+                            result.UnassignedActive,
+                            recent));
+                })
+            .WithName("GetRequestDashboard")
+            .Produces<RequestDashboardResponse>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest);
 
         group.MapGet(

@@ -48,7 +48,7 @@ vida do anexo.
 
 ## 5. Performance e operação
 
-- criar dashboard e consultas projetadas;
+- [x] criar dashboard e consultas projetadas;
 - definir índices a partir de planos de execução;
 - introduzir cache apenas onde houver ganho medido;
 - executar testes de carga reproduzíveis;

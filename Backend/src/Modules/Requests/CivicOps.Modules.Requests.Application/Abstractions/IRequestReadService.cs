@@ -1,4 +1,5 @@
 using CivicOps.Modules.Requests.Application.GetRequestDetails;
+using CivicOps.Modules.Requests.Application.GetRequestDashboard;
 using CivicOps.Modules.Requests.Application.ListRequestComments;
 using CivicOps.Modules.Requests.Application.ListRequestAudit;
 using CivicOps.Modules.Requests.Application.ListRequests;
@@ -14,6 +15,11 @@ public interface IRequestReadService
     Task<RequestDetailsResult?> GetDetailsAsync(
         Guid tenantId,
         Guid requestId,
+        CancellationToken cancellationToken);
+
+    Task<RequestDashboardResult> GetDashboardAsync(
+        Guid tenantId,
+        DateTimeOffset currentDateUtc,
         CancellationToken cancellationToken);
 
     Task<PagedRequestCommentsResult?> ListCommentsAsync(

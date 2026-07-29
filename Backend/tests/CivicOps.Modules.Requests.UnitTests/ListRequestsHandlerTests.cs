@@ -1,5 +1,6 @@
 using CivicOps.Modules.Requests.Application.Abstractions;
 using CivicOps.Modules.Requests.Application.GetRequestDetails;
+using CivicOps.Modules.Requests.Application.GetRequestDashboard;
 using CivicOps.Modules.Requests.Application.ListRequestComments;
 using CivicOps.Modules.Requests.Application.ListRequestAudit;
 using CivicOps.Modules.Requests.Application.ListRequests;
@@ -80,6 +81,24 @@ public sealed class ListRequestsHandlerTests
             CancellationToken cancellationToken)
         {
             return Task.FromResult<RequestDetailsResult?>(null);
+        }
+
+        public Task<RequestDashboardResult> GetDashboardAsync(
+            Guid tenantId,
+            DateTimeOffset currentDateUtc,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(
+                new RequestDashboardResult(
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    []));
         }
 
         public Task<PagedRequestCommentsResult?> ListCommentsAsync(

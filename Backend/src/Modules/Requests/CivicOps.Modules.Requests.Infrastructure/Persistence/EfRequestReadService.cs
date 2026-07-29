@@ -1,5 +1,6 @@
 using CivicOps.Modules.Requests.Application.Abstractions;
 using CivicOps.Modules.Requests.Application.GetRequestDetails;
+using CivicOps.Modules.Requests.Application.GetRequestDashboard;
 using CivicOps.Modules.Requests.Application.ListRequestComments;
 using CivicOps.Modules.Requests.Application.ListRequestAudit;
 using CivicOps.Modules.Requests.Application.ListRequests;
@@ -94,6 +95,76 @@ internal sealed partial class EfRequestReadService(RequestsDbContext dbContext)
                 request.CreatedAtUtc,
                 request.Version))
             .SingleOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<RequestDashboardResult> GetDashboardAsync(
+        Guid tenantId,
+        DateTimeOffset currentDateUtc,
+        CancellationToken cancellationToken)
+    {
+        var dueSoonLimitUtc = currentDateUtc.AddDays(7);
+        var activeStatuses = new[]
+        {
+            RequestStatus.Submitted,
+            RequestStatus.InProgress
+        };
+        var requests = dbContext.Requests
+            .AsNoTracking()
+            .Where(request => request.TenantId == tenantId);
+
+        var summary = await requests
+            .GroupBy(_ => 1)
+            .Select(group => new
+            {
+                Total = group.LongCount(),
+                Submitted = group.LongCount(
+                    request => request.Status == RequestStatus.Submitted),
+                InProgress = group.LongCount(
+                    request => request.Status == RequestStatus.InProgress),
+                Completed = group.LongCount(
+                    request => request.Status == RequestStatus.Completed),
+                Cancelled = group.LongCount(
+                    request => request.Status == RequestStatus.Cancelled),
+                Overdue = group.LongCount(
+                    request =>
+                        activeStatuses.Contains(request.Status) &&
+                        request.DueDateUtc < currentDateUtc),
+                DueSoon = group.LongCount(
+                    request =>
+                        activeStatuses.Contains(request.Status) &&
+                        request.DueDateUtc >= currentDateUtc &&
+                        request.DueDateUtc <= dueSoonLimitUtc),
+                UnassignedActive = group.LongCount(
+                    request =>
+                        activeStatuses.Contains(request.Status) &&
+                        request.ResponsibleUserId == null)
+            })
+            .SingleOrDefaultAsync(cancellationToken);
+
+        var recent = await requests
+            .OrderByDescending(request => request.CreatedAtUtc)
+            .ThenByDescending(request => request.Id)
+            .Take(5)
+            .Select(request => new RequestDashboardRecentItem(
+                request.Id,
+                request.ProtocolNumber.Value,
+                request.Title,
+                request.Status.ToString(),
+                request.ResponsibleUserId,
+                request.DueDateUtc,
+                request.CreatedAtUtc))
+            .ToListAsync(cancellationToken);
+
+        return new RequestDashboardResult(
+            summary?.Total ?? 0,
+            summary?.Submitted ?? 0,
+            summary?.InProgress ?? 0,
+            summary?.Completed ?? 0,
+            summary?.Cancelled ?? 0,
+            summary?.Overdue ?? 0,
+            summary?.DueSoon ?? 0,
+            summary?.UnassignedActive ?? 0,
+            recent);
     }
 
     public async Task<PagedRequestCommentsResult?> ListCommentsAsync(

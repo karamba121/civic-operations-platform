@@ -5,6 +5,7 @@ using CivicOps.Modules.Requests.Application.AddRequestComment;
 using CivicOps.Modules.Requests.Application.ChangeRequestStatus;
 using CivicOps.Modules.Requests.Application.CreateRequest;
 using CivicOps.Modules.Requests.Application.GetRequestDetails;
+using CivicOps.Modules.Requests.Application.GetRequestDashboard;
 using CivicOps.Modules.Requests.Application.DownloadRequestAttachment;
 using CivicOps.Modules.Requests.Application.ListRequestAttachments;
 using CivicOps.Modules.Requests.Application.ListRequests;
@@ -76,6 +77,7 @@ public static class DependencyInjection
         services.AddScoped<ListRequestAuditHandler>();
         services.AddScoped<ListRequestsHandler>();
         services.AddScoped<GetRequestDetailsHandler>();
+        services.AddScoped<GetRequestDashboardHandler>();
         services.AddScoped<UploadRequestAttachmentHandler>();
         services.AddScoped<RequestAttachmentAuthorization>();
         services.AddScoped<ListRequestAttachmentsHandler>();

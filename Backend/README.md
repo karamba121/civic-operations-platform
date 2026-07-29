@@ -50,6 +50,8 @@ As leituras disponíveis são:
 
 - `GET /api/v1/requests`: listagem 1-based com `page`, `pageSize`, `search`,
   `status`, `createdFromUtc` e `createdToUtc`;
+- `GET /api/v1/requests/dashboard`: resumo operacional projetado com totais,
+  prazos, solicitações sem responsável e os cinco itens mais recentes;
 - `GET /api/v1/requests/{id}`: detalhe da solicitação dentro do tenant atual;
 - `GET /api/v1/requests/{id}/comments`: comentários paginados, do mais recente
   para o mais antigo;
@@ -222,6 +224,8 @@ Os testes de integração usam tenants aleatórios e verificam no PostgreSQL rea
   último administrador e bootstrap concorrente.
 - auditoria de leituras de anexos e operações administrativas de acesso, sem
   registrar tentativas negadas como acessos bem-sucedidos.
+- dashboard projetado, com totais por situação, prazos operacionais, ordenação
+  determinística e isolamento entre tenants.
 
 ## Migration
 
