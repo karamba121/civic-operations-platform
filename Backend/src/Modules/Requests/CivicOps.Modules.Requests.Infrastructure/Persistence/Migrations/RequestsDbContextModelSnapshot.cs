@@ -87,7 +87,9 @@ namespace CivicOps.Modules.Requests.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_administrative_requests_tenant_created_at");
 
                     b.HasIndex("TenantId", "DueDateUtc")
-                        .HasDatabaseName("ix_administrative_requests_tenant_due_date");
+                        .HasDatabaseName("ix_administrative_requests_tenant_active_due_date")
+                        .HasFilter("\"status\" = 'Submitted' OR \"status\" = 'InProgress'")
+                        .HasAnnotation("Npgsql:IndexInclude", new[] { "ResponsibleUserId" });
 
                     b.HasIndex("TenantId", "ProtocolNumber")
                         .IsUnique()

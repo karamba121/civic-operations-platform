@@ -93,7 +93,15 @@ internal sealed class RequestConfiguration : IEntityTypeConfiguration<Request>
         builder.HasAlternateKey(request => new { request.TenantId, request.Id })
             .HasName("ak_administrative_requests_tenant_id");
 
-        builder.HasIndex(request => new { request.TenantId, request.DueDateUtc })
-            .HasDatabaseName("ix_administrative_requests_tenant_due_date");
+        builder.HasIndex(request => new
+            {
+                request.TenantId,
+                request.DueDateUtc
+            })
+            .IncludeProperties(request => request.ResponsibleUserId)
+            .HasFilter(
+                "\"status\" = 'Submitted' OR \"status\" = 'InProgress'")
+            .HasDatabaseName(
+                "ix_administrative_requests_tenant_active_due_date");
     }
 }

@@ -227,6 +227,10 @@ Os testes de integração usam tenants aleatórios e verificam no PostgreSQL rea
 - dashboard projetado, com totais por situação, prazos operacionais, ordenação
   determinística e isolamento entre tenants.
 
+Os planos de execução do dashboard e o dataset reproduzível estão documentados
+em
+[`docs/performance/2026-07-29-request-dashboard-indexes.md`](../docs/performance/2026-07-29-request-dashboard-indexes.md).
+
 ## Migration
 
 Para criar uma nova migration do módulo Requests:

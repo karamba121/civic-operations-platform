@@ -103,41 +103,35 @@ internal sealed partial class EfRequestReadService(RequestsDbContext dbContext)
         CancellationToken cancellationToken)
     {
         var dueSoonLimitUtc = currentDateUtc.AddDays(7);
-        var activeStatuses = new[]
-        {
-            RequestStatus.Submitted,
-            RequestStatus.InProgress
-        };
         var requests = dbContext.Requests
             .AsNoTracking()
             .Where(request => request.TenantId == tenantId);
 
-        var summary = await requests
+        var statusCounts = await requests
+            .GroupBy(request => request.Status)
+            .Select(group => new
+            {
+                Status = group.Key,
+                Count = group.LongCount()
+            })
+            .ToListAsync(cancellationToken);
+
+        var operational = await requests
+            .Where(request =>
+                request.Status == RequestStatus.Submitted ||
+                request.Status == RequestStatus.InProgress)
             .GroupBy(_ => 1)
             .Select(group => new
             {
-                Total = group.LongCount(),
-                Submitted = group.LongCount(
-                    request => request.Status == RequestStatus.Submitted),
-                InProgress = group.LongCount(
-                    request => request.Status == RequestStatus.InProgress),
-                Completed = group.LongCount(
-                    request => request.Status == RequestStatus.Completed),
-                Cancelled = group.LongCount(
-                    request => request.Status == RequestStatus.Cancelled),
                 Overdue = group.LongCount(
                     request =>
-                        activeStatuses.Contains(request.Status) &&
                         request.DueDateUtc < currentDateUtc),
                 DueSoon = group.LongCount(
                     request =>
-                        activeStatuses.Contains(request.Status) &&
                         request.DueDateUtc >= currentDateUtc &&
                         request.DueDateUtc <= dueSoonLimitUtc),
                 UnassignedActive = group.LongCount(
-                    request =>
-                        activeStatuses.Contains(request.Status) &&
-                        request.ResponsibleUserId == null)
+                    request => request.ResponsibleUserId == null)
             })
             .SingleOrDefaultAsync(cancellationToken);
 
@@ -156,15 +150,22 @@ internal sealed partial class EfRequestReadService(RequestsDbContext dbContext)
             .ToListAsync(cancellationToken);
 
         return new RequestDashboardResult(
-            summary?.Total ?? 0,
-            summary?.Submitted ?? 0,
-            summary?.InProgress ?? 0,
-            summary?.Completed ?? 0,
-            summary?.Cancelled ?? 0,
-            summary?.Overdue ?? 0,
-            summary?.DueSoon ?? 0,
-            summary?.UnassignedActive ?? 0,
+            statusCounts.Sum(item => item.Count),
+            Count(RequestStatus.Submitted),
+            Count(RequestStatus.InProgress),
+            Count(RequestStatus.Completed),
+            Count(RequestStatus.Cancelled),
+            operational?.Overdue ?? 0,
+            operational?.DueSoon ?? 0,
+            operational?.UnassignedActive ?? 0,
             recent);
+
+        long Count(RequestStatus status)
+        {
+            return statusCounts
+                .SingleOrDefault(item => item.Status == status)
+                ?.Count ?? 0;
+        }
     }
 
     public async Task<PagedRequestCommentsResult?> ListCommentsAsync(

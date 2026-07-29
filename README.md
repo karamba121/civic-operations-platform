@@ -110,6 +110,7 @@ partem de eventos gravados na Outbox.
 - [ADR-007: papéis e permissões por tenant](docs/adr/007-tenant-roles-and-permissions.md)
 - [ADR-008: auditoria de dados sensíveis](docs/adr/008-sensitive-data-audit.md)
 - [ADR-009: projeções do dashboard](docs/adr/009-request-dashboard-projections.md)
+- [ADR-010: índices do dashboard](docs/adr/010-request-dashboard-indexes.md)
 - [Roadmap orientado a evidências](docs/roadmap.md)
 
 ## Execução local

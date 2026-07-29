@@ -1,11 +1,14 @@
+using CivicOps.Modules.Requests.Infrastructure.Persistence;
 using CivicOps.Modules.Requests.Presentation;
 using CivicOps.Modules.Requests.Presentation.CreateRequest;
 using CivicOps.Modules.Requests.Presentation.GetRequestDashboard;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using System.Data;
 using System.Net;
 using System.Net.Http.Json;
 using Xunit;
@@ -189,6 +192,42 @@ public sealed class RequestDashboardEndpointTests
         Assert.Equal(0, dashboard.DueSoon);
         Assert.Equal(0, dashboard.UnassignedActive);
         Assert.Empty(dashboard.Recent);
+    }
+
+    [Fact]
+    public async Task DashboardIndex_ShouldBePartialAndCoverOperationalColumns()
+    {
+        var clock = new AdjustableTimeProvider(DateTimeOffset.UtcNow);
+        await using var factory = CreateFactory(clock);
+        await using var scope = factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider
+            .GetRequiredService<RequestsDbContext>();
+        var connection = dbContext.Database.GetDbConnection();
+
+        if (connection.State != ConnectionState.Open)
+        {
+            await connection.OpenAsync(
+                TestContext.Current.CancellationToken);
+        }
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT COUNT(*)
+            FROM pg_indexes
+            WHERE schemaname = 'requests'
+              AND tablename = 'administrative_requests'
+              AND indexname =
+                  'ix_administrative_requests_tenant_active_due_date'
+              AND indexdef LIKE '%INCLUDE (responsible_user_id)%'
+              AND indexdef LIKE '%WHERE%Submitted%InProgress%';
+            """;
+
+        Assert.Equal(
+            1L,
+            Convert.ToInt64(
+                await command.ExecuteScalarAsync(
+                    TestContext.Current.CancellationToken)));
     }
 
     private static WebApplicationFactory<Program> CreateFactory(
