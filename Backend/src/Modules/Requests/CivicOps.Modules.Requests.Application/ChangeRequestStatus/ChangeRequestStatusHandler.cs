@@ -30,6 +30,7 @@ public sealed class ChangeRequestStatusHandler(
                     request.ProtocolNumber.Value,
                     request.Status.ToString(),
                     request.ResponsibleUserId,
+                    request.DueDateUtc,
                     request.Version);
             },
             cancellationToken);

@@ -131,6 +131,81 @@ public sealed class RequestTests
         Assert.Equal(version, request.Version);
     }
 
+    [Fact]
+    public void SetDueDate_ShouldUpdateDueDateAndVersion()
+    {
+        var request = CreateRequest();
+        var version = request.Version;
+        var currentDateUtc = DateTimeOffset.UtcNow;
+        var dueDateUtc = currentDateUtc.AddDays(5);
+
+        request.SetDueDate(dueDateUtc, version, currentDateUtc);
+
+        Assert.Equal(dueDateUtc, request.DueDateUtc);
+        Assert.NotEqual(version, request.Version);
+    }
+
+    [Fact]
+    public void SetDueDate_ShouldRejectPastDate()
+    {
+        var request = CreateRequest();
+        var currentDateUtc = DateTimeOffset.UtcNow;
+
+        var action = () => request.SetDueDate(
+            currentDateUtc.AddMinutes(-1),
+            request.Version,
+            currentDateUtc);
+
+        Assert.Throws<DomainException>(action);
+    }
+
+    [Fact]
+    public void SetDueDate_ShouldAllowClearingCurrentDueDate()
+    {
+        var request = CreateRequest();
+        var currentDateUtc = DateTimeOffset.UtcNow;
+        request.SetDueDate(
+            currentDateUtc.AddDays(5),
+            request.Version,
+            currentDateUtc);
+        var versionWithDueDate = request.Version;
+
+        request.SetDueDate(null, versionWithDueDate, currentDateUtc);
+
+        Assert.Null(request.DueDateUtc);
+        Assert.NotEqual(versionWithDueDate, request.Version);
+    }
+
+    [Fact]
+    public void RequestComment_ShouldNormalizeContent()
+    {
+        var authorUserId = Guid.NewGuid();
+
+        var comment = RequestComment.Create(
+            TenantId,
+            Guid.NewGuid(),
+            authorUserId,
+            "  Equipe acionada.  ",
+            DateTimeOffset.UtcNow);
+
+        Assert.Equal(authorUserId, comment.AuthorUserId);
+        Assert.Equal("Equipe acionada.", comment.Content);
+        Assert.NotEqual(Guid.Empty, comment.Id);
+    }
+
+    [Fact]
+    public void RequestComment_ShouldRejectEmptyContent()
+    {
+        var action = () => RequestComment.Create(
+            TenantId,
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            " ",
+            DateTimeOffset.UtcNow);
+
+        Assert.Throws<DomainException>(action);
+    }
+
     private static Request CreateRequest()
     {
         return Request.Create(

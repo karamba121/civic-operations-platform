@@ -45,6 +45,8 @@ public sealed class Request : AggregateRoot<Guid>
 
     public Guid? ResponsibleUserId { get; private set; }
 
+    public DateTimeOffset? DueDateUtc { get; private set; }
+
     public DateTimeOffset CreatedAtUtc { get; private set; }
 
     public Guid Version { get; private set; }
@@ -122,6 +124,34 @@ public sealed class Request : AggregateRoot<Guid>
         Version = Guid.NewGuid();
     }
 
+    public void SetDueDate(
+        DateTimeOffset? dueDateUtc,
+        Guid expectedVersion,
+        DateTimeOffset currentDateUtc)
+    {
+        EnsureExpectedVersion(expectedVersion);
+        EnsureUtc(currentDateUtc, "A data atual deve estar em UTC.");
+        EnsureNotTerminal("alterar o prazo");
+
+        if (dueDateUtc is not null)
+        {
+            EnsureUtc(dueDateUtc.Value, "O prazo deve estar em UTC.");
+
+            if (dueDateUtc <= currentDateUtc)
+            {
+                throw new DomainException("O prazo deve ser uma data futura.");
+            }
+        }
+
+        if (DueDateUtc == dueDateUtc)
+        {
+            return;
+        }
+
+        DueDateUtc = dueDateUtc;
+        Version = Guid.NewGuid();
+    }
+
     private bool CanTransitionTo(RequestStatus newStatus)
     {
         return Status switch
@@ -167,5 +197,13 @@ public sealed class Request : AggregateRoot<Guid>
         }
 
         return value;
+    }
+
+    private static void EnsureUtc(DateTimeOffset value, string message)
+    {
+        if (value.Offset != TimeSpan.Zero)
+        {
+            throw new DomainException(message);
+        }
     }
 }

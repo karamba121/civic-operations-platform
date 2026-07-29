@@ -54,3 +54,33 @@ X-Tenant-Id: {{tenantId}}
   "status": "InProgress",
   "version": "{{version}}"
 }
+
+###
+
+PATCH {{host}}/api/v1/requests/{{requestId}}/due-date
+Content-Type: application/json
+X-Tenant-Id: {{tenantId}}
+
+{
+  "dueDateUtc": "2026-12-31T23:59:59Z",
+  "version": "{{version}}"
+}
+
+###
+
+@authorUserId = 33333333-3333-3333-3333-333333333333
+
+POST {{host}}/api/v1/requests/{{requestId}}/comments
+Content-Type: application/json
+X-Tenant-Id: {{tenantId}}
+
+{
+  "authorUserId": "{{authorUserId}}",
+  "content": "Equipe responsável acionada."
+}
+
+###
+
+GET {{host}}/api/v1/requests/{{requestId}}/comments?page=1&pageSize=20
+Accept: application/json
+X-Tenant-Id: {{tenantId}}

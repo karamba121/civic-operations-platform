@@ -1,15 +1,21 @@
 using CivicOps.Modules.Requests.Application;
+using CivicOps.Modules.Requests.Application.AddRequestComment;
 using CivicOps.Modules.Requests.Application.CreateRequest;
 using CivicOps.Modules.Requests.Application.AssignResponsible;
 using CivicOps.Modules.Requests.Application.ChangeRequestStatus;
 using CivicOps.Modules.Requests.Application.GetRequestDetails;
 using CivicOps.Modules.Requests.Application.ListRequests;
+using CivicOps.Modules.Requests.Application.ListRequestComments;
+using CivicOps.Modules.Requests.Application.SetRequestDueDate;
 using CivicOps.Modules.Requests.Domain.Requests;
 using CivicOps.Modules.Requests.Presentation.CreateRequest;
+using CivicOps.Modules.Requests.Presentation.AddRequestComment;
 using CivicOps.Modules.Requests.Presentation.AssignResponsible;
 using CivicOps.Modules.Requests.Presentation.ChangeRequestStatus;
 using CivicOps.Modules.Requests.Presentation.GetRequestDetails;
 using CivicOps.Modules.Requests.Presentation.ListRequests;
+using CivicOps.Modules.Requests.Presentation.ListRequestComments;
+using CivicOps.Modules.Requests.Presentation.SetRequestDueDate;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -114,6 +120,7 @@ public static class RequestEndpoints
                             item.Title,
                             item.Status,
                             item.ResponsibleUserId,
+                            item.DueDateUtc,
                             item.CreatedAtUtc,
                             item.Version))
                         .ToList();
@@ -160,6 +167,7 @@ public static class RequestEndpoints
                             result.Description,
                             result.Status,
                             result.ResponsibleUserId,
+                            result.DueDateUtc,
                             result.CreatedAtUtc,
                             result.Version));
                 })
@@ -199,6 +207,129 @@ public static class RequestEndpoints
             .Produces(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict)
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
+
+        group.MapPatch(
+                "/{requestId:guid}/due-date",
+                async (
+                    Guid requestId,
+                    SetRequestDueDateRequest body,
+                    HttpContext httpContext,
+                    SetRequestDueDateHandler handler,
+                    CancellationToken cancellationToken) =>
+                {
+                    if (!TryGetTenantId(httpContext, out var tenantId))
+                    {
+                        return InvalidTenantProblem();
+                    }
+
+                    var result = await handler.HandleAsync(
+                        new SetRequestDueDateCommand(
+                            tenantId,
+                            requestId,
+                            body.DueDateUtc,
+                            body.Version),
+                        cancellationToken);
+
+                    return result is null
+                        ? Results.NotFound()
+                        : Results.Ok(ToMutationResponse(result));
+                })
+            .WithName("SetRequestDueDate")
+            .Produces<RequestMutationResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict)
+            .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
+
+        group.MapPost(
+                "/{requestId:guid}/comments",
+                async (
+                    Guid requestId,
+                    AddRequestCommentRequest body,
+                    HttpContext httpContext,
+                    AddRequestCommentHandler handler,
+                    CancellationToken cancellationToken) =>
+                {
+                    if (!TryGetTenantId(httpContext, out var tenantId))
+                    {
+                        return InvalidTenantProblem();
+                    }
+
+                    var result = await handler.HandleAsync(
+                        new AddRequestCommentCommand(
+                            tenantId,
+                            requestId,
+                            body.AuthorUserId,
+                            body.Content),
+                        cancellationToken);
+
+                    if (result is null)
+                    {
+                        return Results.NotFound();
+                    }
+
+                    var response = new RequestCommentResponse(
+                        result.Id,
+                        result.RequestId,
+                        result.AuthorUserId,
+                        result.Content,
+                        result.CreatedAtUtc);
+
+                    return Results.Created(
+                        $"/api/v1/requests/{requestId}/comments",
+                        response);
+                })
+            .WithName("AddRequestComment")
+            .Produces<RequestCommentResponse>(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
+
+        group.MapGet(
+                "/{requestId:guid}/comments",
+                async (
+                    Guid requestId,
+                    [AsParameters] ListRequestCommentsParameters parameters,
+                    HttpContext httpContext,
+                    ListRequestCommentsHandler handler,
+                    CancellationToken cancellationToken) =>
+                {
+                    if (!TryGetTenantId(httpContext, out var tenantId))
+                    {
+                        return InvalidTenantProblem();
+                    }
+
+                    var result = await handler.HandleAsync(
+                        new ListRequestCommentsQuery(
+                            tenantId,
+                            requestId,
+                            parameters.Page ?? 1,
+                            parameters.PageSize ?? 20),
+                        cancellationToken);
+
+                    if (result is null)
+                    {
+                        return Results.NotFound();
+                    }
+
+                    var items = result.Items
+                        .Select(comment => new RequestCommentListItemResponse(
+                            comment.Id,
+                            comment.AuthorUserId,
+                            comment.Content,
+                            comment.CreatedAtUtc))
+                        .ToList();
+
+                    return Results.Ok(
+                        new PagedRequestCommentsResponse(
+                            items,
+                            result.Page,
+                            result.PageSize,
+                            result.TotalItems,
+                            result.TotalPages));
+                })
+            .WithName("ListRequestComments")
+            .Produces<PagedRequestCommentsResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status400BadRequest);
 
         group.MapPatch(
                 "/{requestId:guid}/status",
@@ -253,6 +384,7 @@ public static class RequestEndpoints
             result.ProtocolNumber,
             result.Status,
             result.ResponsibleUserId,
+            result.DueDateUtc,
             result.Version);
     }
 

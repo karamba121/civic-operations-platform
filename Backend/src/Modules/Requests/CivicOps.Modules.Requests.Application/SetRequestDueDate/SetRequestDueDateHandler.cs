@@ -1,13 +1,14 @@
 using CivicOps.Modules.Requests.Application.Abstractions;
 
-namespace CivicOps.Modules.Requests.Application.AssignResponsible;
+namespace CivicOps.Modules.Requests.Application.SetRequestDueDate;
 
-public sealed class AssignResponsibleHandler(
+public sealed class SetRequestDueDateHandler(
     IRequestRepository repository,
-    IRequestsUnitOfWork unitOfWork)
+    IRequestsUnitOfWork unitOfWork,
+    TimeProvider timeProvider)
 {
     public Task<RequestMutationResult?> HandleAsync(
-        AssignResponsibleCommand command,
+        SetRequestDueDateCommand command,
         CancellationToken cancellationToken)
     {
         return unitOfWork.ExecuteInTransactionAsync(
@@ -23,9 +24,10 @@ public sealed class AssignResponsibleHandler(
                     return null;
                 }
 
-                request.AssignResponsible(
-                    command.ResponsibleUserId,
-                    command.ExpectedVersion);
+                request.SetDueDate(
+                    command.DueDateUtc,
+                    command.ExpectedVersion,
+                    timeProvider.GetUtcNow());
 
                 return new RequestMutationResult(
                     request.Id,

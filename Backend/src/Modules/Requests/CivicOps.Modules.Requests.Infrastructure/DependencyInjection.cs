@@ -1,9 +1,12 @@
 using CivicOps.Modules.Requests.Application.Abstractions;
 using CivicOps.Modules.Requests.Application.AssignResponsible;
+using CivicOps.Modules.Requests.Application.AddRequestComment;
 using CivicOps.Modules.Requests.Application.ChangeRequestStatus;
 using CivicOps.Modules.Requests.Application.CreateRequest;
 using CivicOps.Modules.Requests.Application.GetRequestDetails;
 using CivicOps.Modules.Requests.Application.ListRequests;
+using CivicOps.Modules.Requests.Application.ListRequestComments;
+using CivicOps.Modules.Requests.Application.SetRequestDueDate;
 using CivicOps.Modules.Requests.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -29,6 +32,7 @@ public static class DependencyInjection
                     "requests")));
 
         services.AddScoped<IRequestRepository, RequestRepository>();
+        services.AddScoped<IRequestCommentRepository, RequestCommentRepository>();
         services.AddScoped<IRequestReadService, EfRequestReadService>();
         services.AddScoped<IProtocolNumberGenerator, PostgresProtocolNumberGenerator>();
         services.AddScoped<IRequestIdempotencyStore, PostgresRequestIdempotencyStore>();
@@ -36,6 +40,9 @@ public static class DependencyInjection
         services.AddScoped<CreateRequestHandler>();
         services.AddScoped<AssignResponsibleHandler>();
         services.AddScoped<ChangeRequestStatusHandler>();
+        services.AddScoped<SetRequestDueDateHandler>();
+        services.AddScoped<AddRequestCommentHandler>();
+        services.AddScoped<ListRequestCommentsHandler>();
         services.AddScoped<ListRequestsHandler>();
         services.AddScoped<GetRequestDetailsHandler>();
         services.AddSingleton(TimeProvider.System);

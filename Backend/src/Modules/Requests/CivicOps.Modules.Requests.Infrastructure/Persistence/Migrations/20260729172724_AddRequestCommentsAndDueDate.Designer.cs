@@ -3,6 +3,7 @@ using System;
 using CivicOps.Modules.Requests.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CivicOps.Modules.Requests.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(RequestsDbContext))]
-    partial class RequestsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260729172724_AddRequestCommentsAndDueDate")]
+    partial class AddRequestCommentsAndDueDate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

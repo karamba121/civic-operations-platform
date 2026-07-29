@@ -1,5 +1,6 @@
 using CivicOps.Modules.Requests.Application.Abstractions;
 using CivicOps.Modules.Requests.Application.GetRequestDetails;
+using CivicOps.Modules.Requests.Application.ListRequestComments;
 using CivicOps.Modules.Requests.Application.ListRequests;
 using Xunit;
 
@@ -78,6 +79,13 @@ public sealed class ListRequestsHandlerTests
             CancellationToken cancellationToken)
         {
             return Task.FromResult<RequestDetailsResult?>(null);
+        }
+
+        public Task<PagedRequestCommentsResult?> ListCommentsAsync(
+            ListRequestCommentsQuery query,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult<PagedRequestCommentsResult?>(null);
         }
     }
 }

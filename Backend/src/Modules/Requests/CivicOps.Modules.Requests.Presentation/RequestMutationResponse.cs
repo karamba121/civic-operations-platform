@@ -5,4 +5,5 @@ public sealed record RequestMutationResponse(
     string ProtocolNumber,
     string Status,
     Guid? ResponsibleUserId,
+    DateTimeOffset? DueDateUtc,
     Guid Version);

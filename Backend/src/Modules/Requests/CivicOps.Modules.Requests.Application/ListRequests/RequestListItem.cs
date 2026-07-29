@@ -6,5 +6,6 @@ public sealed record RequestListItem(
     string Title,
     string Status,
     Guid? ResponsibleUserId,
+    DateTimeOffset? DueDateUtc,
     DateTimeOffset CreatedAtUtc,
     Guid Version);

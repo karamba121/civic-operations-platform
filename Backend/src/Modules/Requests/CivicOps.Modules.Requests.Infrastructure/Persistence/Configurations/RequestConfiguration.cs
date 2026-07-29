@@ -47,6 +47,9 @@ internal sealed class RequestConfiguration : IEntityTypeConfiguration<Request>
         builder.Property(request => request.ResponsibleUserId)
             .HasColumnName("responsible_user_id");
 
+        builder.Property(request => request.DueDateUtc)
+            .HasColumnName("due_date_utc");
+
         builder.Property(request => request.CreatedAtUtc)
             .HasColumnName("created_at_utc")
             .IsRequired();
@@ -82,5 +85,11 @@ internal sealed class RequestConfiguration : IEntityTypeConfiguration<Request>
                 })
             .HasDatabaseName(
                 "ix_administrative_requests_tenant_responsible_status_created_at");
+
+        builder.HasAlternateKey(request => new { request.TenantId, request.Id })
+            .HasName("ak_administrative_requests_tenant_id");
+
+        builder.HasIndex(request => new { request.TenantId, request.DueDateUtc })
+            .HasDatabaseName("ix_administrative_requests_tenant_due_date");
     }
 }

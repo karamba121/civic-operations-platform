@@ -8,6 +8,8 @@ public sealed class RequestsDbContext(DbContextOptions<RequestsDbContext> option
 {
     public DbSet<Request> Requests => Set<Request>();
 
+    public DbSet<RequestComment> RequestComments => Set<RequestComment>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema("requests");

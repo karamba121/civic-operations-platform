@@ -1,5 +1,6 @@
 using CivicOps.Modules.Requests.Application.Abstractions;
 using CivicOps.Modules.Requests.Application.GetRequestDetails;
+using CivicOps.Modules.Requests.Application.ListRequestComments;
 using CivicOps.Modules.Requests.Application.ListRequests;
 using CivicOps.Modules.Requests.Domain.Requests;
 using Microsoft.EntityFrameworkCore;
@@ -54,6 +55,7 @@ internal sealed partial class EfRequestReadService(RequestsDbContext dbContext)
                 request.Title,
                 request.Status.ToString(),
                 request.ResponsibleUserId,
+                request.DueDateUtc,
                 request.CreatedAtUtc,
                 request.Version))
             .ToListAsync(cancellationToken);
@@ -87,9 +89,60 @@ internal sealed partial class EfRequestReadService(RequestsDbContext dbContext)
                 request.Description,
                 request.Status.ToString(),
                 request.ResponsibleUserId,
+                request.DueDateUtc,
                 request.CreatedAtUtc,
                 request.Version))
             .SingleOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<PagedRequestCommentsResult?> ListCommentsAsync(
+        ListRequestCommentsQuery query,
+        CancellationToken cancellationToken)
+    {
+        var requestExists = await dbContext.Requests
+            .AsNoTracking()
+            .AnyAsync(
+                request =>
+                    request.TenantId == query.TenantId &&
+                    request.Id == query.RequestId,
+                cancellationToken);
+
+        if (!requestExists)
+        {
+            return null;
+        }
+
+        var comments = dbContext.RequestComments
+            .AsNoTracking()
+            .Where(comment =>
+                comment.TenantId == query.TenantId &&
+                comment.RequestId == query.RequestId);
+
+        var totalItems = await comments.LongCountAsync(cancellationToken);
+        var skip = checked((query.Page - 1) * query.PageSize);
+
+        var items = await comments
+            .OrderByDescending(comment => comment.CreatedAtUtc)
+            .ThenByDescending(comment => comment.Id)
+            .Skip(skip)
+            .Take(query.PageSize)
+            .Select(comment => new RequestCommentListItem(
+                comment.Id,
+                comment.AuthorUserId,
+                comment.Content,
+                comment.CreatedAtUtc))
+            .ToListAsync(cancellationToken);
+
+        var totalPages = totalItems == 0
+            ? 0
+            : (totalItems + query.PageSize - 1) / query.PageSize;
+
+        return new PagedRequestCommentsResult(
+            items,
+            query.Page,
+            query.PageSize,
+            totalItems,
+            totalPages);
     }
 
     private static IQueryable<Request> ApplySearch(

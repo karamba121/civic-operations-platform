@@ -7,5 +7,6 @@ public sealed record RequestDetailsResponse(
     string Description,
     string Status,
     Guid? ResponsibleUserId,
+    DateTimeOffset? DueDateUtc,
     DateTimeOffset CreatedAtUtc,
     Guid Version);

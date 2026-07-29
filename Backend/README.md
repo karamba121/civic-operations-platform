@@ -45,15 +45,24 @@ As leituras disponíveis são:
 
 - `GET /api/v1/requests`: listagem 1-based com `page`, `pageSize`, `search`,
   `status`, `createdFromUtc` e `createdToUtc`;
-- `GET /api/v1/requests/{id}`: detalhe da solicitação dentro do tenant atual.
+- `GET /api/v1/requests/{id}`: detalhe da solicitação dentro do tenant atual;
+- `GET /api/v1/requests/{id}/comments`: comentários paginados, do mais recente
+  para o mais antigo.
+
+As escritas disponíveis são:
+
 - `PATCH /api/v1/requests/{id}/assignment`: atribui um responsável;
-- `PATCH /api/v1/requests/{id}/status`: executa uma transição de situação.
+- `PATCH /api/v1/requests/{id}/status`: executa uma transição de situação;
+- `PATCH /api/v1/requests/{id}/due-date`: define ou remove o prazo;
+- `POST /api/v1/requests/{id}/comments`: registra um comentário append-only.
 
 `pageSize` aceita de 1 a 100. A busca é case-insensitive sobre título e
 descrição e também aceita um número de protocolo completo.
 
-Os dois comandos de alteração exigem a `version` retornada pela leitura anterior.
-Uma versão desatualizada retorna `409 Conflict`. As transições permitidas são:
+Os comandos de responsável, situação e prazo exigem a `version` retornada pela
+leitura anterior. Uma versão desatualizada retorna `409 Conflict`. O prazo deve
+ser futuro e informado em UTC; `dueDateUtc: null` remove o prazo. As transições
+permitidas são:
 
 ```text
 Submitted -> InProgress | Cancelled
@@ -61,8 +70,9 @@ InProgress -> Completed | Cancelled
 Completed | Cancelled -> estado terminal
 ```
 
-O responsável é armazenado como UUID sem foreign key até a implementação do
-módulo de identidade.
+O responsável e o autor do comentário são armazenados como UUID sem foreign key
+até a implementação do módulo de identidade. Comentários são append-only e não
+alteram a versão da solicitação, evitando conflito entre registros simultâneos.
 
 ## Testes
 
@@ -81,7 +91,9 @@ Os testes de integração usam tenants aleatórios e verificam no PostgreSQL rea
 - paginação, filtros e busca executados no PostgreSQL;
 - isolamento entre tenants nas listagens e nos detalhes.
 - atribuição de responsável e workflow de situação;
-- concorrência otimista, inclusive com atualizações simultâneas.
+- concorrência otimista, inclusive com atualizações simultâneas;
+- definição, remoção e validação de prazo;
+- registro, paginação e isolamento de comentários.
 
 ## Migration
 
