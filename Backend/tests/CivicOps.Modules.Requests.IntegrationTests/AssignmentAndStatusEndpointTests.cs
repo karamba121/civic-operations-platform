@@ -221,6 +221,7 @@ public sealed class AssignmentAndStatusEndpointTests
             HttpMethod.Post,
             "/api/v1/requests");
         request.Headers.Add("X-Tenant-Id", tenantId.ToString());
+        request.Headers.Add("X-User-Id", Guid.NewGuid().ToString());
         request.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString());
         request.Content = JsonContent.Create(
             new CreateRequestRequest(
@@ -260,6 +261,7 @@ public sealed class AssignmentAndStatusEndpointTests
     {
         using var request = new HttpRequestMessage(HttpMethod.Patch, uri);
         request.Headers.Add("X-Tenant-Id", tenantId.ToString());
+        request.Headers.Add("X-User-Id", Guid.NewGuid().ToString());
         request.Content = JsonContent.Create(body);
         return await client.SendAsync(request, cancellationToken);
     }
@@ -272,6 +274,7 @@ public sealed class AssignmentAndStatusEndpointTests
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, uri);
         request.Headers.Add("X-Tenant-Id", tenantId.ToString());
+        request.Headers.Add("X-User-Id", Guid.NewGuid().ToString());
         return await client.SendAsync(request, cancellationToken);
     }
 }

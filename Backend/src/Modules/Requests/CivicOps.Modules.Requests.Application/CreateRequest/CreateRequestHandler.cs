@@ -47,6 +47,7 @@ public sealed class CreateRequestHandler(
 
                 var request = Request.Create(
                     command.TenantId,
+                    command.ActorUserId,
                     protocolNumber,
                     command.Title,
                     command.Description,

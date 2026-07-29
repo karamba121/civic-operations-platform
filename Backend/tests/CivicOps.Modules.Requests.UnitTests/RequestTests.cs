@@ -1,5 +1,6 @@
 using CivicOps.BuildingBlocks.Domain;
 using CivicOps.Modules.Requests.Domain.Requests;
+using CivicOps.Modules.Requests.Domain.Requests.Events;
 using Xunit;
 
 namespace CivicOps.Modules.Requests.UnitTests;
@@ -8,6 +9,8 @@ public sealed class RequestTests
 {
     private static readonly Guid TenantId =
         Guid.Parse("11111111-1111-1111-1111-111111111111");
+    private static readonly Guid ActorUserId =
+        Guid.Parse("22222222-2222-2222-2222-222222222222");
 
     [Fact]
     public void Create_ShouldCreateSubmittedRequest()
@@ -23,6 +26,7 @@ public sealed class RequestTests
 
         var request = Request.Create(
             TenantId,
+            ActorUserId,
             ProtocolNumber.Create(2026, 42),
             "  Iluminação pública  ",
             "  Poste sem iluminação.  ",
@@ -36,6 +40,11 @@ public sealed class RequestTests
         Assert.Equal(RequestStatus.Submitted, request.Status);
         Assert.Equal(createdAtUtc, request.CreatedAtUtc);
         Assert.NotEqual(Guid.Empty, request.Version);
+
+        var domainEvent = Assert.IsType<RequestCreatedDomainEvent>(
+            Assert.Single(request.DomainEvents));
+        Assert.Equal(ActorUserId, domainEvent.ActorUserId);
+        Assert.Equal(request.Id, domainEvent.RequestId);
     }
 
     [Theory]
@@ -45,6 +54,7 @@ public sealed class RequestTests
     {
         var action = () => Request.Create(
             TenantId,
+            ActorUserId,
             ProtocolNumber.Create(2026, 1),
             title,
             "Descrição",
@@ -69,7 +79,11 @@ public sealed class RequestTests
         var previousVersion = request.Version;
         var responsibleUserId = Guid.NewGuid();
 
-        request.AssignResponsible(responsibleUserId, previousVersion);
+        request.AssignResponsible(
+            responsibleUserId,
+            previousVersion,
+            ActorUserId,
+            DateTimeOffset.UtcNow);
 
         Assert.Equal(responsibleUserId, request.ResponsibleUserId);
         Assert.NotEqual(previousVersion, request.Version);
@@ -81,7 +95,11 @@ public sealed class RequestTests
         var request = CreateRequest();
 
         var action = () =>
-            request.AssignResponsible(Guid.NewGuid(), Guid.NewGuid());
+            request.AssignResponsible(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                ActorUserId,
+                DateTimeOffset.UtcNow);
 
         Assert.Throws<RequestConcurrencyException>(action);
     }
@@ -90,10 +108,18 @@ public sealed class RequestTests
     public void AssignResponsible_ShouldRejectTerminalRequest()
     {
         var request = CreateRequest();
-        request.ChangeStatus(RequestStatus.Cancelled, request.Version);
+        request.ChangeStatus(
+            RequestStatus.Cancelled,
+            request.Version,
+            ActorUserId,
+            DateTimeOffset.UtcNow);
 
         var action = () =>
-            request.AssignResponsible(Guid.NewGuid(), request.Version);
+            request.AssignResponsible(
+                Guid.NewGuid(),
+                request.Version,
+                ActorUserId,
+                DateTimeOffset.UtcNow);
 
         Assert.Throws<DomainException>(action);
     }
@@ -103,8 +129,16 @@ public sealed class RequestTests
     {
         var request = CreateRequest();
 
-        request.ChangeStatus(RequestStatus.InProgress, request.Version);
-        request.ChangeStatus(RequestStatus.Completed, request.Version);
+        request.ChangeStatus(
+            RequestStatus.InProgress,
+            request.Version,
+            ActorUserId,
+            DateTimeOffset.UtcNow);
+        request.ChangeStatus(
+            RequestStatus.Completed,
+            request.Version,
+            ActorUserId,
+            DateTimeOffset.UtcNow);
 
         Assert.Equal(RequestStatus.Completed, request.Status);
     }
@@ -115,7 +149,11 @@ public sealed class RequestTests
         var request = CreateRequest();
 
         var action = () =>
-            request.ChangeStatus(RequestStatus.Completed, request.Version);
+            request.ChangeStatus(
+                RequestStatus.Completed,
+                request.Version,
+                ActorUserId,
+                DateTimeOffset.UtcNow);
 
         Assert.Throws<DomainException>(action);
     }
@@ -125,10 +163,16 @@ public sealed class RequestTests
     {
         var request = CreateRequest();
         var version = request.Version;
+        request.ClearDomainEvents();
 
-        request.ChangeStatus(RequestStatus.Submitted, version);
+        request.ChangeStatus(
+            RequestStatus.Submitted,
+            version,
+            ActorUserId,
+            DateTimeOffset.UtcNow);
 
         Assert.Equal(version, request.Version);
+        Assert.Empty(request.DomainEvents);
     }
 
     [Fact]
@@ -139,7 +183,11 @@ public sealed class RequestTests
         var currentDateUtc = DateTimeOffset.UtcNow;
         var dueDateUtc = currentDateUtc.AddDays(5);
 
-        request.SetDueDate(dueDateUtc, version, currentDateUtc);
+        request.SetDueDate(
+            dueDateUtc,
+            version,
+            currentDateUtc,
+            ActorUserId);
 
         Assert.Equal(dueDateUtc, request.DueDateUtc);
         Assert.NotEqual(version, request.Version);
@@ -154,7 +202,8 @@ public sealed class RequestTests
         var action = () => request.SetDueDate(
             currentDateUtc.AddMinutes(-1),
             request.Version,
-            currentDateUtc);
+            currentDateUtc,
+            ActorUserId);
 
         Assert.Throws<DomainException>(action);
     }
@@ -167,10 +216,15 @@ public sealed class RequestTests
         request.SetDueDate(
             currentDateUtc.AddDays(5),
             request.Version,
-            currentDateUtc);
+            currentDateUtc,
+            ActorUserId);
         var versionWithDueDate = request.Version;
 
-        request.SetDueDate(null, versionWithDueDate, currentDateUtc);
+        request.SetDueDate(
+            null,
+            versionWithDueDate,
+            currentDateUtc,
+            ActorUserId);
 
         Assert.Null(request.DueDateUtc);
         Assert.NotEqual(versionWithDueDate, request.Version);
@@ -210,6 +264,7 @@ public sealed class RequestTests
     {
         return Request.Create(
             TenantId,
+            ActorUserId,
             ProtocolNumber.Create(2026, 1),
             "Título",
             "Descrição",

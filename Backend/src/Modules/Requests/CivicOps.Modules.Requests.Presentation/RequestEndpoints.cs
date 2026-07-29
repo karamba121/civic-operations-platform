@@ -6,6 +6,7 @@ using CivicOps.Modules.Requests.Application.ChangeRequestStatus;
 using CivicOps.Modules.Requests.Application.GetRequestDetails;
 using CivicOps.Modules.Requests.Application.ListRequests;
 using CivicOps.Modules.Requests.Application.ListRequestComments;
+using CivicOps.Modules.Requests.Application.ListRequestAudit;
 using CivicOps.Modules.Requests.Application.SetRequestDueDate;
 using CivicOps.Modules.Requests.Domain.Requests;
 using CivicOps.Modules.Requests.Presentation.CreateRequest;
@@ -15,10 +16,12 @@ using CivicOps.Modules.Requests.Presentation.ChangeRequestStatus;
 using CivicOps.Modules.Requests.Presentation.GetRequestDetails;
 using CivicOps.Modules.Requests.Presentation.ListRequests;
 using CivicOps.Modules.Requests.Presentation.ListRequestComments;
+using CivicOps.Modules.Requests.Presentation.ListRequestAudit;
 using CivicOps.Modules.Requests.Presentation.SetRequestDueDate;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using System.Text.Json;
 
 namespace CivicOps.Modules.Requests.Presentation;
 
@@ -48,6 +51,11 @@ public static class RequestEndpoints
                                 "Informe um UUID válido no cabeçalho X-Tenant-Id.");
                     }
 
+                    if (!TryGetUserId(httpContext, out var actorUserId))
+                    {
+                        return InvalidUserProblem();
+                    }
+
                     if (!TryGetIdempotencyKey(httpContext, out var idempotencyKey))
                     {
                         return Results.Problem(
@@ -60,6 +68,7 @@ public static class RequestEndpoints
                     var result = await handler.HandleAsync(
                         new CreateRequestCommand(
                             tenantId,
+                            actorUserId,
                             idempotencyKey,
                             body.Title,
                             body.Description),
@@ -190,10 +199,16 @@ public static class RequestEndpoints
                         return InvalidTenantProblem();
                     }
 
+                    if (!TryGetUserId(httpContext, out var actorUserId))
+                    {
+                        return InvalidUserProblem();
+                    }
+
                     var result = await handler.HandleAsync(
                         new AssignResponsibleCommand(
                             tenantId,
                             requestId,
+                            actorUserId,
                             body.ResponsibleUserId,
                             body.Version),
                         cancellationToken);
@@ -205,6 +220,7 @@ public static class RequestEndpoints
             .WithName("AssignRequestResponsible")
             .Produces<RequestMutationResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status409Conflict)
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
 
@@ -222,10 +238,16 @@ public static class RequestEndpoints
                         return InvalidTenantProblem();
                     }
 
+                    if (!TryGetUserId(httpContext, out var actorUserId))
+                    {
+                        return InvalidUserProblem();
+                    }
+
                     var result = await handler.HandleAsync(
                         new SetRequestDueDateCommand(
                             tenantId,
                             requestId,
+                            actorUserId,
                             body.DueDateUtc,
                             body.Version),
                         cancellationToken);
@@ -237,6 +259,7 @@ public static class RequestEndpoints
             .WithName("SetRequestDueDate")
             .Produces<RequestMutationResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status409Conflict)
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
 
@@ -254,11 +277,16 @@ public static class RequestEndpoints
                         return InvalidTenantProblem();
                     }
 
+                    if (!TryGetUserId(httpContext, out var actorUserId))
+                    {
+                        return InvalidUserProblem();
+                    }
+
                     var result = await handler.HandleAsync(
                         new AddRequestCommentCommand(
                             tenantId,
                             requestId,
-                            body.AuthorUserId,
+                            actorUserId,
                             body.Content),
                         cancellationToken);
 
@@ -281,6 +309,7 @@ public static class RequestEndpoints
             .WithName("AddRequestComment")
             .Produces<RequestCommentResponse>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
 
         group.MapGet(
@@ -331,6 +360,56 @@ public static class RequestEndpoints
             .Produces(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status400BadRequest);
 
+        group.MapGet(
+                "/{requestId:guid}/audit",
+                async (
+                    Guid requestId,
+                    [AsParameters] ListRequestAuditParameters parameters,
+                    HttpContext httpContext,
+                    ListRequestAuditHandler handler,
+                    CancellationToken cancellationToken) =>
+                {
+                    if (!TryGetTenantId(httpContext, out var tenantId))
+                    {
+                        return InvalidTenantProblem();
+                    }
+
+                    var result = await handler.HandleAsync(
+                        new ListRequestAuditQuery(
+                            tenantId,
+                            requestId,
+                            parameters.Page ?? 1,
+                            parameters.PageSize ?? 20),
+                        cancellationToken);
+
+                    if (result is null)
+                    {
+                        return Results.NotFound();
+                    }
+
+                    var items = result.Items
+                        .Select(record => new RequestAuditListItemResponse(
+                            record.Id,
+                            record.EventId,
+                            record.ActorUserId,
+                            record.Action,
+                            JsonSerializer.Deserialize<JsonElement>(record.Data),
+                            record.OccurredAtUtc))
+                        .ToList();
+
+                    return Results.Ok(
+                        new PagedRequestAuditResponse(
+                            items,
+                            result.Page,
+                            result.PageSize,
+                            result.TotalItems,
+                            result.TotalPages));
+                })
+            .WithName("ListRequestAudit")
+            .Produces<PagedRequestAuditResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status400BadRequest);
+
         group.MapPatch(
                 "/{requestId:guid}/status",
                 async (
@@ -343,6 +422,11 @@ public static class RequestEndpoints
                     if (!TryGetTenantId(httpContext, out var tenantId))
                     {
                         return InvalidTenantProblem();
+                    }
+
+                    if (!TryGetUserId(httpContext, out var actorUserId))
+                    {
+                        return InvalidUserProblem();
                     }
 
                     if (!TryParseStatus(body.Status, out var status) || status is null)
@@ -358,6 +442,7 @@ public static class RequestEndpoints
                         new ChangeRequestStatusCommand(
                             tenantId,
                             requestId,
+                            actorUserId,
                             status.Value,
                             body.Version),
                         cancellationToken);
@@ -396,10 +481,24 @@ public static class RequestEndpoints
             detail: "Informe um UUID válido no cabeçalho X-Tenant-Id.");
     }
 
+    private static IResult InvalidUserProblem()
+    {
+        return Results.Problem(
+            statusCode: StatusCodes.Status400BadRequest,
+            title: "Usuário inválido",
+            detail: "Informe um UUID válido no cabeçalho X-User-Id.");
+    }
+
     private static bool TryGetTenantId(HttpContext context, out Guid tenantId)
     {
         var value = context.Request.Headers["X-Tenant-Id"].ToString();
         return Guid.TryParse(value, out tenantId) && tenantId != Guid.Empty;
+    }
+
+    private static bool TryGetUserId(HttpContext context, out Guid userId)
+    {
+        var value = context.Request.Headers["X-User-Id"].ToString();
+        return Guid.TryParse(value, out userId) && userId != Guid.Empty;
     }
 
     private static bool TryGetIdempotencyKey(

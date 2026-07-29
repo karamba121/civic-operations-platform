@@ -186,6 +186,7 @@ public sealed class CreateRequestEndpointTests
             "/api/v1/requests");
 
         request.Headers.Add("X-Tenant-Id", tenantId.ToString());
+        request.Headers.Add("X-User-Id", Guid.NewGuid().ToString());
         request.Headers.Add(
             "Idempotency-Key",
             idempotencyKey ?? Guid.NewGuid().ToString());

@@ -4,7 +4,8 @@ namespace CivicOps.Modules.Requests.Application.ChangeRequestStatus;
 
 public sealed class ChangeRequestStatusHandler(
     IRequestRepository repository,
-    IRequestsUnitOfWork unitOfWork)
+    IRequestsUnitOfWork unitOfWork,
+    TimeProvider timeProvider)
 {
     public Task<RequestMutationResult?> HandleAsync(
         ChangeRequestStatusCommand command,
@@ -23,7 +24,11 @@ public sealed class ChangeRequestStatusHandler(
                     return null;
                 }
 
-                request.ChangeStatus(command.Status, command.ExpectedVersion);
+                request.ChangeStatus(
+                    command.Status,
+                    command.ExpectedVersion,
+                    command.ActorUserId,
+                    timeProvider.GetUtcNow());
 
                 return new RequestMutationResult(
                     request.Id,

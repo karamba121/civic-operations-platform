@@ -11,6 +11,7 @@ internal sealed class RequestConfiguration : IEntityTypeConfiguration<Request>
         builder.ToTable("administrative_requests");
 
         builder.HasKey(request => request.Id);
+        builder.Ignore(request => request.DomainEvents);
 
         builder.Property(request => request.Id)
             .HasColumnName("id")

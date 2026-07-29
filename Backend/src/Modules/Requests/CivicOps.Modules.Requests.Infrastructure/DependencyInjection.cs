@@ -6,6 +6,7 @@ using CivicOps.Modules.Requests.Application.CreateRequest;
 using CivicOps.Modules.Requests.Application.GetRequestDetails;
 using CivicOps.Modules.Requests.Application.ListRequests;
 using CivicOps.Modules.Requests.Application.ListRequestComments;
+using CivicOps.Modules.Requests.Application.ListRequestAudit;
 using CivicOps.Modules.Requests.Application.SetRequestDueDate;
 using CivicOps.Modules.Requests.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -43,6 +44,7 @@ public static class DependencyInjection
         services.AddScoped<SetRequestDueDateHandler>();
         services.AddScoped<AddRequestCommentHandler>();
         services.AddScoped<ListRequestCommentsHandler>();
+        services.AddScoped<ListRequestAuditHandler>();
         services.AddScoped<ListRequestsHandler>();
         services.AddScoped<GetRequestDetailsHandler>();
         services.AddSingleton(TimeProvider.System);

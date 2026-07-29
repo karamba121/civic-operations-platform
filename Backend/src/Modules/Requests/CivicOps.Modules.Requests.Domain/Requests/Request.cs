@@ -1,4 +1,5 @@
 using CivicOps.BuildingBlocks.Domain;
+using CivicOps.Modules.Requests.Domain.Requests.Events;
 
 namespace CivicOps.Modules.Requests.Domain.Requests;
 
@@ -53,6 +54,7 @@ public sealed class Request : AggregateRoot<Guid>
 
     public static Request Create(
         Guid tenantId,
+        Guid actorUserId,
         ProtocolNumber protocolNumber,
         string title,
         string description,
@@ -63,6 +65,7 @@ public sealed class Request : AggregateRoot<Guid>
             throw new DomainException("O tenant é obrigatório.");
         }
 
+        EnsureActor(actorUserId);
         ArgumentNullException.ThrowIfNull(protocolNumber);
 
         title = RequiredText(title, "O título é obrigatório.", TitleMaxLength);
@@ -76,18 +79,36 @@ public sealed class Request : AggregateRoot<Guid>
             throw new DomainException("A data de criação deve estar em UTC.");
         }
 
-        return new Request(
+        var request = new Request(
             Guid.CreateVersion7(),
             tenantId,
             protocolNumber,
             title,
             description,
             createdAtUtc);
+
+        request.RaiseDomainEvent(
+            new RequestCreatedDomainEvent(
+                Guid.CreateVersion7(),
+                createdAtUtc,
+                request.TenantId,
+                request.Id,
+                actorUserId,
+                request.ProtocolNumber.Value,
+                request.Status,
+                request.Version));
+
+        return request;
     }
 
-    public void AssignResponsible(Guid responsibleUserId, Guid expectedVersion)
+    public void AssignResponsible(
+        Guid responsibleUserId,
+        Guid expectedVersion,
+        Guid actorUserId,
+        DateTimeOffset occurredAtUtc)
     {
         EnsureExpectedVersion(expectedVersion);
+        EnsureActorAndUtc(actorUserId, occurredAtUtc);
 
         if (responsibleUserId == Guid.Empty)
         {
@@ -101,13 +122,29 @@ public sealed class Request : AggregateRoot<Guid>
             return;
         }
 
+        var previousResponsibleUserId = ResponsibleUserId;
         ResponsibleUserId = responsibleUserId;
         Version = Guid.NewGuid();
+        RaiseDomainEvent(
+            new RequestResponsibleAssignedDomainEvent(
+                Guid.CreateVersion7(),
+                occurredAtUtc,
+                TenantId,
+                Id,
+                actorUserId,
+                previousResponsibleUserId,
+                responsibleUserId,
+                Version));
     }
 
-    public void ChangeStatus(RequestStatus newStatus, Guid expectedVersion)
+    public void ChangeStatus(
+        RequestStatus newStatus,
+        Guid expectedVersion,
+        Guid actorUserId,
+        DateTimeOffset occurredAtUtc)
     {
         EnsureExpectedVersion(expectedVersion);
+        EnsureActorAndUtc(actorUserId, occurredAtUtc);
 
         if (Status == newStatus)
         {
@@ -120,16 +157,29 @@ public sealed class Request : AggregateRoot<Guid>
                 $"Não é permitido alterar a situação de {Status} para {newStatus}.");
         }
 
+        var previousStatus = Status;
         Status = newStatus;
         Version = Guid.NewGuid();
+        RaiseDomainEvent(
+            new RequestStatusChangedDomainEvent(
+                Guid.CreateVersion7(),
+                occurredAtUtc,
+                TenantId,
+                Id,
+                actorUserId,
+                previousStatus,
+                Status,
+                Version));
     }
 
     public void SetDueDate(
         DateTimeOffset? dueDateUtc,
         Guid expectedVersion,
-        DateTimeOffset currentDateUtc)
+        DateTimeOffset currentDateUtc,
+        Guid actorUserId)
     {
         EnsureExpectedVersion(expectedVersion);
+        EnsureActor(actorUserId);
         EnsureUtc(currentDateUtc, "A data atual deve estar em UTC.");
         EnsureNotTerminal("alterar o prazo");
 
@@ -148,8 +198,40 @@ public sealed class Request : AggregateRoot<Guid>
             return;
         }
 
+        var previousDueDateUtc = DueDateUtc;
         DueDateUtc = dueDateUtc;
         Version = Guid.NewGuid();
+        RaiseDomainEvent(
+            new RequestDueDateChangedDomainEvent(
+                Guid.CreateVersion7(),
+                currentDateUtc,
+                TenantId,
+                Id,
+                actorUserId,
+                previousDueDateUtc,
+                DueDateUtc,
+                Version));
+    }
+
+    public void RegisterComment(
+        Guid commentId,
+        Guid actorUserId,
+        DateTimeOffset occurredAtUtc)
+    {
+        if (commentId == Guid.Empty)
+        {
+            throw new DomainException("O comentário é obrigatório.");
+        }
+
+        EnsureActorAndUtc(actorUserId, occurredAtUtc);
+        RaiseDomainEvent(
+            new RequestCommentAddedDomainEvent(
+                Guid.CreateVersion7(),
+                occurredAtUtc,
+                TenantId,
+                Id,
+                actorUserId,
+                commentId));
     }
 
     private bool CanTransitionTo(RequestStatus newStatus)
@@ -204,6 +286,22 @@ public sealed class Request : AggregateRoot<Guid>
         if (value.Offset != TimeSpan.Zero)
         {
             throw new DomainException(message);
+        }
+    }
+
+    private static void EnsureActorAndUtc(
+        Guid actorUserId,
+        DateTimeOffset occurredAtUtc)
+    {
+        EnsureActor(actorUserId);
+        EnsureUtc(occurredAtUtc, "A data do evento deve estar em UTC.");
+    }
+
+    private static void EnsureActor(Guid actorUserId)
+    {
+        if (actorUserId == Guid.Empty)
+        {
+            throw new DomainException("O usuário responsável pela operação é obrigatório.");
         }
     }
 }

@@ -34,6 +34,10 @@ public sealed class AddRequestCommentHandler(
                     timeProvider.GetUtcNow());
 
                 commentRepository.Add(comment);
+                request.RegisterComment(
+                    comment.Id,
+                    command.AuthorUserId,
+                    comment.CreatedAtUtc);
 
                 return new AddRequestCommentResult(
                     comment.Id,

@@ -1,6 +1,7 @@
 using CivicOps.Modules.Requests.Application.Abstractions;
 using CivicOps.Modules.Requests.Application.GetRequestDetails;
 using CivicOps.Modules.Requests.Application.ListRequestComments;
+using CivicOps.Modules.Requests.Application.ListRequestAudit;
 using CivicOps.Modules.Requests.Application.ListRequests;
 using CivicOps.Modules.Requests.Domain.Requests;
 using Microsoft.EntityFrameworkCore;
@@ -138,6 +139,58 @@ internal sealed partial class EfRequestReadService(RequestsDbContext dbContext)
             : (totalItems + query.PageSize - 1) / query.PageSize;
 
         return new PagedRequestCommentsResult(
+            items,
+            query.Page,
+            query.PageSize,
+            totalItems,
+            totalPages);
+    }
+
+    public async Task<PagedRequestAuditResult?> ListAuditAsync(
+        ListRequestAuditQuery query,
+        CancellationToken cancellationToken)
+    {
+        var requestExists = await dbContext.Requests
+            .AsNoTracking()
+            .AnyAsync(
+                request =>
+                    request.TenantId == query.TenantId &&
+                    request.Id == query.RequestId,
+                cancellationToken);
+
+        if (!requestExists)
+        {
+            return null;
+        }
+
+        var audit = dbContext.RequestAudit
+            .AsNoTracking()
+            .Where(record =>
+                record.TenantId == query.TenantId &&
+                record.RequestId == query.RequestId);
+
+        var totalItems = await audit.LongCountAsync(cancellationToken);
+        var skip = checked((query.Page - 1) * query.PageSize);
+
+        var items = await audit
+            .OrderByDescending(record => record.OccurredAtUtc)
+            .ThenByDescending(record => record.Id)
+            .Skip(skip)
+            .Take(query.PageSize)
+            .Select(record => new RequestAuditListItem(
+                record.Id,
+                record.EventId,
+                record.ActorUserId,
+                record.Action,
+                record.Data,
+                record.OccurredAtUtc))
+            .ToListAsync(cancellationToken);
+
+        var totalPages = totalItems == 0
+            ? 0
+            : (totalItems + query.PageSize - 1) / query.PageSize;
+
+        return new PagedRequestAuditResult(
             items,
             query.Page,
             query.PageSize,

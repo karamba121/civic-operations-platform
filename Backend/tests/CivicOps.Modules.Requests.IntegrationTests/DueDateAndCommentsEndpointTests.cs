@@ -233,6 +233,7 @@ public sealed class DueDateAndCommentsEndpointTests
             HttpMethod.Post,
             "/api/v1/requests");
         request.Headers.Add("X-Tenant-Id", tenantId.ToString());
+        request.Headers.Add("X-User-Id", Guid.NewGuid().ToString());
         request.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString());
         request.Content = JsonContent.Create(
             new CreateRequestRequest(
@@ -259,8 +260,9 @@ public sealed class DueDateAndCommentsEndpointTests
             HttpMethod.Post,
             $"/api/v1/requests/{requestId}/comments");
         request.Headers.Add("X-Tenant-Id", tenantId.ToString());
+        request.Headers.Add("X-User-Id", authorUserId.ToString());
         request.Content = JsonContent.Create(
-            new AddRequestCommentRequest(authorUserId, content));
+            new AddRequestCommentRequest(content));
         return await client.SendAsync(request, cancellationToken);
     }
 
@@ -273,6 +275,7 @@ public sealed class DueDateAndCommentsEndpointTests
     {
         using var request = new HttpRequestMessage(HttpMethod.Patch, uri);
         request.Headers.Add("X-Tenant-Id", tenantId.ToString());
+        request.Headers.Add("X-User-Id", Guid.NewGuid().ToString());
         request.Content = JsonContent.Create(body);
         return await client.SendAsync(request, cancellationToken);
     }
@@ -285,6 +288,7 @@ public sealed class DueDateAndCommentsEndpointTests
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, uri);
         request.Headers.Add("X-Tenant-Id", tenantId.ToString());
+        request.Headers.Add("X-User-Id", Guid.NewGuid().ToString());
         return await client.SendAsync(request, cancellationToken);
     }
 }

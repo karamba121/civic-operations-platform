@@ -10,6 +10,10 @@ public sealed class RequestsDbContext(DbContextOptions<RequestsDbContext> option
 
     public DbSet<RequestComment> RequestComments => Set<RequestComment>();
 
+    internal DbSet<RequestAuditRecord> RequestAudit => Set<RequestAuditRecord>();
+
+    internal DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema("requests");

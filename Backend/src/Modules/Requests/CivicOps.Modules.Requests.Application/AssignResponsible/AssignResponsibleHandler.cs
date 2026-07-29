@@ -4,7 +4,8 @@ namespace CivicOps.Modules.Requests.Application.AssignResponsible;
 
 public sealed class AssignResponsibleHandler(
     IRequestRepository repository,
-    IRequestsUnitOfWork unitOfWork)
+    IRequestsUnitOfWork unitOfWork,
+    TimeProvider timeProvider)
 {
     public Task<RequestMutationResult?> HandleAsync(
         AssignResponsibleCommand command,
@@ -25,7 +26,9 @@ public sealed class AssignResponsibleHandler(
 
                 request.AssignResponsible(
                     command.ResponsibleUserId,
-                    command.ExpectedVersion);
+                    command.ExpectedVersion,
+                    command.ActorUserId,
+                    timeProvider.GetUtcNow());
 
                 return new RequestMutationResult(
                     request.Id,

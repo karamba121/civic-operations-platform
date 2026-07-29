@@ -34,7 +34,8 @@ migrations são aplicadas na inicialização.
 
 Uma requisição de exemplo está em [CivicOps.Api.http](CivicOps.Api.http). O
 cabeçalho `X-Tenant-Id` é provisório e será substituído pelo tenant obtido da
-identidade autenticada.
+identidade autenticada. Escritas também exigem `X-User-Id`, usado como autor da
+operação na auditoria e igualmente provisório até o módulo de identidade.
 
 O endpoint `POST /api/v1/requests` também exige `Idempotency-Key`. Repetir a
 mesma chave, tenant e conteúdo retorna a solicitação originalmente criada sem
@@ -47,7 +48,9 @@ As leituras disponíveis são:
   `status`, `createdFromUtc` e `createdToUtc`;
 - `GET /api/v1/requests/{id}`: detalhe da solicitação dentro do tenant atual;
 - `GET /api/v1/requests/{id}/comments`: comentários paginados, do mais recente
-  para o mais antigo.
+  para o mais antigo;
+- `GET /api/v1/requests/{id}/audit`: histórico imutável e paginado das
+  alterações da solicitação.
 
 As escritas disponíveis são:
 
@@ -70,9 +73,21 @@ InProgress -> Completed | Cancelled
 Completed | Cancelled -> estado terminal
 ```
 
-O responsável e o autor do comentário são armazenados como UUID sem foreign key
-até a implementação do módulo de identidade. Comentários são append-only e não
-alteram a versão da solicitação, evitando conflito entre registros simultâneos.
+O responsável, o autor do comentário e o ator da auditoria são armazenados como
+UUID sem foreign key até a implementação do módulo de identidade. Comentários
+são append-only e não alteram a versão da solicitação, evitando conflito entre
+registros simultâneos.
+
+Cada alteração efetiva emite um Domain Event. Antes do commit, a mesma transação
+grava:
+
+- um registro imutável em `requests.request_audit`;
+- uma mensagem pendente em `requests.outbox_messages`.
+
+Auditoria e Outbox compartilham o identificador estável do evento. Replay
+idempotente, no-op e comandos que sofrem rollback não criam registros
+duplicados. Nesta etapa a mensagem permanece pendente; publicação no RabbitMQ,
+retry e dead letter pertencem à próxima fatia.
 
 ## Testes
 
@@ -93,7 +108,8 @@ Os testes de integração usam tenants aleatórios e verificam no PostgreSQL rea
 - atribuição de responsável e workflow de situação;
 - concorrência otimista, inclusive com atualizações simultâneas;
 - definição, remoção e validação de prazo;
-- registro, paginação e isolamento de comentários.
+- registro, paginação e isolamento de comentários;
+- auditoria e Outbox atômicas, sem duplicação em replay idempotente ou falha.
 
 ## Migration
 

@@ -27,7 +27,8 @@ public sealed class SetRequestDueDateHandler(
                 request.SetDueDate(
                     command.DueDateUtc,
                     command.ExpectedVersion,
-                    timeProvider.GetUtcNow());
+                    timeProvider.GetUtcNow(),
+                    command.ActorUserId);
 
                 return new RequestMutationResult(
                     request.Id,

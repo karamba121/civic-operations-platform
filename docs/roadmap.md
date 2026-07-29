@@ -21,7 +21,7 @@ comandos documentados.
 - [x] atribuir responsável e alterar situação;
 - [x] registrar comentário e prazo;
 - [x] implementar concorrência otimista;
-- registrar auditoria e evento na Outbox.
+- [x] registrar auditoria e evento na Outbox.
 
 **Evidência:** fluxo executável pela interface Angular e pela API, com testes
 contra PostgreSQL real cobrindo isolamento entre tenants e conflito concorrente.
