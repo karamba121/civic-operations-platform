@@ -7,9 +7,10 @@ O objetivo deste projeto é demonstrar como construir um sistema empresarial
 consistente e observável em .NET sem transformar cada limite lógico em um
 microsserviço artificial.
 
-> **Status:** fundação arquitetural em construção. A documentação descreve as
-> decisões que orientarão a implementação; funcionalidades ainda não entregues
-> são identificadas como planejadas.
+> **Status:** primeiro fluxo vertical em construção. A criação idempotente de
+> solicitações e a geração atômica de protocolo por tenant já estão
+> implementadas; as demais funcionalidades continuam identificadas como
+> planejadas.
 
 ## Por que um monólito modular?
 
@@ -106,9 +107,16 @@ partem de eventos gravados na Outbox.
 
 ## Execução local
 
-A composição Docker e os comandos definitivos serão adicionados junto ao
-primeiro fluxo vertical. Até lá, `Backend/` e `Frontend/` contêm os projetos
-iniciais, mas ainda não representam uma versão funcional da plataforma.
+```powershell
+docker compose up -d --wait postgres
+cd Backend
+dotnet tool restore
+dotnet restore CivicOperationsPlatform.sln
+dotnet run --project src/CivicOps.Api/CivicOps.Api.csproj
+```
+
+Consulte o [README do backend](Backend/README.md) para chamadas de exemplo,
+testes e criação de migrations.
 
 ## Licença
 

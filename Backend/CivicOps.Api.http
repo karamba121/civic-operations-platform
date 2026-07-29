@@ -1,0 +1,17 @@
+@host = http://localhost:5080
+@tenantId = 11111111-1111-1111-1111-111111111111
+
+GET {{host}}/health
+Accept: application/json
+
+###
+
+POST {{host}}/api/v1/requests
+Content-Type: application/json
+X-Tenant-Id: {{tenantId}}
+Idempotency-Key: request-demo-001
+
+{
+  "title": "Manutenção da iluminação pública",
+  "description": "Poste sem iluminação na Avenida Central."
+}

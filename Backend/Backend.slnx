@@ -1,3 +1,18 @@
 <Solution>
-  <Project Path="Backend.csproj" />
+  <Folder Name="/src/">
+    <Project Path="src/CivicOps.Api/CivicOps.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/CivicOps.BuildingBlocks.Domain/CivicOps.BuildingBlocks.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Requests/">
+    <Project Path="src/Modules/Requests/CivicOps.Modules.Requests.Application/CivicOps.Modules.Requests.Application.csproj" />
+    <Project Path="src/Modules/Requests/CivicOps.Modules.Requests.Domain/CivicOps.Modules.Requests.Domain.csproj" />
+    <Project Path="src/Modules/Requests/CivicOps.Modules.Requests.Infrastructure/CivicOps.Modules.Requests.Infrastructure.csproj" />
+    <Project Path="src/Modules/Requests/CivicOps.Modules.Requests.Presentation/CivicOps.Modules.Requests.Presentation.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/CivicOps.Modules.Requests.IntegrationTests/CivicOps.Modules.Requests.IntegrationTests.csproj" />
+    <Project Path="tests/CivicOps.Modules.Requests.UnitTests/CivicOps.Modules.Requests.UnitTests.csproj" />
+  </Folder>
 </Solution>
