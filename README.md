@@ -109,7 +109,7 @@ partem de eventos gravados na Outbox.
 ## Execução local
 
 ```powershell
-docker compose up -d --wait postgres
+docker compose up -d --wait
 cd Backend
 dotnet tool restore
 dotnet restore CivicOperationsPlatform.sln

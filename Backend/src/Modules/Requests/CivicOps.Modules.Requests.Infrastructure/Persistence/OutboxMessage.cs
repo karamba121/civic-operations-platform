@@ -41,6 +41,10 @@ internal sealed class OutboxMessage
 
     public string? LastError { get; private set; }
 
+    public Guid? LockId { get; private set; }
+
+    public DateTimeOffset? LockedUntilUtc { get; private set; }
+
     public static OutboxMessage Create(
         Guid eventId,
         Guid tenantId,

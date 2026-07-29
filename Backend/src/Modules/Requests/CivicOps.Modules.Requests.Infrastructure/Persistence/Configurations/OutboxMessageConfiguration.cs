@@ -40,12 +40,17 @@ internal sealed class OutboxMessageConfiguration
         builder.Property(message => message.LastError)
             .HasColumnName("last_error")
             .HasMaxLength(4_000);
+        builder.Property(message => message.LockId)
+            .HasColumnName("lock_id");
+        builder.Property(message => message.LockedUntilUtc)
+            .HasColumnName("locked_until_utc");
 
         builder.HasIndex(
                 message => new
                 {
                     message.ProcessedAtUtc,
                     message.NextAttemptAtUtc,
+                    message.LockedUntilUtc,
                     message.OccurredAtUtc
                 })
             .HasDatabaseName("ix_outbox_pending");

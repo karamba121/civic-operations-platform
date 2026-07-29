@@ -18,7 +18,7 @@ lista de projetos recentes; ambas apontam para os mesmos projetos.
 Na raiz do repositório:
 
 ```powershell
-docker compose up -d --wait postgres
+docker compose up -d --wait
 ```
 
 Em `Backend/`:
@@ -30,7 +30,8 @@ dotnet run --project src/CivicOps.Api/CivicOps.Api.csproj
 ```
 
 A API estará em `http://localhost:5080`. Em ambiente de desenvolvimento, as
-migrations são aplicadas na inicialização.
+migrations são aplicadas na inicialização. O painel local do RabbitMQ fica em
+`http://localhost:15672`, com as credenciais definidas no Compose.
 
 Uma requisição de exemplo está em [CivicOps.Api.http](CivicOps.Api.http). O
 cabeçalho `X-Tenant-Id` é provisório e será substituído pelo tenant obtido da
@@ -86,12 +87,15 @@ grava:
 
 Auditoria e Outbox compartilham o identificador estável do evento. Replay
 idempotente, no-op e comandos que sofrem rollback não criam registros
-duplicados. Nesta etapa a mensagem permanece pendente; publicação no RabbitMQ,
-retry e dead letter pertencem à próxima fatia.
+duplicados. Um `BackgroundService` reivindica lotes com lease e
+`FOR UPDATE SKIP LOCKED`, publica mensagens persistentes no exchange topic
+`civicops.events` e só registra `processed_at_utc` depois da confirmação do
+broker. O contrato é `at-least-once`; retry exponencial e dead letter pertencem
+às próximas fatias.
 
 ## Testes
 
-Com o PostgreSQL do Compose em execução:
+Com PostgreSQL e RabbitMQ do Compose em execução:
 
 ```powershell
 dotnet test CivicOperationsPlatform.sln
@@ -109,7 +113,9 @@ Os testes de integração usam tenants aleatórios e verificam no PostgreSQL rea
 - concorrência otimista, inclusive com atualizações simultâneas;
 - definição, remoção e validação de prazo;
 - registro, paginação e isolamento de comentários;
-- auditoria e Outbox atômicas, sem duplicação em replay idempotente ou falha.
+- auditoria e Outbox atômicas, sem duplicação em replay idempotente ou falha;
+- publicação real no RabbitMQ com mensagem persistente, publisher confirm e
+  marcação posterior da Outbox.
 
 ## Migration
 

@@ -28,7 +28,7 @@ contra PostgreSQL real cobrindo isolamento entre tenants e conflito concorrente.
 
 ## 3. Integração assíncrona
 
-- publicar eventos da Outbox no RabbitMQ;
+- [x] publicar eventos da Outbox no RabbitMQ;
 - processar notificações de maneira idempotente;
 - aplicar retry, backoff e dead letter;
 - propagar contexto de observabilidade.
