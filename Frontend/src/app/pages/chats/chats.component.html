@@ -1,0 +1,35 @@
+<app-page-breadcrumb pageTitle="Chats" />
+<div class="h-[calc(100vh-150px)] overflow-hidden sm:h-[calc(100vh-174px)]">
+  <div class="flex flex-col h-full gap-6 xl:flex-row xl:gap-5">
+    <!-- Chat Sidebar Start -->
+    @if (isOpen) {
+    <div
+      class="fixed inset-0 transition-all duration-300 bg-gray-900/50 z-999999"
+      (click)="toggleSidebar()"
+    ></div>
+    }
+
+    <div
+      class="flex-col rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] xl:flex xl:w-1/4"
+    >
+      <app-chat-header (toggle)="toggleSidebar()" />
+      <app-chat-list
+        [isOpen]="isOpen"
+        (toggle)="toggleSidebar()"
+        class="flex-col overflow-auto no-scrollbar transition-all duration-300"
+        [ngClass]="{
+          'fixed top-0 left-0 z-999999 h-screen bg-white dark:bg-gray-900':
+            isOpen,
+          'hidden xl:flex': !isOpen
+        }"
+      />
+    </div>
+    <!-- Chat Sidebar End -->
+
+    <!-- Chat Box Start -->
+    <app-chat-box
+      class="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] xl:w-3/4"
+    />
+    <!-- Chat Box End -->
+  </div>
+</div>

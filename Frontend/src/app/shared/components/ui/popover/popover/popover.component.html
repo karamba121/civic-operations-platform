@@ -1,0 +1,35 @@
+<div class="relative inline-block">
+  <span #triggerRef (click)="toggle()">
+    <ng-content select="[trigger]"></ng-content>
+  </span>
+
+  @if (isOpen) {
+  <div
+    #floatingRef
+    [style.position]="'absolute'"
+    [style.top.px]="floatingStyles.top"
+    [style.left.px]="floatingStyles.left"
+    [style.z-index]="99999"
+    class="w-[300px] bg-white border border-gray-200 rounded-xl shadow-md dark:bg-[#1E2634] dark:border-gray-700"
+    (clickOutside)="close()"
+  >
+    <ng-content></ng-content>
+
+    <div
+      #arrowRef
+      [style.position]="'absolute'"
+      [style.width.px]="12"
+      [style.height.px]="12"
+      [style.transform]="'rotate(45deg)'"
+      [style.top]="arrowStyles.top"
+      [style.bottom]="arrowStyles.bottom"
+      [style.left]="arrowStyles.left"
+      [style.right]="arrowStyles.right"
+      [class]="
+        'bg-white dark:bg-[#1E2634] border-gray-200 dark:border-gray-700 ' +
+        arrowBorderClasses
+      "
+    ></div>
+  </div>
+  }
+</div>

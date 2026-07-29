@@ -1,0 +1,167 @@
+<div class="rounded-[18px] border border-gray-200 bg-gray-100 p-1.5 dark:border-gray-800 dark:bg-white/3">
+  <div class="rounded-xl bg-white p-6 pb-8 dark:bg-gray-900">
+    <div class="mb-10 flex flex-col justify-between gap-4 sm:flex-row">
+      <div>
+        <h3 class="text-base font-medium text-gray-800 dark:text-white/90">
+          Total Balance
+        </h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Overview of your current funds
+        </p>
+      </div>
+      <div class="flex shrink-0 gap-2">
+        <!-- Currency Dropdown -->
+        <div class="relative">
+          <button (click)="toggleCurrency(); $event.stopPropagation()"
+            class="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-gray-300 px-2.5 text-sm font-medium text-gray-700 shadow-xs dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+            <img [src]="selectedCurrency.flag" [alt]="selectedCurrency.code" class="size-4 rounded-full" />
+            <span>{{ selectedCurrency.code }}</span>
+            <svg [ngClass]="{ 'rotate-180': openCurrency }" width="18" height="18" viewBox="0 0 18 18" fill="none"
+              xmlns="http://www.w3.org/2000/svg">
+              <path d="M4.3125 7.21875L9 11.9063L13.6875 7.21875" stroke="currentColor" stroke-width="1.5"
+                stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+
+          <!-- Dropdown -->
+          @if (openCurrency) {
+          <div
+            class="absolute right-0 z-50 mt-1.5 w-36 rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg dark:border-gray-700 dark:bg-gray-900">
+            @for (currency of currencyOptions; track currency.code) {
+            <button (click)="selectCurrency(currency)"
+              class="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
+              [ngClass]="{ 'bg-gray-100 dark:bg-white/5 font-medium': selectedCurrency.code === currency.code, 'font-normal': selectedCurrency.code !== currency.code }">
+              <img [src]="currency.flag" [alt]="currency.code" class="size-5 rounded-full" />
+              <span>{{ currency.code }}</span>
+              @if (selectedCurrency.code === currency.code) {
+              <svg class="ml-auto" width="14" height="14" viewBox="0 0 14 14" fill="none"
+                xmlns="http://www.w3.org/2000/svg">
+                <path d="M2.625 7L5.25 9.625L11.375 3.5" stroke="#465FFF" stroke-width="1.5" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
+              }
+            </button>
+            }
+          </div>
+          }
+        </div>
+
+        <!-- Date Dropdown -->
+        <div class="relative">
+          <button (click)="toggleDate(); $event.stopPropagation()"
+            class="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-gray-300 px-2.5 text-sm font-medium text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+            <span>{{ selectedDate }}</span>
+            <svg [ngClass]="{ 'rotate-180': openDate }" width="18" height="18" viewBox="0 0 18 18" fill="none"
+              xmlns="http://www.w3.org/2000/svg">
+              <path d="M4.3125 7.21875L9 11.9063L13.6875 7.21875" stroke="currentColor" stroke-width="1.5"
+                stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+          <!-- Dropdown -->
+          @if (openDate) {
+          <div
+            class="absolute right-0 z-50 mt-1.5 w-38 rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg dark:border-gray-700 dark:bg-gray-900">
+            @for (period of periodOptions; track period) {
+            <button (click)="selectDate(period)"
+              class="w-full rounded-lg px-2.5 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
+              [ngClass]="{ 'bg-gray-100 dark:bg-white/5 font-medium': selectedDate === period, 'font-normal': selectedDate !== period }">
+              {{ period }}
+            </button>
+            }
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+    <div class="flex items-end border-b border-dashed border-gray-200 pb-7 dark:border-gray-800">
+      <div>
+        <h3 class="mb-2 text-3xl font-medium text-gray-800 dark:text-white/90">
+          19,857.00
+        </h3>
+        <p class="flex items-center gap-1.5 text-sm font-normal text-gray-500 dark:text-gray-400">
+          <span class="text-success-600 flex items-center gap-1 font-medium">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7.9974 2.66602L7.9974 13.3336M4 6.66334L7.99987 2.66602L12 6.66334" stroke="#039855"
+                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            3.2%</span>
+          than last month
+        </p>
+      </div>
+      <!-- Chart -->
+      <div class="ml-auto w-25 sm:w-[150px]">
+        <apx-chart [series]="series" [chart]="chart" [colors]="colors" [stroke]="stroke" [fill]="fill"
+          [markers]="markers" [tooltip]="tooltip"></apx-chart>
+      </div>
+    </div>
+    <div class="pt-7.5">
+      <!-- Content -->
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <!-- Label -->
+        <p class="shrink-0 text-sm text-gray-700 dark:text-gray-400">
+          Primary Account:
+        </p>
+        <div class="flex items-center gap-2">
+          <!-- Account Number -->
+          <p class="shrink-0 text-lg font-medium text-gray-700 dark:text-gray-400">
+            {{ accountNumber }}
+          </p>
+
+          <!-- Copy Button -->
+          <div class="shrink-0">
+            <button (click)="copyToClipboard()"
+              class="relative flex h-8 w-9 items-center justify-center rounded-lg border border-gray-300 text-gray-700 shadow-xs hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-900">
+              <!-- Copy Icon -->
+              @if (!copied) {
+              <svg class="absolute" width="20" height="20" fill="none" viewBox="0 0 20 20">
+                <path
+                  d="M14.1559 14.1628H7.08724C6.39688 14.1628 5.83724 13.6032 5.83724 12.9128V5.84416M14.1559 14.1628V15.4161C14.1559 16.1065 13.5963 16.6661 12.9059 16.6661H4.58398C3.89363 16.6661 3.33398 16.1065 3.33398 15.4161V7.09416C3.33398 6.4038 3.89363 5.84416 4.58398 5.84416H5.83724M14.1559 14.1628H15.4144C16.1048 14.1628 16.6644 13.6032 16.6644 12.9128V4.58398C16.6644 3.89363 16.1048 3.33398 15.4144 3.33398H7.08724C6.39688 3.33398 5.83724 3.89363 5.83724 4.58398V5.84416"
+                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              }
+
+              <!-- Check Icon -->
+              @if (copied) {
+              <svg class="text-success-500 absolute" width="20" height="20" fill="none" viewBox="0 0 20 20">
+                <path d="M16.6668 5L7.50016 14.1667L3.3335 10" stroke="currentColor" stroke-width="1.5"
+                  stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              }
+            </button>
+          </div>
+
+          <!-- Details Button -->
+          <button
+            class="flex h-8 shrink-0 items-center justify-center rounded-lg border border-gray-300 px-3 text-sm text-gray-700 shadow-xs hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-900">
+            See Details
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="flex gap-3 px-3.5 pt-5 pb-4">
+    <button
+      class="bg-brand-500 hover:bg-brand-600 flex h-11 flex-1 shrink-0 items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14.9968 5.00356L5 15.0003M14.9977 12.4949L14.9953 5.00214L7.49917 4.99951" stroke="white"
+          stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      Transfer
+    </button>
+    <button
+      class="flex h-11 flex-1 shrink-0 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-900">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5.00095 14.9963L14.9977 4.99954M5 7.50539L5.00238 14.9981L12.4985 15.0007" stroke="currentColor"
+          stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      Received
+    </button>
+    <button
+      class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-900">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5 10.0002H15.0006M10.0002 5V15.0006" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+          stroke-linejoin="round" />
+      </svg>
+    </button>
+  </div>
+</div>

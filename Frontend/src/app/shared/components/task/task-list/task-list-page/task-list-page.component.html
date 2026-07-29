@@ -1,0 +1,16 @@
+<div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+  <app-task-header></app-task-header>
+  <div class="p-4 space-y-8 border-t border-gray-200 mt-7 dark:border-gray-800 sm:mt-0 xl:p-6">
+    @for (lane of lanes; track $index) {
+    <ng-container>
+      <app-task-lane
+        [lane]="lane"
+        [tasks]="getTasksByLane(lane)"
+        (dragOver)="handleDragOver($event)"
+        (drop)="handleDrop($event, lane)"
+        (dragStart)="handleDragStart($event.event, $event.taskId)"
+      ></app-task-lane>
+    </ng-container>
+    }
+  </div>
+</div>

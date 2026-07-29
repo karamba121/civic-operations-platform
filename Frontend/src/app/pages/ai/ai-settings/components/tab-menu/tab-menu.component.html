@@ -1,0 +1,471 @@
+<!-- ===== Backdrop ===== -->
+@if (isSidebarOpen) {
+  <div
+    (click)="closeSidebar()"
+    class="fixed inset-0 z-40 bg-black/60 xl:hidden animate-fade-in"
+  ></div>
+}
+
+<!-- ===== Close Button over Backdrop (below xl) ===== -->
+@if (isSidebarOpen) {
+  <div
+    class="fixed top-4 right-72 z-[999999] xl:hidden"
+  >
+    <button
+      (click)="closeSidebar()"
+      class="flex size-9 items-center justify-center rounded-full bg-white text-gray-500 shadow-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+      >
+        <path
+          d="M18 6L6 18M6 6l12 12"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+        />
+      </svg>
+    </button>
+  </div>
+}
+
+<!-- ===== Right Drawer (below xl) ===== -->
+<div
+  [class]="isSidebarOpen ? 'translate-x-0' : 'translate-x-full'"
+  class="fixed top-0 right-0 z-[99999] h-full w-72 overflow-y-auto bg-white p-3 shadow-xl transition-transform duration-300 ease-in-out xl:hidden dark:bg-gray-900"
+>
+  <ng-container *ngTemplateOutlet="tabMenuInner"></ng-container>
+</div>
+
+<!-- ===== Desktop Sidebar (xl+) ===== -->
+<div
+  class="hidden h-full overflow-y-auto border-gray-200 bg-white p-3 xl:block xl:w-62.5 xl:border-r dark:border-gray-800 dark:bg-gray-900"
+>
+  <ng-container *ngTemplateOutlet="tabMenuInner"></ng-container>
+</div>
+
+<!-- ===== Shared Tab Menu Template ===== -->
+<ng-template #tabMenuInner>
+  <div class="space-y-4">
+    <!-- Workspace Dropdown -->
+    <div
+      class="relative"
+      (clickOutside)="workspaceOpen = false"
+      [clickOutsideActive]="workspaceOpen"
+    >
+      <button
+        (click)="workspaceOpen = !workspaceOpen"
+        class="flex w-full items-center justify-between rounded-lg border border-gray-100 p-3 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-white/5"
+      >
+        <div class="flex items-center gap-2.5">
+          <div
+            [class]="selectedWorkspace === 1 ? 'bg-brand-400' : 'bg-warning-400'"
+            class="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-medium text-white"
+          >
+            {{ selectedWorkspace === 1 ? 'M' : 'L' }}
+          </div>
+          <div class="text-left">
+            <h4 class="text-sm font-medium text-gray-800 dark:text-white/90">
+              {{ selectedWorkspace === 1 ? 'Musharof Chy' : 'Leonardo Dicaprio' }}
+            </h4>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              {{ selectedWorkspace === 1 ? 'Personal' : 'Business' }}
+            </p>
+          </div>
+        </div>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 20 20"
+          fill="none"
+          class="shrink-0 text-gray-500 dark:text-gray-400"
+        >
+          <path
+            d="M5.83337 7.50065L10 3.33398L14.1667 7.50065"
+            stroke="currentColor"
+            stroke-width="1.33333"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M5.83337 12.5L10 16.6667L14.1667 12.5"
+            stroke="currentColor"
+            stroke-width="1.33333"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+
+      <!-- Dropdown Panel -->
+      @if (workspaceOpen) {
+        <div
+          class="absolute top-full right-0 left-0 z-50 mt-1 rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg dark:border-gray-700 dark:bg-gray-800 animate-fade-in"
+        >
+          <!-- Workspace Item 1 -->
+          <button
+            (click)="selectedWorkspace = 1; workspaceOpen = false"
+            class="flex w-full items-center justify-between rounded-lg px-1.5 py-2 hover:bg-gray-50 dark:hover:bg-white/5"
+          >
+            <div class="flex items-center gap-2.5">
+              <div
+                class="bg-brand-400 inline-flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-medium text-white"
+              >
+                M
+              </div>
+              <div class="text-left">
+                <h4 class="text-sm font-medium text-gray-800 dark:text-white/90">
+                  Musharof Chy
+                </h4>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Personal</p>
+              </div>
+            </div>
+            @if (selectedWorkspace === 1) {
+              <svg
+                class="text-gray-700 dark:text-gray-400"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M18.75 7.29297L9.33315 16.7098L5.25 12.6267"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            }
+          </button>
+
+          <!-- Workspace Item 2 -->
+          <button
+            (click)="selectedWorkspace = 2; workspaceOpen = false"
+            class="flex w-full items-center justify-between rounded-lg px-1.5 py-2 hover:bg-gray-50 dark:hover:bg-white/5"
+          >
+            <div class="flex items-center gap-2.5">
+              <div
+                class="bg-warning-400 inline-flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-medium text-white"
+              >
+                L
+              </div>
+              <div class="text-left">
+                <h4 class="text-sm font-medium text-gray-800 dark:text-white/90">
+                  Leonardo Dicaprio
+                </h4>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Business</p>
+              </div>
+            </div>
+            @if (selectedWorkspace === 2) {
+              <svg
+                class="text-gray-700 dark:text-gray-400"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M18.75 7.29297L9.33315 16.7098L5.25 12.6267"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            }
+          </button>
+
+          <!-- Divider -->
+          <div class="my-1 border-t border-gray-100 dark:border-gray-700"></div>
+
+          <!-- Create Workspace -->
+          <button
+            class="flex w-full items-center gap-2.5 rounded-lg px-1.5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+            >
+              <path
+                d="M6 12.0002H18.0007M12.0002 6V18.0007"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            Create WorkSpace
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- Account Section -->
+    <div>
+      <p class="mb-0.5 block px-3 py-1 text-xs text-gray-400 uppercase">
+        Account
+      </p>
+      <div class="space-y-0.5">
+        <!-- Account Tab -->
+        <button
+          (click)="selectTab('account')"
+          [class]="activeTab === 'account' ? 'bg-gray-100 font-medium text-gray-800 dark:bg-white/5 dark:text-white/90' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10'"
+          class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition cursor-pointer"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+          >
+            <path
+              d="M16.2501 16.1989C16.2501 16.1989 16.355 10.7822 10.0001 10.7822C3.64524 10.7822 3.75011 16.1989 3.75011 16.1989M13.0515 5.28651C13.0515 6.94087 11.7104 8.282 10.056 8.282C8.40167 8.282 7.06055 6.94087 7.06055 5.28651C7.06055 3.63214 8.40167 2.29102 10.056 2.29102C11.7104 2.29102 13.0515 3.63214 13.0515 5.28651Z"
+              stroke="currentColor"
+              stroke-width="1.3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          Account
+        </button>
+
+        <!-- General Tab -->
+        <button
+          (click)="selectTab('general')"
+          [class]="activeTab === 'general' ? 'bg-gray-100 font-medium text-gray-800 dark:bg-white/5 dark:text-white/90' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10'"
+          class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition cursor-pointer"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+          >
+            <path
+              d="M14.6535 5.90482C14.6534 4.485 13.5025 3.33398 12.0826 3.33398C10.6628 3.33398 9.51182 4.485 9.5118 5.90482M14.6535 5.90482C14.6535 7.32465 13.5025 8.47565 12.0826 8.47565C10.6628 8.47565 9.5118 7.32465 9.5118 5.90482M14.6535 5.90482L17.7084 5.90479M9.5118 5.90482L2.29175 5.90479M5.3467 14.0965C5.3467 12.6767 6.4977 11.5257 7.91753 11.5257C9.33736 11.5257 10.4884 12.6767 10.4884 14.0965M5.3467 14.0965C5.3467 15.5163 6.4977 16.6673 7.91753 16.6673C9.33736 16.6673 10.4884 15.5163 10.4884 14.0965M5.3467 14.0965L2.29175 14.0965M10.4884 14.0965L17.7084 14.0965"
+              stroke="currentColor"
+              stroke-width="1.3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          General
+        </button>
+
+        <!-- Credit and Billing Tab -->
+        <button
+          (click)="selectTab('billing')"
+          [class]="activeTab === 'billing' ? 'bg-gray-100 font-medium text-gray-800 dark:bg-white/5 dark:text-white/90' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10'"
+          class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition cursor-pointer"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+          >
+            <path
+              d="M15.5114 3.58748C15.6531 4.0132 15.9871 4.34719 16.4128 4.48881L16.8867 4.64663L16.4128 4.80443C15.9871 4.94604 15.6531 5.28003 15.5114 5.70576L15.3536 6.1797L15.1958 5.70576C15.0542 5.28005 14.7202 4.94604 14.2945 4.80443L13.8203 4.64663L14.2945 4.48881C14.7202 4.34719 15.0542 4.0132 15.1958 3.58748L15.3536 3.11328L15.5114 3.58748Z"
+              stroke="currentColor"
+              stroke-width="1.3"
+            />
+            <path
+              d="M10.1025 6.45703C10.6433 8.08248 11.9185 9.35771 13.5439 9.89843L15.3535 10.501L13.5439 11.1035C11.9185 11.6442 10.6433 12.9194 10.1025 14.5449L9.5 16.3545L8.89746 14.5449C8.35674 12.9195 7.0815 11.6442 5.45605 11.1035L3.64551 10.501L5.45605 9.89843C7.0815 9.35771 8.35674 8.08248 8.89746 6.45703L9.5 4.64648L10.1025 6.45703Z"
+              stroke="currentColor"
+              stroke-width="1.3"
+            />
+          </svg>
+          Credit and Billing
+        </button>
+
+        <!-- Personalization Tab -->
+        <button
+          (click)="selectTab('personalization')"
+          [class]="activeTab === 'personalization' ? 'bg-gray-100 font-medium text-gray-800 dark:bg-white/5 dark:text-white/90' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10'"
+          class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition cursor-pointer"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+          >
+            <path
+              d="M9.37475 2.46044C9.7615 2.23715 10.238 2.23715 10.6248 2.46044L16.2171 5.68915C16.6038 5.91245 16.8421 6.3251 16.8421 6.77169V13.2292C16.8421 13.6757 16.6038 14.0884 16.2171 14.3117L10.6248 17.5404C10.238 17.7637 9.7615 17.7637 9.37475 17.5404L3.78247 14.3117C3.39572 14.0884 3.15747 13.6757 3.15747 13.2292V6.77169C3.15747 6.3251 3.39572 5.91245 3.78247 5.68915L9.37475 2.46044Z"
+              stroke="currentColor"
+              stroke-width="1.3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M12.57 10.0004C12.57 11.4202 11.419 12.5712 9.99917 12.5712C8.57934 12.5712 7.4283 11.4202 7.4283 10.0004C7.4283 8.58057 8.57934 7.4296 9.99917 7.4296C11.419 7.4296 12.57 8.58057 12.57 10.0004Z"
+              stroke="currentColor"
+              stroke-width="1.3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          Personalization
+        </button>
+      </div>
+    </div>
+
+    <!-- Features Section -->
+    <div>
+      <p class="mb-0.5 block px-3 py-1 text-xs text-gray-400 uppercase">
+        Features
+      </p>
+      <div class="space-y-0.5">
+        <!-- Memory Tab -->
+        <button
+          (click)="selectTab('memory')"
+          [class]="activeTab === 'memory' ? 'bg-gray-100 font-medium text-gray-800 dark:bg-white/5 dark:text-white/90' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10'"
+          class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition cursor-pointer"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+          >
+            <path
+              d="M10.0009 4.50677C10.0009 3.45887 10.8504 2.60937 11.8983 2.60938C12.7735 2.60938 13.5103 3.20194 13.7294 4.00775H13.8917C15.2724 4.00775 16.3917 5.12704 16.3917 6.50775V6.83806C17.1863 7.3768 17.7084 8.28717 17.7084 9.3195C17.7084 10.3518 17.1863 11.2622 16.3917 11.8009V12.8112C16.3917 14.1919 15.2724 15.3111 13.8917 15.3111H13.7957V15.4917C13.7957 16.5396 12.9462 17.3891 11.8983 17.3891C10.8504 17.3891 10.0009 16.5396 10.0009 15.4917M3.60848 12.8122L3.60848 11.8017C2.81389 11.263 2.29175 10.3526 2.29175 9.32028C2.29175 8.28795 2.81389 7.37758 3.60848 6.83884V6.50878C3.60848 5.12807 4.72777 4.00878 6.10848 4.00878H6.27097C6.49026 3.20327 7.22692 2.611 8.1019 2.611C9.1498 2.611 9.9993 3.46049 9.9993 4.50839V15.4933C9.9993 16.5412 9.14981 17.3907 8.1019 17.3907C7.054 17.3907 6.20451 16.5412 6.20451 15.4933V15.3122H6.10848C4.72777 15.3122 3.60848 14.1929 3.60848 12.8122Z"
+              stroke="currentColor"
+              stroke-width="1.3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          Memory
+        </button>
+
+        <!-- File & Media Tab -->
+        <button
+          (click)="selectTab('file-media')"
+          [class]="activeTab === 'file-media' ? 'bg-gray-100 font-medium text-gray-800 dark:bg-white/5 dark:text-white/90' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10'"
+          class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition cursor-pointer"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+          >
+            <path
+              d="M9.37492 6.66732L5.83325 6.66732M14.1666 10.0007H5.83325M11.0416 13.334H5.83325M4.58325 3.33398H15.4166C16.1069 3.33398 16.6666 3.89363 16.6666 4.58398V15.4173C16.6666 16.1077 16.1069 16.6673 15.4166 16.6673H4.58325C3.8929 16.6673 3.33325 16.1077 3.33325 15.4173V4.58398C3.33325 3.89363 3.8929 3.33398 4.58325 3.33398Z"
+              stroke="currentColor"
+              stroke-width="1.3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          File &amp; Media
+        </button>
+
+        <!-- Model Tab -->
+        <button
+          (click)="selectTab('model')"
+          [class]="activeTab === 'model' ? 'bg-gray-100 font-medium text-gray-800 dark:bg-white/5 dark:text-white/90' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10'"
+          class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition cursor-pointer"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+          >
+            <path
+              d="M6.66675 2.29102L6.66676 4.37435M2.29175 13.3327H4.37508M6.66675 15.6243L6.66676 17.7077M15.6251 13.3327H17.7084M10.0001 2.29102V4.37435M2.29175 9.99935H4.37508M10.0001 15.6243V17.7077M15.6251 9.99935H17.7084M13.3334 2.29102V4.37435M2.29175 6.66602L4.37508 6.66601M13.3334 15.6243V17.7077M15.6251 6.66602L17.7084 6.66601M5.62511 15.6243H14.3751C15.0655 15.6243 15.6251 15.0647 15.6251 14.3743V5.62435C15.6251 4.93399 15.0655 4.37435 14.3751 4.37435H5.62511C4.93475 4.37435 4.37511 4.93399 4.37511 5.62435V14.3743C4.37511 15.0647 4.93475 15.6243 5.62511 15.6243Z"
+              stroke="currentColor"
+              stroke-width="1.3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          Model
+        </button>
+      </div>
+    </div>
+
+    <!-- System Section -->
+    <div>
+      <p class="mb-0.5 block px-3 py-1 text-xs text-gray-400 uppercase">
+        System
+      </p>
+      <div class="space-y-0.5">
+        <!-- Connector Tab -->
+        <button
+          (click)="selectTab('connector')"
+          [class]="activeTab === 'connector' ? 'bg-gray-100 font-medium text-gray-800 dark:bg-white/5 dark:text-white/90' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10'"
+          class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition cursor-pointer"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+          >
+            <path
+              d="M7.29167 2.29102L7.29167 5.40177M11.875 5.40177V2.29102M9.58333 15.0286V17.7077M15.4167 5.40177L3.75 5.40177M14.375 5.40177L4.79167 5.40177L4.79167 10.1934C4.79167 12.8398 6.93697 14.9851 9.58333 14.9851C12.2297 14.9851 14.375 12.8398 14.375 10.1934L14.375 5.40177Z"
+              stroke="currentColor"
+              stroke-width="1.3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          Connector
+        </button>
+
+        <!-- Data Control Tab -->
+        <button
+          (click)="selectTab('data-control')"
+          [class]="activeTab === 'data-control' ? 'bg-gray-100 font-medium text-gray-800 dark:bg-white/5 dark:text-white/90' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10'"
+          class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition cursor-pointer"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+          >
+            <path
+              d="M16.6666 5.20898C16.6666 6.5897 13.6818 7.70898 9.99992 7.70898C6.31802 7.70898 3.33325 6.5897 3.33325 5.20898M16.6666 5.20898C16.6666 3.82827 13.6818 2.70898 9.99992 2.70898C6.31802 2.70898 3.33325 3.82827 3.33325 5.20898M16.6666 5.20898V8.15495M3.33325 5.20898V13.5472C3.33325 14.6442 5.21747 15.5731 7.8385 15.9085M3.33325 9.37565C3.33325 10.4754 5.22672 11.4092 7.85779 11.7438M10.3547 12.5557V15.154C10.3547 15.6005 10.593 16.0132 10.9797 16.2365L13.2299 17.5356C13.6167 17.7589 14.0932 17.7589 14.4799 17.5356L16.7301 16.2365C17.1169 16.0132 17.3551 15.6005 17.3551 15.154V12.5557C17.3551 12.1091 17.1169 11.6964 16.7301 11.4731L14.4799 10.174C14.0932 9.9507 13.6167 9.9507 13.2299 10.174L10.9797 11.4731C10.593 11.6964 10.3547 12.1091 10.3547 12.5557Z"
+              stroke="currentColor"
+              stroke-width="1.3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M13.8558 13.2539C14.1872 13.2539 14.4554 13.5221 14.4554 13.8535C14.4554 14.1849 14.1872 14.4531 13.8558 14.4531C13.5245 14.4531 13.2562 14.1849 13.2562 13.8535C13.2562 13.5221 13.5245 13.2539 13.8558 13.2539Z"
+              stroke="currentColor"
+              stroke-width="1.3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          Data Control
+        </button>
+      </div>
+    </div>
+  </div>
+</ng-template>

@@ -1,0 +1,53 @@
+<div class="space-y-5 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/3">
+  <div class="flex items-start justify-between">
+    <div>
+      <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+        Delivery Vehicles
+      </h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Vehicles operating on the road
+      </p>
+    </div>
+    <div class="relative inline-block">
+      <button class="dropdown-toggle" (click)="toggleDropdown()">
+        <svg class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 size-6" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 6.75C12.8284 6.75 13.5 6.07843 13.5 5.25C13.5 4.42157 12.8284 3.75 12 3.75C11.1716 3.75 10.5 4.42157 10.5 5.25C10.5 6.07843 11.1716 6.75 12 6.75Z" fill="currentColor"/>
+          <path d="M12 13.5C12.8284 13.5 13.5 12.8284 13.5 12C13.5 11.1716 12.8284 10.5 12 10.5C11.1716 10.5 10.5 11.1716 10.5 12C10.5 12.8284 11.1716 13.5 12 13.5Z" fill="currentColor"/>
+          <path d="M12 20.25C12.8284 20.25 13.5 19.5784 13.5 18.75C13.5 17.9216 12.8284 17.25 12 17.25C11.1716 17.25 10.5 17.9216 10.5 18.75C10.5 19.5784 11.1716 20.25 12 20.25Z" fill="currentColor"/>
+        </svg>
+      </button>
+      <app-dropdown [isOpen]="isOpen" (close)="closeDropdown()" className="w-40 p-2">
+        <app-dropdown-item (itemClick)="closeDropdown()" className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">
+          View More
+        </app-dropdown-item>
+        <app-dropdown-item (itemClick)="closeDropdown()" className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">
+          Delete
+        </app-dropdown-item>
+      </app-dropdown>
+    </div>
+  </div>
+  <div class="relative mt-5 flex justify-between">
+    <div>
+      <h3 class="mb-1 text-3xl font-medium text-gray-800 dark:text-white/90">
+        29
+      </h3>
+      <p class="text-xs text-gray-500 dark:text-gray-400">
+        <span class="text-success-600 font-medium">+3.85%</span>
+        than last Week
+      </p>
+      <div class="mt-5 flex items-center gap-2">
+        <div class="ring-success-500 flex h-6 w-6 items-center justify-center rounded-full ring-2 ring-inset">
+          <div class="bg-success-500 h-2.5 w-2.5 rounded-full"></div>
+        </div>
+        <div>
+          <span class="text-success-500 text-sm font-medium">
+            On-route
+          </span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <img class="absolute -right-6 -bottom-2" src="/images/logistics/truck.png" alt="Delivery Truck" />
+    </div>
+  </div>
+</div>

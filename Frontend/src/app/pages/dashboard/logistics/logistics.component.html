@@ -1,0 +1,20 @@
+<div class="space-y-6">
+  <div><app-logistics-metrics /></div>
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <div class="space-y-6 lg:col-span-2">
+      <div><app-delivery-statistics-chart /></div>
+      <div class="grid gap-6 sm:grid-cols-2">
+         <app-revenue-earned-chart class="flex flex-col justify-between space-y-6 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/3"/>
+         <app-delivery-vehicle/>
+      </div>
+    </div>
+    <div class="lg:col-span-1">
+      <div class="space-y-2 rounded-xl border bg-gray-100 p-2 dark:border-gray-800 dark:bg-white/3">
+        <div><app-tracking-delivery-map/></div>
+        <div><app-tracking-progress/></div>
+        <div><app-delivery-man/></div>
+      </div>
+    </div>
+  </div>
+  <div><app-deliveries-activity-table/></div>
+</div>

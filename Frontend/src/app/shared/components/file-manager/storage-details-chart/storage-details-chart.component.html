@@ -1,0 +1,26 @@
+<div class="px-4 pt-6 pb-6 bg-white border border-gray-200 rounded-2xl dark:border-gray-800 dark:bg-gray-900 sm:px-6">
+  <div class="flex items-start justify-between mb-4">
+    <div>
+      <h3 class="text-lg font-semibold text-gray-800 dark:text-white">
+        Storage Details
+      </h3>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        585 GB Free space left
+      </p>
+    </div>
+  </div>
+  <div class="flex justify-center mx-auto" id="chartDarkStyle">
+    <apx-chart
+      [series]="series"
+      [chart]="chart"
+      [colors]="colors"
+      [labels]="labels"
+      [stroke]="stroke"
+      [plotOptions]="plotOptions"
+      [dataLabels]="dataLabels"
+      [tooltip]="tooltip"
+      [legend]="legend"
+      [responsive]="responsive"
+    ></apx-chart>
+  </div>
+</div>

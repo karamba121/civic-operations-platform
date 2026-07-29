@@ -1,0 +1,56 @@
+<div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+  <div class="px-6 py-4">
+    <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+      Recent Invoices
+    </h3>
+  </div>
+  <div class="custom-scrollbar overflow-x-auto">
+    <table class="min-w-full">
+      <thead>
+        <tr class="bg-gray-50 dark:bg-gray-900">
+          <th class="px-6 py-4 text-left text-sm font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">
+            Serial No:
+          </th>
+          <th class="px-6 py-4 text-left text-sm font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">
+            Close Date
+          </th>
+          <th class="px-6 py-4 text-left text-sm font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">
+            User
+          </th>
+          <th class="px-6 py-4 text-left text-sm font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">
+            Amount
+          </th>
+          <th class="px-6 py-4 text-left text-sm font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">
+            Status
+          </th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+        @for (transaction of transactions; track $index) {
+        <tr>
+          <td class="px-6 py-4 text-left text-sm whitespace-nowrap text-gray-700 dark:text-gray-400">
+            {{ transaction.id }}
+          </td>
+          <td class="px-6 py-4 text-left text-sm whitespace-nowrap text-gray-700 dark:text-gray-400">
+            {{ transaction.date }}
+          </td>
+          <td class="px-6 py-4 text-left text-sm whitespace-nowrap text-gray-700 dark:text-gray-400">
+            {{ transaction.user }}
+          </td>
+          <td class="px-6 py-4 text-left text-sm whitespace-nowrap text-gray-700 dark:text-gray-400">
+            {{ transaction.amount }}
+          </td>
+          <td class="px-6 py-4 text-left">
+            <app-badge
+              size="sm"
+              [color]="getBadgeClass(transaction.status)"
+            >
+              {{ transaction.status }}
+            </app-badge>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

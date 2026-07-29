@@ -1,0 +1,30 @@
+<div class="rounded-2xl border border-gray-200 bg-white px-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
+  <div class="flex flex-wrap items-start justify-between gap-5">
+    <div>
+      <h3 class="mb-1 text-lg font-semibold text-gray-800 dark:text-white/90">
+        Analytics
+      </h3>
+      <span class="block text-gray-500 text-theme-sm dark:text-gray-400">
+        Visitor analytics of last 30 days
+      </span>
+    </div>
+    <app-chart-tab></app-chart-tab>
+  </div>
+  <div class="max-w-full overflow-x-auto custom-scrollbar">
+    <div class="-ml-5 min-w-[1300px] xl:min-w-full pl-2">
+      <apx-chart
+        [series]="series"
+        [chart]="chart"
+        [colors]="colors"
+        [plotOptions]="plotOptions"
+        [dataLabels]="dataLabels"
+        [stroke]="stroke"
+        [legend]="legend"
+        [xaxis]="xaxis"
+        [grid]="grid"
+        [fill]="fill"
+        [tooltip]="tooltip"
+      ></apx-chart>
+    </div>
+  </div>
+</div>

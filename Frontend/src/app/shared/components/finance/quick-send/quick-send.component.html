@@ -1,0 +1,131 @@
+<div class="rounded-2xl border border-gray-200 bg-white p-6 md:col-span-1 dark:border-gray-800 dark:bg-white/3">
+  <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">
+    Quick send
+  </h3>
+
+  <!-- User Avatars -->
+  <div class="relative mb-4">
+    <!-- Previous Arrow -->
+    @if (!atStart) {
+    <button (click)="scrollPrev()"
+      class="absolute top-1/2 left-0 z-20 flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-gray-500 transition-all dark:text-gray-400 bg-white/80 dark:bg-gray-900/80">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round" />
+      </svg>
+    </button>
+    }
+
+    <!-- Left Mask -->
+    @if (!atStart) {
+    <div
+      class="pointer-events-none absolute top-0 bottom-0 left-0 z-10 w-16 bg-gradient-to-r from-white via-white/80 to-transparent dark:from-[#1C2434] dark:via-[#1C2434]/80">
+    </div>
+    }
+
+    <div #avatarList (scroll)="checkScroll()"
+      class="no-scrollbar flex items-center gap-3 overflow-x-hidden scroll-smooth px-0.5 py-1">
+      @for (user of users; track user.id) {
+      <button (click)="selectUser(user.id)"
+        [ngClass]="selectedUserId === user.id ? 'ring-brand-500 ring-1' : 'hover:ring-brand-500 hover:ring-1 bg-gray-100 dark:bg-gray-800'"
+        class="relative flex size-10 shrink-0 items-center justify-center rounded-full p-0.5 transition-all">
+        <img class="size-full rounded-full object-cover" [src]="user.image" alt="User" />
+      </button>
+      }
+    </div>
+
+    <!-- Right Mask -->
+    @if (!atEnd) {
+    <div
+      class="pointer-events-none absolute top-0 right-0 bottom-0 z-10 w-16 bg-gradient-to-l from-white via-white/80 to-transparent dark:from-[#1C2434] dark:via-[#1C2434]/80">
+    </div>
+    }
+
+    <!-- Next Arrow -->
+    @if (!atEnd) {
+    <button (click)="scrollNext()"
+      class="absolute top-1/2 right-0 z-20 flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-gray-500 transition-all dark:text-gray-400 bg-white/80 dark:bg-gray-900/80">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round" />
+      </svg>
+    </button>
+    }
+  </div>
+
+  <form class="space-y-3" (submit)="onSubmit($event)">
+    <!-- Send From -->
+    <div>
+      <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+        Send From
+      </label>
+      <div class="relative">
+        <button type="button" (click)="toggleCardDropdown(); $event.stopPropagation()"
+          class="flex h-10 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-normal text-gray-700 shadow-xs dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+          <span>{{ selectedCard }}</span>
+          <svg [ngClass]="{ 'rotate-180': openCardDropdown }"
+            class="text-gray-700 transition-transform dark:text-gray-400" width="20" height="20" viewBox="0 0 20 20"
+            fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4.79102 8.021L9.99935 13.2293L15.2077 8.021" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+        @if (openCardDropdown) {
+        <div
+          class="absolute left-0 z-10 mt-2 w-full rounded-xl border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-900">
+          @for (card of cards; track card) {
+          <button type="button" (click)="selectCard(card)"
+            class="w-full rounded-lg px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5">
+            {{ card }}
+          </button>
+          }
+        </div>
+        }
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <!-- Currency -->
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+          Currency
+        </label>
+        <div class="relative">
+          <button type="button" (click)="toggleCurrencyDropdown(); $event.stopPropagation()"
+            class="flex h-10 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-normal text-gray-700 shadow-xs dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+            <span>{{ selectedCurrency }}</span>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"
+              [ngClass]="{ 'rotate-180': openCurrencyDropdown }" class="transition-transform">
+              <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+          </button>
+          @if (openCurrencyDropdown) {
+          <div
+            class="absolute left-0 z-10 mt-2 w-full rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-900">
+            @for (currency of currencies; track currency.code) {
+            <button type="button" (click)="selectCurrency(currency.code)"
+              class="w-full rounded-lg px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5">
+              {{ currency.label }}
+            </button>
+            }
+          </div>
+          }
+        </div>
+      </div>
+      <!-- Amount -->
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+          Amount
+        </label>
+        <input type="text" placeholder="0.00"
+          class="focus:border-brand-500 focus:ring-brand-500 h-10 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-800 shadow-xs dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" />
+      </div>
+    </div>
+
+    <button type="submit"
+      class="bg-brand-500 hover:bg-brand-600 flex h-10 w-full items-center justify-center rounded-lg px-4 py-3.5 text-sm font-normal text-white shadow-sm transition-colors">
+      Send Money
+    </button>
+  </form>
+</div>

@@ -1,0 +1,1111 @@
+<!-- Header -->
+<app-chat-header
+  title="Minimalist building facade"
+  (openShare)="openShareModal()"
+></app-chat-header>
+
+<!-- Msg Area -->
+<div class="relative mx-auto flex max-w-[720px] flex-col">
+  <div
+    class="custom-scrollbar relative z-20 max-h-[55vh] flex-1 space-y-7 overflow-y-auto pb-10 lg:pb-7"
+  >
+    @for (msg of messages; track $index) {
+      @if (msg.role === 'user') {
+        <!-- User Message -->
+        <div class="flex justify-end">
+          <div [class.w-full]="msg.isEditing" class="w-full">
+            @if (!msg.isEditing) {
+              <div class="ml-auto w-full max-w-[480px]">
+                <div
+                  class="shadow-theme-xs rounded-xl rounded-tr-xs bg-gray-100 px-4 py-3 dark:bg-gray-800"
+                >
+                  <p
+                    class="text-left text-base leading-6 font-normal text-gray-800 dark:text-white/90 whitespace-pre-wrap"
+                  >
+                    {{ msg.text }}
+                  </p>
+                </div>
+                <div class="mt-2 flex justify-end">
+                  <!-- Edit -->
+                  <button
+                    (click)="editMessage(msg)"
+                    data-tooltip="Edit"
+                    data-tooltip-placement="top"
+                    data-tooltip-variant="plain"
+                    class="group flex size-8 items-center justify-center rounded-lg p-2 text-sm font-medium text-gray-800 hover:bg-gray-100 hover:text-gray-900 dark:border-white/5 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white/90 cursor-pointer"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                    >
+                      <path
+                        d="M9.90891 4.06479L11.9346 6.09047M12.5149 2.87346L13.1264 3.48492C13.5169 3.87545 13.5169 4.50861 13.1264 4.89914L6.26837 11.7572C6.15231 11.8732 6.00946 11.9589 5.85243 12.0067L3.17969 12.8202L3.99313 10.1474C4.04092 9.99041 4.12663 9.84756 4.2427 9.7315L11.1007 2.87346C11.4913 2.48294 12.1244 2.48294 12.5149 2.87346Z"
+                        stroke="currentColor"
+                        stroke-width="1.2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </button>
+                  <!-- Copy Button -->
+                  <button
+                    (click)="copyMessage(msg)"
+                    data-tooltip="Copy"
+                    data-tooltip-placement="top"
+                    data-tooltip-variant="plain"
+                    class="group flex size-8 items-center justify-center rounded-lg p-2 text-sm font-medium text-gray-800 hover:bg-gray-100 hover:text-gray-900 dark:border-white/5 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white/90 cursor-pointer"
+                  >
+                    @if (!msg.copied) {
+                      <!-- Copy Icon -->
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                      >
+                        <path
+                          d="M11.3253 11.3301H5.67033C5.11804 11.3301 4.67033 10.8824 4.67033 10.3301V4.67513M11.3253 11.3301L11.3253 12.3327C11.3253 12.885 10.8776 13.3327 10.3253 13.3327H3.66772C3.11544 13.3327 2.66772 12.885 2.66772 12.3327V5.67513C2.66772 5.12285 3.11544 4.67513 3.66772 4.67513H4.67033M11.3253 11.3301H12.3321C12.8844 11.3301 13.3321 10.8824 13.3321 10.3301L13.3321 3.66699C13.3321 3.11471 12.8844 2.66699 12.3321 2.66699H5.67033C5.11804 2.66699 4.67033 3.11471 4.67033 3.66699V4.67513"
+                          stroke="currentColor"
+                          stroke-width="1.2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    }
+                    @if (msg.copied) {
+                      <!-- Check Icon -->
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                      >
+                        <path
+                          d="M12.5 4.86133L6.2221 11.1392L3.5 8.41713"
+                          stroke="currentColor"
+                          stroke-width="1.2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    }
+                  </button>
+                </div>
+              </div>
+            }
+            @if (msg.isEditing) {
+              <!-- Edit Container -->
+              <div
+                class="w-full rounded-2xl border border-gray-200 bg-white p-3 dark:border-white/10 dark:bg-gray-900"
+              >
+                <!-- Textarea -->
+                <textarea
+                  [(ngModel)]="msg.draft"
+                  rows="3"
+                  (keydown.escape)="cancelEdit(msg)"
+                  class="w-full resize-none border-0 bg-transparent p-0 text-base leading-6 text-gray-800 [scrollbar-width:none] outline-none placeholder:text-gray-400 focus:ring-0 dark:text-white/90 [&::-webkit-scrollbar]:hidden"
+                ></textarea>
+                <!-- Bottom Actions -->
+                <div class="mt-2 flex items-center justify-end gap-2">
+                  <!-- Cancel -->
+                  <button
+                    (click)="cancelEdit(msg)"
+                    class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+
+                  <!-- Send -->
+                  <button
+                    (click)="saveEdit(msg)"
+                    class="inline-flex h-9 items-center justify-center rounded-lg bg-gray-900 px-5 py-2 text-sm font-medium text-white transition hover:bg-black dark:bg-white dark:text-gray-900 cursor-pointer"
+                  >
+                    Send
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      } @else {
+        <!-- AI Response -->
+        <div class="flex justify-start">
+          <div>
+            <div class="max-w-[480px]">
+              <p
+                class="mb-2 flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+              >
+                <img [src]="msg.modelIcon || './images/model/google.svg'" alt="" />
+                {{ msg.model || 'Google Veo 3.1' }}
+              </p>
+              <p
+                class="mb-2 text-base leading-6 text-gray-800 dark:text-white/90"
+              >
+                {{ msg.text }}
+              </p>
+              @if (msg.videoThumb) {
+                <div
+                  class="group relative w-full max-w-[400px] overflow-hidden rounded-xl"
+                >
+                  <img
+                    [src]="msg.videoThumb"
+                    class="w-full rounded-xl border border-gray-100 object-cover dark:border-gray-700"
+                    alt=""
+                  />
+                  @if (msg.videoUrl) {
+                    <a
+                      [href]="msg.videoUrl"
+                      target="_blank"
+                      class="video-popup absolute top-1/2 left-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/40 backdrop-blur-[10px]"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="28"
+                        height="28"
+                        viewBox="0 0 28 28"
+                        fill="none"
+                      >
+                        <path
+                          d="M7.4375 6.47291L7.4375 21.527C7.4375 22.6999 8.72295 23.419 9.7224 22.8053L21.9808 15.2782C22.9342 14.6928 22.9342 13.3072 21.9808 12.7217L9.72239 5.19465C8.72295 4.58095 7.4375 5.30008 7.4375 6.47291Z"
+                          fill="#344054"
+                        ></path>
+                      </svg>
+                    </a>
+                  }
+                  <!-- Hover Action Bar -->
+                  <div
+                    class="absolute top-0 right-0 flex -translate-y-full items-center justify-between px-3 py-3 opacity-0 transition-all duration-300 ease-in-out group-hover:translate-y-0 group-hover:opacity-100 z-30"
+                  >
+                    <div class="flex items-center gap-2">
+                      <!-- Copy URL Button -->
+                      <button
+                        (click)="copyVideoLink(msg)"
+                        data-tooltip="Copy URL"
+                        data-tooltip-placement="top"
+                        data-tooltip-variant="no-arrow"
+                        class="inline-flex size-9 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow backdrop-blur-sm transition hover:bg-white cursor-pointer"
+                      >
+                        @if (!msg.videoCopied) {
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            fill="none"
+                          >
+                            <path
+                              d="M11.3254 11.3301H5.67045C5.11817 11.3301 4.67045 10.8824 4.67045 10.3301V4.67513M11.3254 11.3301L11.3254 12.3327C11.3254 12.885 10.8777 13.3327 10.3254 13.3327H3.66785C3.11556 13.3327 2.66785 12.885 2.66785 12.3327V5.67513C2.66785 5.12285 3.11556 4.67513 3.66785 4.67513H4.67045M11.3254 11.3301H12.3322C12.8845 11.3301 13.3322 10.8824 13.3322 10.3301L13.3322 3.66699C13.3322 3.11471 12.8845 2.66699 12.3322 2.66699H5.67045C5.11817 2.66699 4.67045 3.11471 4.67045 3.66699V4.67513"
+                              stroke="currentColor"
+                              stroke-width="1.2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            />
+                          </svg>
+                        }
+                        @if (msg.videoCopied) {
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            fill="none"
+                          >
+                            <path
+                              d="M12.5 4.86133L6.2221 11.1392L3.5 8.41713"
+                              stroke="currentColor"
+                              stroke-width="1.2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            />
+                          </svg>
+                        }
+                      </button>
+                      <!-- Regenerate Button -->
+                      <button
+                        (click)="regenerateVideo(msg)"
+                        data-tooltip="Regenerate"
+                        data-tooltip-placement="top"
+                        data-tooltip-variant="no-arrow"
+                        class="inline-flex size-9 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow backdrop-blur-sm transition hover:bg-white cursor-pointer"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                        >
+                          <path
+                            d="M13.6351 6.49025C13.3028 5.24998 12.5705 4.15402 11.5518 3.37235C10.5331 2.59068 9.28494 2.16699 8.00091 2.16699C6.71688 2.16699 5.46873 2.59068 4.45004 3.37235C3.43136 4.15402 2.69906 5.24998 2.36673 6.49025C2.29896 6.74315 2.25575 6.92051 2.22989 7.04262M2.36492 9.50909C2.69725 10.7494 3.42955 11.8453 4.44823 12.627C5.46692 13.4087 6.71507 13.8324 7.9991 13.8324C9.28313 13.8324 10.5313 13.4087 11.55 12.627C12.5687 11.8453 13.301 10.7494 13.6333 9.50909C13.7024 9.25111 13.7463 9.07175 13.7724 8.94947M1.13614 5.0999L2.22989 7.04262L2.29256 7.15392L4.34636 5.99744M11.6602 10.0022L13.714 8.84571L13.7724 8.94947M14.8704 10.8997L13.7724 8.94947"
+                            stroke="currentColor"
+                            stroke-width="1.2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                        </svg>
+                      </button>
+                      <!-- Download Button -->
+                      <button
+                        (click)="downloadVideo(msg)"
+                        data-tooltip="Download"
+                        data-tooltip-placement="top"
+                        data-tooltip-variant="no-arrow"
+                        class="inline-flex size-9 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow backdrop-blur-sm transition hover:bg-white cursor-pointer"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="18"
+                          height="18"
+                          viewBox="0 0 18 18"
+                          fill="none"
+                        >
+                          <path
+                            d="M15.0003 12V13.875C15.0003 14.4963 14.4966 15 13.8753 15H4.12466C3.50334 15 2.99966 14.4963 2.99966 13.875V12M9.00115 12L9.00115 3M5.53094 8.53155L8.99957 11.998L12.4684 8.53155"
+                            stroke="#101828"
+                            stroke-width="1.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Reusable Chat Input Component -->
+  <app-chat-input
+    placeholder="Describe what you want to generate..."
+    [selectedModel]="selectedModel"
+    [showModelDropdown]="false"
+    (send)="sendMessage($event)"
+  >
+    <!-- Custom selectors projected in leftActions slot -->
+    <div leftActions class="flex items-center gap-1.5">
+      <!-- Mobile Settings (Visible on mobile only) -->
+      <div
+        class="relative block sm:hidden"
+        [clickOutsideActive]="mobileSettingsOpen"
+        (clickOutside)="closeMobileSettings()"
+      >
+        <button
+          (click)="toggleMobileSettings()"
+          class="flex size-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-gray-200 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:border-gray-700 dark:text-gray-400 dark:hover:text-gray-300 bg-transparent"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+          >
+            <path
+              d="M14.6534 5.90384C14.6534 4.48402 13.5024 3.33301 12.0826 3.33301C10.6628 3.33301 9.51176 4.48403 9.51174 5.90384M14.6534 5.90384C14.6534 7.32367 13.5024 8.47467 12.0826 8.47467C10.6627 8.47467 9.51174 7.32367 9.51174 5.90384M14.6534 5.90384L17.7084 5.90381M9.51174 5.90384L2.29169 5.90381M5.34664 14.0955C5.34664 12.6757 6.49764 11.5247 7.91747 11.5247C9.3373 11.5247 10.4883 12.6757 10.4883 14.0955M5.34664 14.0955C5.34664 15.5153 6.49764 16.6663 7.91747 16.6663C9.3373 16.6663 10.4883 15.5153 10.4883 14.0955M5.34664 14.0955L2.29169 14.0955M10.4883 14.0955L17.7084 14.0955"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+
+        <!-- Mobile Settings Panel -->
+        @if (mobileSettingsOpen) {
+          <div
+            class="shadow-theme-md absolute bottom-full left-0 mb-2 w-56 overflow-hidden rounded-2xl bg-white p-1.5 dark:bg-gray-900 z-50"
+          >
+            <!-- Main Menu -->
+            @if (mobileActiveMenu === null) {
+              <div>
+                <button
+                  (click)="setMobileActiveMenu('aspect-ratio')"
+                  class="flex w-full items-center justify-between gap-2 rounded-lg px-3.5 py-3 text-gray-800 hover:bg-gray-100 dark:text-white/90 dark:hover:bg-gray-800 cursor-pointer"
+                >
+                  <div class="flex items-center gap-2.5">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                    >
+                      <path
+                        d="M15.0001 14.9997L15.0001 4.99967C15.0001 4.0792 14.2539 3.33301 13.3335 3.33301L6.66679 3.33301C5.74631 3.33301 5.00012 4.0792 5.00012 4.99967L5.00012 14.9997C5.00012 15.9201 5.74631 16.6663 6.66679 16.6663L13.3335 16.6663C14.2539 16.6663 15.0001 15.9201 15.0001 14.9997Z"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                    <span class="text-sm font-medium">Aspect Ratio</span>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <span class="text-sm text-gray-500">{{ selectedAspectRatio }}</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                    >
+                      <path
+                        d="M5.91669 12.1663L10.0834 7.99967L5.91669 3.83301"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </div>
+                </button>
+
+                <button
+                  (click)="setMobileActiveMenu('variants')"
+                  class="flex w-full items-center justify-between gap-2 rounded-lg px-3.5 py-3 text-gray-800 hover:bg-gray-100 dark:text-white/90 dark:hover:bg-gray-800 cursor-pointer"
+                >
+                  <div class="flex items-center gap-2.5">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                    >
+                      <path
+                        d="M4.18733 11.3287L2.61708 11.8916C2.19187 12.044 2.19187 12.6453 2.61708 12.7978L9.51246 15.2695C9.82748 15.3825 10.1719 15.3825 10.487 15.2695L17.3824 12.7978C17.8076 12.6453 17.8076 12.044 17.3824 11.8916L15.8194 11.3313M9.51246 4.72923L2.61708 7.20101C2.19187 7.35343 2.19187 7.95477 2.61708 8.10719L9.51246 10.579C9.82748 10.6919 10.1719 10.6919 10.487 10.579L17.3824 8.1072C17.8076 7.95477 17.8076 7.35343 17.3824 7.20101L10.487 4.72923C10.172 4.6163 9.82748 4.6163 9.51246 4.72923Z"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                    <span class="text-sm font-medium">Variants</span>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <span class="text-sm text-gray-500">{{ selectedVariants }}</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                    >
+                      <path
+                        d="M5.91669 12.1663L10.0834 7.99967L5.91669 3.83301"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </div>
+                </button>
+
+                <button
+                  (click)="setMobileActiveMenu('resolution')"
+                  class="flex w-full items-center justify-between gap-2 rounded-lg px-3.5 py-3 text-gray-800 hover:bg-gray-100 dark:text-white/90 dark:hover:bg-gray-800 cursor-pointer"
+                >
+                  <div class="flex items-center gap-2.5">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                    >
+                      <path
+                        d="M14.0339 3.33301H5.96607C5.50036 3.33301 5.07326 3.59191 4.85784 4.0048L3.09863 7.37662C2.86279 7.82865 2.92512 8.37862 3.25616 8.7664L10 16.6663L16.7439 8.7664C17.0749 8.37862 17.1372 7.82865 16.9014 7.37662L15.1422 4.0048C14.9268 3.59191 14.4997 3.33301 14.0339 3.33301Z"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M7.08334 7.28711L12.9167 7.28711"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                      />
+                    </svg>
+                    <span class="text-sm font-medium">Resolution</span>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <span class="text-sm text-gray-500">{{ selectedResolution }}</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                    >
+                      <path
+                        d="M5.91669 12.1663L10.0834 7.99967L5.91669 3.83301"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </div>
+                </button>
+
+                <button
+                  (click)="setMobileActiveMenu('duration')"
+                  class="flex w-full items-center justify-between gap-2 rounded-lg px-3.5 py-3 text-gray-800 hover:bg-gray-100 dark:text-white/90 dark:hover:bg-gray-800 cursor-pointer"
+                >
+                  <div class="flex items-center gap-2.5">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                    >
+                      <path
+                        d="M13.3333 9.99935H9.99996L9.99986 5.41602M17.7083 9.99935C17.7083 14.2565 14.2572 17.7077 9.99996 17.7077C5.74276 17.7077 2.29163 14.2565 2.29163 9.99935C2.29163 5.74215 5.74276 2.29102 9.99996 2.29102C14.2572 2.29102 17.7083 5.74215 17.7083 9.99935Z"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                    <span class="text-sm font-medium">Duration</span>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <span class="text-sm text-gray-500">{{ selectedDuration }}</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                    >
+                      <path
+                        d="M5.91669 12.1663L10.0834 7.99967L5.91669 3.83301"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </div>
+                </button>
+
+                <button
+                  (click)="toggleAudio()"
+                  class="flex w-full items-center justify-between gap-2 rounded-lg px-3.5 py-3 text-gray-800 hover:bg-gray-100 dark:text-white/90 dark:hover:bg-gray-800 cursor-pointer"
+                >
+                  <div class="flex items-center gap-2.5">
+                    @if (audioOn) {
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20" fill="none">
+                        <path d="M14.2791 6.94598C15.7936 8.63275 15.7936 11.3675 14.2791 13.0543M12.5358 8.45962C13.3224 9.33437 13.3224 10.6659 12.5358 11.5407M8.33617 4.34943L5.49474 6.87515H3.54163C2.85127 6.87515 2.29163 7.4348 2.29163 8.12515V11.8752C2.29163 12.5655 2.85127 13.1252 3.54163 13.1252H5.49477L8.33617 15.6508C9.1423 16.3674 10.4166 15.7951 10.4166 14.7166V5.28369C10.4166 4.20513 9.1423 3.63288 8.33617 4.34943Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    } @else {
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20" fill="none">
+                        <path d="M14.2791 6.94494C15.4156 8.21069 15.6993 10.0666 15.1301 11.6269M12.5358 8.45861C12.83 8.78578 13.0142 9.17685 13.0883 9.58402M2.29203 2.29102L6.22553 6.22451M6.22553 6.22451L10.4166 10.4156L17.7079 17.7069M6.22553 6.22451L5.49474 6.87411H3.54163C2.85127 6.87411 2.29163 7.43375 2.29163 8.12411V11.8741C2.29163 12.5645 2.85127 13.1241 3.54163 13.1241H5.49477L8.33617 15.6498C9.1423 16.3664 10.4166 15.7941 10.4166 14.7155V10.4156M8.07841 4.57751L8.33617 4.34839C9.1423 3.63183 10.4166 4.20409 10.4166 5.28265V6.91016" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    }
+                    <span class="text-sm font-medium">{{ audioOn ? 'Audio' : 'Muted' }}</span>
+                  </div>
+                  <div class="flex items-center">
+                    <div
+                      [class.bg-brand-500]="audioOn"
+                      [class.bg-gray-200]="!audioOn"
+                      [class.dark:bg-gray-700]="!audioOn"
+                      class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200"
+                    >
+                      <span
+                        [class.translate-x-4.5]="audioOn"
+                        [class.translate-x-0.5]="!audioOn"
+                        class="pointer-events-none inline-block h-4 w-4 translate-y-0.5 rounded-full bg-white shadow transition-transform duration-200"
+                      ></span>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            }
+
+            <!-- Aspect Ratio Sub-menu -->
+            @if (mobileActiveMenu === 'aspect-ratio') {
+              <div>
+                <div
+                  class="flex items-center gap-1.5 border-b border-gray-100 px-2 py-2 dark:border-gray-800"
+                >
+                  <button
+                    (click)="setMobileActiveMenu(null)"
+                    class="flex items-center justify-center rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 cursor-pointer"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                    >
+                      <path
+                        d="M10.0833 12.1663L5.91663 7.99967L10.0833 3.83301"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </button>
+                  <span class="text-sm font-medium text-gray-800 dark:text-white">Aspect Ratio</span>
+                </div>
+                <ul class="space-y-0.5 p-1.5">
+                  @for (ratio of ['16:9', '4:3', '1:1', '3:4', '9:16']; track ratio) {
+                    <li>
+                      <button
+                        (click)="selectAspectRatio(ratio); closeMobileSettings()"
+                        [class.bg-gray-100]="selectedAspectRatio === ratio"
+                        [class.dark:bg-gray-700]="selectedAspectRatio === ratio"
+                        [class.text-gray-900]="selectedAspectRatio === ratio"
+                        [class.dark:text-white]="selectedAspectRatio === ratio"
+                        class="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white cursor-pointer"
+                      >
+                        {{ ratio }}
+                      </button>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+
+            <!-- Variants Sub-menu -->
+            @if (mobileActiveMenu === 'variants') {
+              <div>
+                <div
+                  class="flex items-center gap-1.5 border-b border-gray-100 px-2 py-2 dark:border-gray-800"
+                >
+                  <button
+                    (click)="setMobileActiveMenu(null)"
+                    class="flex items-center justify-center rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 cursor-pointer"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                    >
+                      <path
+                        d="M10.0833 12.1663L5.91663 7.99967L10.0833 3.83301"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </button>
+                  <span class="text-sm font-medium text-gray-800 dark:text-white">Variants</span>
+                </div>
+                <ul class="space-y-0.5 p-1.5">
+                  @for (v of ['1', '2', '3', '4']; track v) {
+                    <li>
+                      <button
+                        (click)="selectVariants(v); closeMobileSettings()"
+                        [class.bg-gray-100]="selectedVariants === v"
+                        [class.dark:bg-gray-700]="selectedVariants === v"
+                        [class.text-gray-900]="selectedVariants === v"
+                        [class.dark:text-white]="selectedVariants === v"
+                        class="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white cursor-pointer"
+                      >
+                        {{ v }}
+                      </button>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+
+            <!-- Resolution Sub-menu -->
+            @if (mobileActiveMenu === 'resolution') {
+              <div>
+                <div
+                  class="flex items-center gap-1.5 border-b border-gray-100 px-2 py-2 dark:border-gray-800"
+                >
+                  <button
+                    (click)="setMobileActiveMenu(null)"
+                    class="flex items-center justify-center rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 cursor-pointer"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                    >
+                      <path
+                        d="M10.0833 12.1663L5.91663 7.99967L10.0833 3.83301"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </button>
+                  <span class="text-sm font-medium text-gray-800 dark:text-white">Resolution</span>
+                </div>
+                <ul class="space-y-0.5 p-1.5">
+                  @for (res of ['2K', '4K', '8K', '16K']; track res) {
+                    <li>
+                      <button
+                        (click)="selectResolution(res); closeMobileSettings()"
+                        [class.bg-gray-100]="selectedResolution === res"
+                        [class.dark:bg-gray-700]="selectedResolution === res"
+                        [class.text-gray-900]="selectedResolution === res"
+                        [class.dark:text-white]="selectedResolution === res"
+                        class="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white cursor-pointer"
+                      >
+                        {{ res }}
+                      </button>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+
+            <!-- Duration Sub-menu -->
+            @if (mobileActiveMenu === 'duration') {
+              <div>
+                <div
+                  class="flex items-center gap-1.5 border-b border-gray-100 px-2 py-2 dark:border-gray-800"
+                >
+                  <button
+                    (click)="setMobileActiveMenu(null)"
+                    class="flex items-center justify-center rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 cursor-pointer"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                    >
+                      <path
+                        d="M10.0833 12.1663L5.91663 7.99967L10.0833 3.83301"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </button>
+                  <span class="text-sm font-medium text-gray-800 dark:text-white">Duration</span>
+                </div>
+                <ul class="space-y-0.5 p-1.5">
+                  @for (dur of ['5s', '10s', '15s', '30s']; track dur) {
+                    <li>
+                      <button
+                        (click)="selectDuration(dur); closeMobileSettings()"
+                        [class.bg-gray-100]="selectedDuration === dur"
+                        [class.dark:bg-gray-700]="selectedDuration === dur"
+                        [class.text-gray-900]="selectedDuration === dur"
+                        [class.dark:text-white]="selectedDuration === dur"
+                        class="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white cursor-pointer"
+                      >
+                        {{ dur }}
+                      </button>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Desktop Settings (Hidden on mobile) -->
+      <div class="hidden gap-2 sm:flex">
+        <!-- Aspect Ratio Dropdown -->
+        <div
+          class="relative"
+          [clickOutsideActive]="aspectRatioDropdownOpen"
+          (clickOutside)="closeAspectRatioDropdown()"
+        >
+          <button
+            (click)="toggleAspectRatioDropdown()"
+            data-tooltip="Aspect Ratio"
+            data-tooltip-placement="top"
+            data-tooltip-variant="no-arrow"
+            class="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-2 pr-3 pl-2.5 text-sm text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-gray-300 bg-transparent"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+            >
+              <path
+                d="M15.0001 14.9997L15.0001 4.99967C15.0001 4.0792 14.2539 3.33301 13.3335 3.33301L6.66679 3.33301C5.74631 3.33301 5.00012 4.0792 5.00012 4.99967L5.00012 14.9997C5.00012 15.9201 5.74631 16.6663 6.66679 16.6663L13.3335 16.6663C14.2539 16.6663 15.0001 15.9201 15.0001 14.9997Z"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <span>{{ selectedAspectRatio }}</span>
+          </button>
+          @if (aspectRatioDropdownOpen) {
+            <ul
+              class="shadow-theme-md absolute bottom-full left-0 mb-2 min-w-[106px] space-y-0.5 rounded-xl bg-white p-1.5 dark:bg-gray-900 z-50"
+            >
+              @for (ratio of ['16:9', '4:3', '1:1', '3:4', '9:16']; track ratio) {
+                <li>
+                  <button
+                    (click)="selectAspectRatio(ratio)"
+                    [class.bg-gray-100]="selectedAspectRatio === ratio"
+                    [class.dark:bg-gray-700]="selectedAspectRatio === ratio"
+                    [class.text-gray-900]="selectedAspectRatio === ratio"
+                    [class.dark:text-white]="selectedAspectRatio === ratio"
+                    class="flex w-full items-center gap-2 rounded-lg px-1.5 py-2 text-sm hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white cursor-pointer"
+                  >
+                    {{ ratio }}
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+        <!-- Variant Dropdown -->
+        <div
+          class="relative"
+          [clickOutsideActive]="variantsDropdownOpen"
+          (clickOutside)="closeVariantsDropdown()"
+        >
+          <button
+            (click)="toggleVariantsDropdown()"
+            data-tooltip="Variants"
+            data-tooltip-placement="top"
+            data-tooltip-variant="no-arrow"
+            class="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-2 pr-3 pl-2.5 text-sm text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-gray-300 bg-transparent"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+            >
+              <path
+                d="M4.18733 11.3287L2.61708 11.8916C2.19187 12.044 2.19187 12.6453 2.61708 12.7978L9.51246 15.2695C9.82748 15.3825 10.1719 15.3825 10.487 15.2695L17.3824 12.7978C17.8076 12.6453 17.8076 12.044 17.3824 11.8916L15.8194 11.3313M9.51246 4.72923L2.61708 7.20101C2.19187 7.35343 2.19187 7.95477 2.61708 8.10719L9.51246 10.579C9.82748 10.6919 10.1719 10.6919 10.487 10.579L17.3824 8.1072C17.8076 7.95477 17.8076 7.35343 17.3824 7.20101L10.487 4.72923C10.172 4.6163 9.82748 4.6163 9.51246 4.72923Z"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <span>{{ selectedVariants }}</span>
+          </button>
+          @if (variantsDropdownOpen) {
+            <ul
+              class="shadow-theme-md absolute bottom-full left-0 mb-2 min-w-[74px] space-y-0.5 rounded-xl bg-white p-1.5 dark:bg-gray-900 z-50"
+            >
+              @for (v of ['1', '2', '3', '4']; track v) {
+                <li>
+                  <button
+                    (click)="selectVariants(v)"
+                    [class.bg-gray-100]="selectedVariants === v"
+                    [class.dark:bg-gray-700]="selectedVariants === v"
+                    [class.text-gray-700]="selectedVariants === v"
+                    [class.dark:text-gray-400]="selectedVariants === v"
+                    class="flex w-full items-center gap-2 rounded-lg px-1.5 py-2 text-sm hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white cursor-pointer"
+                  >
+                    {{ v }}
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+        <!-- Resolution Dropdown -->
+        <div
+          class="relative"
+          [clickOutsideActive]="resolutionDropdownOpen"
+          (clickOutside)="closeResolutionDropdown()"
+        >
+          <button
+            (click)="toggleResolutionDropdown()"
+            data-tooltip="Resolution"
+            data-tooltip-placement="top"
+            data-tooltip-variant="no-arrow"
+            class="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-2 pr-3 pl-2.5 text-sm text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-gray-300 bg-transparent"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+            >
+              <path
+                d="M14.0339 3.33301H5.96607C5.50036 3.33301 5.07326 3.59191 4.85784 4.0048L3.09863 7.37662C2.86279 7.82865 2.92512 8.37862 3.25616 8.7664L10 16.6663L16.7439 8.7664C17.0749 8.37862 17.1372 7.82865 16.9014 7.37662L15.1422 4.0048C14.9268 3.59191 14.4997 3.33301 14.0339 3.33301Z"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M7.08334 7.28711L12.9167 7.28711"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
+            </svg>
+            <span>{{ selectedResolution }}</span>
+          </button>
+          @if (resolutionDropdownOpen) {
+            <ul
+              class="shadow-theme-md absolute bottom-full left-0 mb-2 min-w-[86px] space-y-0.5 rounded-xl bg-white p-1.5 dark:bg-gray-900 z-50"
+            >
+              @for (res of ['2K', '4K', '8K', '16K']; track res) {
+                <li>
+                  <button
+                    (click)="selectResolution(res)"
+                    [class.bg-gray-100]="selectedResolution === res"
+                    [class.dark:bg-gray-700]="selectedResolution === res"
+                    [class.text-gray-700]="selectedResolution === res"
+                    [class.dark:text-gray-400]="selectedResolution === res"
+                    class="flex w-full items-center gap-2 rounded-lg px-1.5 py-2 text-sm hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white cursor-pointer"
+                  >
+                    {{ res }}
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+        <!-- Duration Dropdown -->
+        <div
+          class="relative"
+          [clickOutsideActive]="durationDropdownOpen"
+          (clickOutside)="closeDurationDropdown()"
+        >
+          <button
+            (click)="toggleDurationDropdown()"
+            data-tooltip="Duration"
+            data-tooltip-placement="top"
+            data-tooltip-variant="no-arrow"
+            class="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-2 pr-3 pl-2.5 text-sm text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-gray-300 bg-transparent"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+            >
+              <path
+                d="M13.3333 9.99935H9.99996L9.99986 5.41602M17.7083 9.99935C17.7083 14.2565 14.2572 17.7077 9.99996 17.7077C5.74276 17.7077 2.29163 14.2565 2.29163 9.99935C2.29163 5.74215 5.74276 2.29102 9.99996 2.29102C14.2572 2.29102 17.7083 5.74215 17.7083 9.99935Z"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <span>{{ selectedDuration }}</span>
+          </button>
+          @if (durationDropdownOpen) {
+            <ul
+              class="shadow-theme-md absolute bottom-full left-0 mb-2 min-w-[86px] space-y-0.5 rounded-xl bg-white p-1.5 dark:bg-gray-900 z-50"
+            >
+              @for (dur of ['5s', '10s', '15s', '30s']; track dur) {
+                <li>
+                  <button
+                    (click)="selectDuration(dur)"
+                    [class.bg-gray-100]="selectedDuration === dur"
+                    [class.dark:bg-gray-700]="selectedDuration === dur"
+                    [class.text-gray-700]="selectedDuration === dur"
+                    [class.dark:text-gray-400]="selectedDuration === dur"
+                    class="flex w-full items-center gap-2 rounded-lg px-1.5 py-2 text-sm hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white cursor-pointer"
+                  >
+                    {{ dur }}
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+        <!-- Audio -->
+        <button
+          (click)="toggleAudio()"
+          [attr.data-tooltip]="audioOn ? 'Mute Audio' : 'Enable Audio'"
+          data-tooltip-placement="top"
+          data-tooltip-variant="no-arrow"
+          [class.text-gray-700]="audioOn"
+          [class.dark:text-gray-300]="audioOn"
+          [class.text-gray-400]="!audioOn"
+          [class.dark:text-gray-600]="!audioOn"
+          class="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-2 pr-3 pl-2.5 text-sm hover:text-gray-700 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-gray-300 bg-transparent"
+        >
+          @if (audioOn) {
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+            >
+              <path
+                d="M14.2791 6.94598C15.7936 8.63275 15.7936 11.3675 14.2791 13.0543M12.5358 8.45962C13.3224 9.33437 13.3224 10.6659 12.5358 11.5407M8.33617 4.34943L5.49474 6.87515H3.54163C2.85127 6.87515 2.29163 7.4348 2.29163 8.12515V11.8752C2.29163 12.5655 2.85127 13.1252 3.54163 13.1252H5.49477L8.33617 15.6508C9.1423 16.3674 10.4166 15.7951 10.4166 14.7166V5.28369C10.4166 4.20513 9.1423 3.63288 8.33617 4.34943Z"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          } @else {
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+            >
+              <path
+                d="M14.2791 6.94494C15.4156 8.21069 15.6993 10.0666 15.1301 11.6269M12.5358 8.45861C12.83 8.78578 13.0142 9.17685 13.0883 9.58402M2.29203 2.29102L6.22553 6.22451M6.22553 6.22451L10.4166 10.4156L17.7079 17.7069M6.22553 6.22451L5.49474 6.87411H3.54163C2.85127 6.87411 2.29163 7.43375 2.29163 8.12411V11.8741C2.29163 12.5645 2.85127 13.1241 3.54163 13.1241H5.49477L8.33617 15.6498C9.1423 16.3664 10.4166 15.7941 10.4166 14.7155V10.4156M8.07841 4.57751L8.33617 4.34839C9.1423 3.63183 10.4166 4.20409 10.4166 5.28265V6.91016"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          }
+          <span>{{ audioOn ? 'Audio' : 'Muted' }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Projected custom dropdown for rightActions slot -->
+    <div rightActions class="flex items-center gap-2">
+      <!-- Model Dropdown -->
+      <div
+        class="relative"
+        [clickOutsideActive]="modelDropdownOpen"
+        (clickOutside)="closeModelDropdown()"
+      >
+        <button
+          (click)="toggleModelDropdown()"
+          class="flex h-9 items-center gap-1.5 rounded-lg px-2.5 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-900 cursor-pointer bg-transparent"
+        >
+          @if (selectedModel === 'Google Veo 3.1') {
+            <img src="./images/model/google.svg" width="18" height="18" alt="google veo" />
+          }
+          @if (selectedModel === 'Kling 3.0 Pro') {
+            <img src="./images/model/kling.svg" width="18" height="18" alt="kling" />
+          }
+          @if (selectedModel === 'Seedream 5.0') {
+            <img src="./images/model/seedream.svg" width="18" height="18" alt="seedream" />
+          }
+          @if (selectedModel === 'Runway 4.5') {
+            <img src="./images/model/runway.svg" width="18" height="18" alt="runway" />
+          }
+          @if (selectedModel === 'xAI Grok Video') {
+            <img
+              src="./images/model/grok-light.svg"
+              width="18"
+              height="18"
+              class="block dark:hidden"
+              alt="grok"
+            />
+            <img
+              src="./images/model/grok-dark.svg"
+              width="18"
+              height="18"
+              class="hidden dark:block"
+              alt="grok"
+            />
+          }
+          @if (selectedModel === 'Wen 2.6') {
+            <img src="./images/model/qwen.svg" width="18" height="18" alt="wen" />
+          }
+          <span>{{ selectedModel }}</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 18 18"
+            fill="none"
+            [class.rotate-180]="modelDropdownOpen"
+            class="transition-transform duration-150"
+          >
+            <path
+              d="M4.3125 7.21875L9 11.9063L13.6875 7.21875"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+        <!-- Dropdown Menu -->
+        @if (modelDropdownOpen) {
+          <ul
+            class="absolute right-0 bottom-full mb-2 min-w-[220px] space-y-0.5 rounded-xl bg-white p-1.5 shadow-md dark:bg-gray-900 z-50"
+          >
+            @for (m of ['Google Veo 3.1', 'Kling 3.0 Pro', 'Seedream 5.0', 'Runway 4.5', 'xAI Grok Video', 'Wen 2.6']; track m) {
+              <li>
+                <button
+                  (click)="selectModel(m)"
+                  [ngClass]="selectedModel === m ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-white' : 'text-gray-700 dark:text-gray-400'"
+                  class="flex w-full items-center gap-2 rounded-lg px-1.5 py-2 text-sm hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white cursor-pointer"
+                >
+                  @if (m === 'Google Veo 3.1') {
+                    <img src="./images/model/google.svg" width="18" height="18" alt="google" />
+                  }
+                  @if (m === 'Kling 3.0 Pro') {
+                    <img src="./images/model/kling.svg" width="18" height="18" alt="kling" />
+                  }
+                  @if (m === 'Seedream 5.0') {
+                    <img src="./images/model/seedream.svg" width="18" height="18" alt="seedream" />
+                  }
+                  @if (m === 'Runway 4.5') {
+                    <img src="./images/model/runway.svg" width="18" height="18" alt="runway" />
+                  }
+                  @if (m === 'xAI Grok Video') {
+                    <img
+                      src="./images/model/grok-light.svg"
+                      width="18"
+                      height="18"
+                      class="block dark:hidden"
+                      alt="grok light"
+                    />
+                    <img
+                      src="./images/model/grok-dark.svg"
+                      width="18"
+                      height="18"
+                      class="hidden dark:block"
+                      alt="grok dark"
+                    />
+                  }
+                  @if (m === 'Wen 2.6') {
+                    <img src="./images/model/qwen.svg" width="18" height="18" alt="wen" />
+                  }
+                  {{ m }}
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </div>
+  </app-chat-input>
+</div>
+
+<app-share-modal
+  [isOpen]="isShareModalOpen"
+  (close)="closeShareModal()"
+></app-share-modal>

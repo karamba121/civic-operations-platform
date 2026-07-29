@@ -1,0 +1,24 @@
+<app-page-breadcrumb pageTitle="Pagination" />
+<div class="space-y-5 sm:space-y-6">
+  <div>
+    <app-component-card [title]="'Pagination with Text'">
+      <app-pagination-with-text
+        [totalPages]="10"
+        [initialPage]="1"
+        (pageChange)="handlePageChange($event)"
+      />
+    </app-component-card>
+  </div>
+
+  <div>
+    <app-component-card [title]="'Pagination with Text and Icon'">
+      <app-pagination-with-text-and-icon />
+    </app-component-card>
+  </div>
+
+  <div>
+    <app-component-card [title]="'Pagination with Icon'">
+      <app-pagination-with-icon />
+    </app-component-card>
+  </div>
+</div>

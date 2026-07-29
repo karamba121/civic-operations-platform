@@ -1,0 +1,20 @@
+<div class="rounded-lg border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] sm:w-fit">
+  <ul class="flex flex-col">
+    @for (item of items; track $index; let last = $last) {
+    <li
+      [class.last:border-b-0]="last"
+      class="border-b border-gray-200 px-3 py-2.5"
+      [class.last:border-b-0]="last"
+    >
+      <app-radio-sm
+        [id]="item.id"
+        name="example"
+        [value]="item.id"
+        [checked]="selectedValue === item.id"
+        [label]="item.label"
+        (valueChange)="handleChange($event)"
+      />
+    </li>
+    }
+  </ul>
+</div>

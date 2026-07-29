@@ -1,0 +1,27 @@
+<div class="p-6 border border-gray-200 rounded-xl dark:border-gray-800">
+  <div class="border-b border-gray-200 dark:border-gray-800">
+    <nav class="flex space-x-2 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-600">
+      @for (tab of tabData; track $index) {
+      <button
+        class="inline-flex items-center gap-2 border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200"
+        [ngClass]="{
+          'text-brand-500 border-brand-500 dark:text-brand-400 dark:border-brand-400': isActive(tab.id),
+          'text-gray-500 border-transparent hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200': !isActive(tab.id)
+        }" (click)="setActiveTab(tab.id)">
+        <span [innerHTML]="tab.icon | safeHtml"></span>
+        {{ tab.label }}
+      </button>
+      }
+    </nav>
+  </div>
+
+  <div class="pt-4">
+    <div>
+      @for (tab of tabData; track $index) {
+      <p [hidden]="activeTabId !== tab.id" class="text-sm text-gray-500 dark:text-gray-400">
+        {{ tab.content }}
+      </p>
+      }
+    </div>
+  </div>
+</div>

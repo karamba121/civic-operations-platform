@@ -1,0 +1,67 @@
+<app-page-breadcrumb [pageTitle]="'Notifications'"/>
+
+<div class="space-y-5 sm:space-y-6">
+  <!-- Announcement Banner -->
+   <div>
+     <app-component-card [title]="'Announcement Bar'">
+       <app-update-notification
+         [title]="'New update! Available'"
+         [message]="'Enjoy improved functionality and enhancements.'"
+         (laterClick)="handleLater()"
+         (updateClick)="handleUpdate()"
+       />
+     </app-component-card>
+   </div>
+
+  <!-- Toast Banner -->
+   <div>
+     <app-component-card [title]="'Toast Notification'">
+       <app-cookie-consent
+         [message]="'By Clicking on \'Accept\', you agree to the storing of cookies on your device to enhance site navigation, analyze site usage, and assist in our marketing efforts.'"
+         (cookieSettings)="handleCookieSettings()"
+         (denyAll)="handleDenyAll()"
+         (acceptAll)="handleAcceptAll()"
+       />
+     </app-component-card>
+   </div>
+
+  <!-- Success -->
+   <div>
+     <app-component-card [title]="'Success Notification'">
+       <app-notification
+         variant="success"
+         [title]="'Success! Action Completed!'"
+       />
+     </app-component-card>
+   </div>
+
+  <!-- Info -->
+   <div>
+     <app-component-card [title]="'Info Notification'">
+       <app-notification
+         variant="info"
+         [title]="'Heads Up! New Information'"
+       />
+     </app-component-card>
+   </div>
+
+  <!-- Warning -->
+   <div>
+     <app-component-card [title]="'Warning Notification'">
+       <app-notification
+         variant="warning"
+         [title]="'Alert: Double Check Required'"
+       />
+     </app-component-card>
+   </div>
+
+  <!-- Error -->
+   <div>
+     <app-component-card [title]="'Error Notification'">
+       <app-notification
+         variant="error"
+         [title]="'Something Went Wrong'"
+       />
+     </app-component-card>
+   </div>
+</div>

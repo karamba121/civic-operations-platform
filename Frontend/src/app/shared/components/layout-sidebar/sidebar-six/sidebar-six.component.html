@@ -1,0 +1,99 @@
+<aside
+  [class.translate-x-0]="isMobileOpen$ | async"
+  [class.-translate-x-full]="!(isMobileOpen$ | async)"
+  [style.width]="(isExpanded$ | async) ? '92px' : '0'"
+  [style.overflow]="(isExpanded$ | async) ? 'visible' : 'hidden'"
+  [style.border-right-width]="(isExpanded$ | async) ? '1px' : '0'"
+  [style.min-width]="(isExpanded$ | async) ? '92px' : '0'"
+  class="fixed top-16 left-0 z-9999 flex h-screen w-[92px] flex-col items-center border-r border-gray-200 bg-gray-50 pt-7 pb-5 transition-all duration-300 xl:static xl:translate-x-0 dark:border-gray-800 dark:bg-gray-900"
+  [clickOutsideActive]="!!(isMobileOpen$ | async)"
+  (clickOutside)="closeMobileMenu()">
+
+  <!-- Logo -->
+  <a
+    routerLink="/"
+    class="bg-brand-500 mb-8 flex size-8 shrink-0 items-center justify-center rounded-xl xl:mb-16"
+  >
+    <img src="/images/logo/logo-icon.svg" alt="Logo" class="h-8 w-8" />
+  </a>
+
+  <!-- Nav Icons -->
+  <nav class="flex flex-1 flex-col items-center gap-1">
+    @for (item of menuItems; track item.id) {
+    <div class="group relative">
+      <a
+        href="javascript:void(0)"
+        (click)="setActive(item.id)"
+        class="nav-icon-item"
+        [ngClass]="activeNav === item.id ? 'nav-icon-item-active' : 'nav-icon-item-inactive'"
+      >
+        @switch (item.icon) {
+          @case ('dashboard') {
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3.33331 4.58349C3.33331 3.89314 3.89296 3.3335 4.58331 3.3335H7.49998C8.19034 3.3335 8.74998 3.89314 8.74998 4.5835V7.50015C8.74998 8.1905 8.19034 8.75015 7.49998 8.75015H4.58331C3.89296 8.75015 3.33331 8.1905 3.33331 7.50015V4.58349Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M3.33331 12.5002C3.33331 11.8098 3.89296 11.2502 4.58331 11.2502H7.49998C8.19034 11.2502 8.74998 11.8098 8.74998 12.5002V15.4168C8.74998 16.1072 8.19034 16.6668 7.49998 16.6668H4.58331C3.89296 16.6668 3.33331 16.1072 3.33331 15.4168V12.5002Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M11.25 4.58349C11.25 3.89314 11.8096 3.3335 12.5 3.3335H15.4166C16.107 3.3335 16.6666 3.89314 16.6666 4.5835V7.50015C16.6666 8.1905 16.107 8.75015 15.4166 8.75015H12.5C11.8096 8.75015 11.25 8.1905 11.25 7.50015V4.58349Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M11.25 12.5002C11.25 11.8098 11.8096 11.2502 12.5 11.2502H15.4166C16.107 11.2502 16.6666 11.8098 16.6666 12.5002V15.4168C16.6666 16.1072 16.107 16.6668 15.4166 16.6668H12.5C11.8096 16.6668 11.25 15.4168 11.25 15.4168V12.5002Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          }
+          @case ('calendar') {
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6.66665 2.29175V3.75008M13.3333 2.29175V3.75008M3.33331 7.50008H16.6666M4.58331 17.0834H15.4166C16.107 17.0834 16.6666 16.5238 16.6666 15.8334V5.00008C16.6666 4.30973 16.107 3.75008 15.4166 3.75008H4.58331C3.89296 3.75008 3.33331 4.30973 3.33331 5.00008V15.8334C3.33331 16.5238 3.89296 17.0834 4.58331 17.0834Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          }
+          @case ('profile') {
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M14.8122 15.9229V15.7046C14.8122 13.6336 13.1333 11.9546 11.0622 11.9546H8.93719C6.86613 11.9546 5.18719 13.6336 5.18719 15.7046V15.9229M17.7084 10.0001C17.7084 14.2573 14.2572 17.7084 10 17.7084C5.74283 17.7084 2.29169 14.2573 2.29169 10.0001C2.29169 5.74289 5.74283 2.29175 10 2.29175C14.2572 2.29175 17.7084 5.74289 17.7084 10.0001ZM12.3058 7.72328C12.3058 8.99714 11.2731 10.0298 9.99928 10.0298C8.72542 10.0298 7.69275 8.99714 7.69275 7.72328C7.69275 6.44942 8.72542 5.41675 9.99928 5.41675C11.2731 5.41675 12.3058 6.44942 12.3058 7.72328Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          }
+          @case ('analytics') {
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9.37481 2.45995C9.76156 2.23666 10.2381 2.23666 10.6248 2.45995L16.2171 5.68867C16.6039 5.91196 16.8421 6.32462 16.8421 6.7712V13.2287C16.8421 13.6752 16.6039 14.0879 16.2171 14.3112L10.6248 17.5399C10.2381 17.7632 9.76156 17.7632 9.37481 17.5399L3.78253 14.3112C3.39578 14.0879 3.15753 13.6752 3.15753 13.2287V6.7712C3.15753 6.32462 3.39578 5.91196 3.78253 5.68867L9.37481 2.45995Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M12.5701 9.99992C12.5701 11.4197 11.4191 12.5707 9.99923 12.5707C8.5794 12.5707 7.42836 11.4197 7.42836 9.99992C7.42836 8.58008 8.5794 7.42911 9.99923 7.42911C11.4191 7.42911 12.5701 8.58008 12.5701 9.99992Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          }
+          @case ('design') {
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9.86082 1.87573V3.12573M9.86082 3.12573C12.9674 3.12573 15.4858 5.64413 15.4858 8.75073V14.7924H4.23582V8.75073C4.23582 5.64413 6.75422 3.12573 9.86082 3.12573ZM8.61082 17.2918H11.1108M3.19415 14.7924H16.5275" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          }
+          @case ('marketing') {
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M17.7084 5.19498V14.375C17.7084 15.0654 17.1487 15.625 16.4584 15.625H3.54169C2.85133 15.625 2.29169 15.0654 2.29169 14.375V5.19498M3.11329 4.375H16.887C17.3407 4.375 17.7084 4.7427 17.7085 5.19632C17.7085 5.46492 17.5772 5.71657 17.3569 5.8702L10.7153 10.5016C10.2857 10.8011 9.7149 10.8011 9.28531 10.5016L2.64349 5.87004C2.4233 5.7165 2.29204 5.46504 2.29195 5.1966C2.29181 4.74289 2.65957 4.375 3.11329 4.375Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          }
+          @case ('inbox') {
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6.14585 5.62508H13.9584C16.0294 5.62508 17.7084 7.30401 17.7084 9.37508V14.3751C17.7084 15.0654 17.1487 15.6251 16.4584 15.6251H6.14585M6.14585 5.62508C8.27445 5.62508 10 7.35065 10 9.47925V15.6251H3.54169C2.85133 15.6251 2.29169 15.0654 2.29169 14.3751V9.47925C2.29169 7.35065 4.01726 5.62508 6.14585 5.62508ZM11.5495 5.62508V3.12676M11.5495 3.12676L11.5496 2.50405C11.5497 2.15891 11.8295 1.87915 12.1746 1.87915H13.751C14.0956 1.87915 14.3749 2.1585 14.3748 2.50305C14.3748 2.84753 14.0955 3.12676 13.751 3.12676H11.5495Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          }
+          @case ('support') {
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16.6669 14.2097V9.99995C16.6669 6.31804 13.6821 3.33325 10.0002 3.33325C6.31828 3.33325 3.3335 6.31804 3.3335 9.99995V14.2097M16.6667 11.7008V16.4583C16.6667 17.1486 16.107 17.7083 15.4167 17.7083H11.6667M5.41688 15.6249H4.58355C3.89319 15.6249 3.33355 15.0653 3.33355 14.3749V11.4583C3.33355 10.7679 3.89319 10.2083 4.58355 10.2083H5.41688C6.10724 10.2083 6.66688 10.7679 6.66688 11.4583V14.3749C6.66688 15.0653 6.10724 15.6249 5.41688 15.6249ZM14.5835 15.6249H15.4168C16.1072 15.6249 16.6668 15.0653 16.6668 14.3749V11.4583C16.6668 10.7679 16.1072 10.2083 15.4168 10.2083H14.5835C13.8931 10.2083 13.3335 10.7679 13.3335 11.4583V14.3749C13.3335 15.0653 13.8931 15.6249 14.5835 15.6249Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          }
+          @case ('settings') {
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7.50225 2.70543C4.47097 3.74312 2.29169 6.6171 2.29169 10.0001C2.29169 14.2573 5.74283 17.7084 10 17.7084C13.3819 17.7084 16.2552 15.5305 17.2937 12.5007M10 2.29175C14.2572 2.29175 17.7084 5.74289 17.7084 10.0001H10V2.29175Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          }
+          @case ('integrations') {
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7.29167 2.29175L7.29167 5.40251M11.875 5.40251V2.29175M9.58333 15.0294V17.7084M15.4167 5.40251L3.75 5.40251M14.375 5.40251L4.79167 5.40251L4.79167 10.1942C4.79167 12.8405 6.93697 14.9858 9.58333 14.9858C12.2297 14.9858 14.375 12.8405 14.375 10.1942L14.375 5.40251Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          }
+          @case ('components') {
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9.99998 17.5601V9.19077M9.99998 9.19077C9.80857 9.19071 9.61718 9.14673 9.44134 9.05881M9.99998 9.19077C10.1916 9.19082 10.3833 9.14684 10.5593 9.05881M10.5593 9.05881C10.2074 9.23476 9.79324 9.23475 9.44134 9.05881M10.5593 9.05881L16.851 5.9131M9.44134 9.05881L3.14973 5.9131M16.851 5.9131C16.7316 5.72674 16.5628 5.57184 16.3572 5.46905L10.5593 2.57019C10.2074 2.39425 9.79324 2.39425 9.44134 2.57019L3.64345 5.46905C3.43786 5.57184 3.26904 5.72674 3.14973 5.9131M16.851 5.9131C16.9774 6.11061 17.0482 6.34347 17.0482 6.58709V13.4112C17.0482 13.8847 16.7807 14.3175 16.3572 14.5293L10.5593 17.4281C10.2074 17.6041 9.79324 17.6041 9.44134 17.4281L3.64345 14.5293C3.21996 14.3175 2.95245 13.8847 2.95245 13.4112V6.58709C2.95245 6.34347 3.02328 6.11061 3.14973 5.9131" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          }
+        }
+      </a>
+      <span
+        class="pointer-events-none absolute top-1/2 left-full z-999999 ml-3 -translate-y-1/2 rounded-lg bg-gray-800 px-3 py-1.5 text-sm whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
+        >{{ item.label }}</span
+      >
+    </div>
+    }
+  </nav>
+</aside>

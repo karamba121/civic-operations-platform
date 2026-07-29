@@ -1,0 +1,139 @@
+<app-component-card title="Example Form">
+  <form (submit)="handleSubmit($event)">
+    <div class="grid gap-6 sm:grid-cols-2">
+      <div class="col-span-full">
+        <h4 class="pb-4 text-base font-medium text-gray-800 border-b border-gray-200 dark:border-gray-800 dark:text-white/90">
+          Personal Info
+        </h4>
+      </div>
+      <div>
+        <app-label for="firstName">First Name</app-label>
+        <app-input-field
+          type="text"
+          placeholder="Enter first name"
+          id="firstName"
+          [value]="firstName"
+          (valueChange)="firstName = $event.toString()"
+        />
+      </div>
+      <div>
+        <app-label for="lastName">Last Name</app-label>
+        <app-input-field
+          type="text"
+          placeholder="Enter last name"
+          id="lastName"
+          [value]="lastName"
+          (valueChange)="lastName = $event.toString()"
+        />
+      </div>
+      <div class="col-span-2">
+        <app-label for="gender">Gender</app-label>
+         <app-select
+            [options]="optionsGender"
+            placeholder="Select an option"
+            [value]="gender"
+            (valueChange)="handleSelectGender($event)"
+            className="bg-gray-50 dark:bg-gray-800"
+          />
+      </div>
+      <div class="col-span-2">
+        <app-date-picker
+          id="dob-picker"
+          label="Date of Birth"
+          placeholder="Select an option"
+          (dateChange)="handleDateChange($event)"
+        />
+      </div>
+      <div class="col-span-2">
+        <app-label for="category">Category</app-label>
+        <app-select
+          [options]="categoryOptions"
+          placeholder="Select an option"
+          [value]="category"
+          (valueChange)="handleCategoryChange($event)"
+          className="bg-gray-50 dark:bg-gray-800"
+        ></app-select>
+      </div>
+      <div class="col-span-2">
+        <h4 class="pb-4 text-base font-medium text-gray-800 border-b border-gray-200 dark:border-gray-800 dark:text-white/90">
+          Address
+        </h4>
+      </div>
+      <div class="col-span-2">
+        <app-label for="street">Street</app-label>
+        <app-input-field
+          type="text"
+          id="street"
+          [value]="street"
+          (valueChange)="street = $event.toString()"
+        />
+      </div>
+      <div>
+        <app-label for="city">City</app-label>
+        <app-input-field
+          type="text"
+          id="city"
+          [value]="city"
+          (valueChange)="city = $event.toString()"
+        />
+      </div>
+      <div>
+        <app-label for="state">State</app-label>
+        <app-input-field
+          type="text"
+          id="state"
+          [value]="state"
+          (valueChange)="state = $event.toString()"
+        />
+      </div>
+      <div>
+        <app-label for="postCode">Post Code</app-label>
+        <app-input-field
+          type="text"
+          id="postCode"
+          [value]="postCode"
+          (valueChange)="postCode = $event.toString()"
+        />
+      </div>
+      <div>
+        <app-label for="country">Country</app-label>
+        <app-select
+          [options]="countryOptions"
+          placeholder="--Select Country--"
+          [value]="country"
+          (valueChange)="handleCountryChange($event)"
+          className="bg-gray-50 dark:bg-gray-800"
+        ></app-select>
+      </div>
+      <div class="flex items-center gap-3 col-span-full">
+        <app-label className="m-0">Membership:</app-label>
+        <div class="flex flex-wrap items-center gap-4">
+          <app-radio
+            [id]="'Free'"
+            name="roleSelect"
+            [value]="'Free'"
+            label="Free"
+            [checked]="membership === 'Free'"
+            (valueChange)="membership = $event"
+            [disabled]="false"
+          ></app-radio>
+          <app-radio
+            [id]="'Premium'"
+            name="roleSelect"
+            [value]="'Premium'"
+            label="Premium"
+            [checked]="membership === 'Premium'"
+            (valueChange)="membership = $event"
+            [disabled]="false"
+          ></app-radio>
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <app-button size="sm">Save Changes</app-button>
+        <app-button size="sm" variant="outline">
+          Cancel
+        </app-button>
+      </div>
+    </div>
+  </form>
+</app-component-card>

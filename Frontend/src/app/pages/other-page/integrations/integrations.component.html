@@ -1,0 +1,13 @@
+<div>
+  <app-integration-breadcrumb pageTitle="Integrations" />
+  <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+    @for (item of integrationData; track $index) {
+    <app-integration-card
+      [title]="item.title"
+      [icon]="item.icon"
+      [description]="item.description"
+      [connect]="item.connect"
+    />
+    }
+  </div>
+</div>

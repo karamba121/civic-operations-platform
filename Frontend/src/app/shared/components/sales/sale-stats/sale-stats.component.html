@@ -1,0 +1,77 @@
+<div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/3">
+  <div class="mb-5 flex flex-col justify-between gap-5 sm:flex-row">
+    <div>
+      <h2 class="mb-1 text-xl font-semibold text-gray-800 dark:text-white/90">Sales Dashboard</h2>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Track revenue, performance, and sales growth in real-time</p>
+    </div>
+    <div class="flex flex-row-reverse justify-center gap-3 lg:flex-row">
+      <app-date-picker-two
+        id="sale-stats-date"
+        mode="range"
+        placeholder="Select dates"
+        dateFormat="M j"
+      />
+      <button class="shadow-theme-xs inline-flex h-11 items-center gap-2 rounded-lg bg-white px-4 py-3 text-sm font-medium text-gray-700 ring-1 ring-gray-300 transition ring-inset hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03]">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14.6547 5.90384C14.6547 4.48402 13.5037 3.33301 12.0839 3.33301C10.664 3.33301 9.51304 4.48403 9.51302 5.90384M14.6547 5.90384C14.6547 7.32367 13.5037 8.47467 12.0839 8.47467C10.664 8.47467 9.51302 7.32367 9.51302 5.90384M14.6547 5.90384L17.7096 5.90381M9.51302 5.90384L2.29297 5.90381M5.34792 14.0955C5.34792 12.6757 6.49892 11.5247 7.91875 11.5247C9.33858 11.5247 10.4896 12.6757 10.4896 14.0955M5.34792 14.0955C5.34792 15.5153 6.49892 16.6663 7.91875 16.6663C9.33858 16.6663 10.4896 15.5153 10.4896 14.0955M5.34792 14.0955L2.29297 14.0955M10.4896 14.0955L17.7096 14.0955" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        Filter
+      </button>
+      <button class="bg-brand-500 shadow-theme-xs hover:bg-brand-600 inline-flex h-11 items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white transition">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16.6661 13.333V15.4163C16.6661 16.1067 16.1064 16.6663 15.4161 16.6663H4.58203C3.89168 16.6663 3.33203 16.1067 3.33203 15.4163V13.333M10.0004 3.33301L10.0004 13.333M6.14456 7.18684L9.9986 3.33525L13.8529 7.18684" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        Export
+      </button>
+    </div>
+  </div>
+
+  <div class="rounded-2xl bg-gray-100 p-1 dark:bg-white/3">
+    <div class="grid grid-cols-1 gap-1 sm:grid-cols-2 xl:grid-cols-4">
+      @for (stat of stats; track stat.title) {
+        <div class="rounded-xl bg-white p-5 dark:bg-gray-900">
+          <div class="mb-5 flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-semibold text-gray-700 dark:text-gray-400">{{ stat.title }}</h3>
+              <div class="mt-1.5 flex gap-1.5">
+                <p class="text-success-600 flex items-center gap-1 text-sm font-medium">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7.9974 2.66602L7.9974 13.3336M4 6.66334L7.99987 2.66602L12 6.66334" stroke="#039855" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  {{ stat.change }}
+                </p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">vs last month</p>
+              </div>
+            </div>
+            <div>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path [attr.d]="stat.iconPath" [attr.stroke]="stat.iconColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                @if (stat.iconPath2) {
+                  <path [attr.d]="stat.iconPath2" [attr.stroke]="stat.iconColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                }
+              </svg>
+            </div>
+          </div>
+          <div class="flex items-end justify-between">
+            <h2 class="w-1/2 text-3xl font-semibold text-gray-800 dark:text-white/90">{{ stat.value }}</h2>
+            <div class="w-1/2 overflow-hidden">
+              <apx-chart
+                [series]="stat.chartOptions.series"
+                [chart]="stat.chartOptions.chart"
+                [colors]="stat.chartOptions.colors"
+                [fill]="stat.chartOptions.fill"
+                [stroke]="stat.chartOptions.stroke"
+                [grid]="stat.chartOptions.grid"
+                [dataLabels]="stat.chartOptions.dataLabels"
+                [legend]="stat.chartOptions.legend"
+                [tooltip]="stat.chartOptions.tooltip"
+                [xaxis]="stat.chartOptions.xaxis"
+                [yaxis]="stat.chartOptions.yaxis"
+              />
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

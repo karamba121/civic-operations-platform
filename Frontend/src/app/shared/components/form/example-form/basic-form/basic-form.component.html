@@ -1,0 +1,43 @@
+<app-component-card title="Basic Form">
+  <form (submit)="handleSubmit($event)">
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+      <div>
+        <app-input-field
+          type="text"
+          placeholder="Name"
+          [value]="name"
+          (valueChange)="name = $event.toString()"
+        />
+      </div>
+      <div>
+        <app-input-field
+          type="text"
+          placeholder="Email address"
+          [value]="email"
+          (valueChange)="email = $event.toString()"
+        />
+      </div>
+      <div class="col-span-full">
+        <app-input-field
+          type="password"
+          placeholder="Password"
+          [value]="password"
+          (valueChange)="password = $event.toString()"
+        />
+      </div>
+      <div class="col-span-full">
+        <app-input-field
+          type="password"
+          placeholder="Confirm Password"
+          [value]="confirmPassword"
+          (valueChange)="confirmPassword = $event.toString()"
+        />
+      </div>
+      <div class="col-span-full">
+        <app-button className="w-full" size="sm">
+          Submit
+        </app-button>
+      </div>
+    </div>
+  </form>
+</app-component-card>

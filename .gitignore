@@ -1,0 +1,38 @@
+# .NET
+**/bin/
+**/obj/
+**/.vs/
+*.user
+*.suo
+
+# Angular / Node.js
+**/node_modules/
+**/dist/
+**/.angular/
+npm-debug.log*
+
+# IDEs
+.idea/
+.vscode/
+*.code-workspace
+
+# Local configuration and secrets
+**/appsettings.Local.json
+**/appsettings.*.local.json
+.env
+.env.*
+!.env.example
+secrets/
+
+# Test and coverage output
+TestResults/
+coverage/
+*.trx
+
+# Operating systems
+.DS_Store
+Thumbs.db
+
+# Containers and local data
+.docker-data/
+volumes/

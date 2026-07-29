@@ -1,0 +1,12 @@
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 xl:grid-cols-4">
+  @for (stock of stockData; track $index) {
+  <app-stock-card
+    [imgUrl]="stock.imgUrl"
+    [symbol]="stock.symbol"
+    [companyName]="stock.companyName"
+    [price]="stock.price"
+    [change]="stock.change"
+    [changeDirection]="stock.changeDirection"
+  ></app-stock-card>
+  }
+</div>

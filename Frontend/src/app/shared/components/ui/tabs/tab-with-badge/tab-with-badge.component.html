@@ -1,0 +1,43 @@
+<div class="p-6 border border-gray-200 rounded-xl dark:border-gray-800">
+  <div class="border-b border-gray-200 dark:border-gray-800">
+    <nav class="-mb-px flex space-x-2 overflow-x-auto 
+      [&::-webkit-scrollbar-thumb]:rounded-full 
+      [&::-webkit-scrollbar-thumb]:bg-gray-200 
+      dark:[&::-webkit-scrollbar-thumb]:bg-gray-600 
+      dark:[&::-webkit-scrollbar-track]:bg-transparent 
+      [&::-webkit-scrollbar]:h-1.5">
+      @for (tab of tabData; track $index) {
+      <button
+        (click)="setActiveTab(tab.id)"
+        class="inline-flex items-center gap-2 border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
+        [ngClass]="{
+          'text-brand-500 dark:border-brand-400 border-brand-500 dark:text-brand-400': activeTab === tab.id,
+          'bg-transparent text-gray-500 border-transparent hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200': activeTab !== tab.id
+        }"
+      >
+        {{ tab.label }}
+        @if (tab.count !== undefined) {
+          <span
+            class="inline-block items-center justify-center rounded-full bg-brand-50 px-2 py-0.5 text-center text-xs font-medium text-brand-500 dark:bg-brand-500/15 dark:text-brand-400"
+          >
+            {{ tab.count }}
+          </span>
+        }
+      </button>
+      }
+    </nav>
+  </div>
+
+  <div class="pt-4 dark:border-gray-800">
+    @for (tab of tabData; track $index) {
+    <div [hidden]="activeTab !== tab.id">
+      <h3 class="mb-1 text-xl font-medium text-gray-800 dark:text-white/90">
+        {{ tab.label }}
+      </h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        {{ tab.content }}
+      </p>
+    </div>
+    }
+  </div>
+</div>

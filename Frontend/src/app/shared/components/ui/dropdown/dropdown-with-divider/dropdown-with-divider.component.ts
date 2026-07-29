@@ -1,0 +1,27 @@
+import { Component } from '@angular/core';
+import { DropdownItemComponent } from '../dropdown-item/dropdown-item.component';
+import { DropdownComponent } from './../dropdown.component';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-dropdown-with-divider',
+  imports: [
+    CommonModule,
+    DropdownComponent,
+    DropdownItemComponent,
+  ],
+  templateUrl: './dropdown-with-divider.component.html',
+  styles: ``
+})
+export class DropdownWithDividerComponent {
+
+  isOpen = false;
+
+  toggleDropdown(): void {
+    this.isOpen = !this.isOpen;
+  }
+
+  closeDropdown(): void {
+    this.isOpen = false;
+  }
+}

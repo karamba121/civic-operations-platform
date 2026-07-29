@@ -1,0 +1,17 @@
+<div class="rounded-lg border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] sm:w-fit">
+  <ul class="flex flex-col">
+    @for (item of items; track $index; let i = $index) {
+    <li
+      class="border-b border-gray-200 px-3 py-2.5 last:border-b-0 dark:border-gray-800">
+      <div class="flex items-center gap-2">
+        <app-checkbox [id]="'listCheckbox' + i" [checked]="checkedItems[i]"
+          (checkedChange)="handleCheckboxChange(i, $event)" />
+        <label [attr.for]="'listCheckbox' + i"
+          class="flex items-center text-sm text-gray-500 cursor-pointer select-none dark:text-gray-400">
+          {{ item }}
+        </label>
+      </div>
+    </li>
+    }
+  </ul>
+</div>

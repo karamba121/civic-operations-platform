@@ -1,0 +1,13 @@
+:host ::ng-deep .highlight-series-0 .apexcharts-series:not([data\:realIndex="0"]) {
+  opacity: 0.2;
+  transition: opacity 0.2s ease;
+}
+
+:host ::ng-deep .highlight-series-1 .apexcharts-series:not([data\:realIndex="1"]) {
+  opacity: 0.2;
+  transition: opacity 0.2s ease;
+}
+
+:host ::ng-deep .apexcharts-series {
+  transition: opacity 0.2s ease;
+}

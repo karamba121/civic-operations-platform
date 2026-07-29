@@ -1,0 +1,21 @@
+
+<div class="grid grid-cols-1 border-t border-gray-200 divide-x divide-gray-200 dark:divide-white/[0.05] mt-7 dark:border-white/[0.05] sm:mt-0 sm:grid-cols-2 xl:grid-cols-3">
+  <app-board-column
+    title="To Do"
+    [tasks]="todoTasks"
+    status="todo"
+    (taskDropped)="handleTaskDrop($event)"
+  />
+  <app-board-column
+    title="In Progress"
+    [tasks]="inProgressTasks"
+    status="inProgress"
+    (taskDropped)="handleTaskDrop($event)"
+  />
+  <app-board-column
+    title="Completed"
+    [tasks]="completedTasks"
+    status="completed"
+    (taskDropped)="handleTaskDrop($event)"
+  />
+</div>

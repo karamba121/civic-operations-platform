@@ -1,0 +1,38 @@
+# ADR-003: Outbox para publicação confiável
+
+- **Status:** aceito
+- **Data:** 2026-07-29
+
+## Contexto
+
+Uma alteração no PostgreSQL e a publicação de uma mensagem no RabbitMQ não
+participam da mesma transação distribuída. Publicar antes do commit pode anunciar
+uma alteração que falhou; publicar depois pode perder a mensagem se o processo
+for interrompido.
+
+## Decisão
+
+Persistir eventos de integração em uma tabela Outbox na mesma transação da
+alteração de negócio. Um processador em background selecionará registros
+pendentes, publicará no RabbitMQ e registrará o resultado.
+
+O contrato assume entrega `at-least-once`. Consumidores usarão um identificador
+estável da mensagem para impedir efeitos duplicados.
+
+Falhas transitórias terão retry com backoff. Mensagens que excederem o limite de
+tentativas serão movidas para estado de falha e expostas operacionalmente.
+
+## Consequências
+
+- nenhuma alteração confirmada perde silenciosamente seu evento;
+- consumidores precisam ser idempotentes;
+- a entrega é posterior ao commit e possui atraso mensurável;
+- a tabela exige retenção, índices e monitoramento;
+- sucesso de publicação não significa conclusão do efeito no consumidor.
+
+## Evidências exigidas
+
+- teste que interrompe a publicação e demonstra reprocessamento;
+- teste de entrega duplicada sem duplicação do efeito;
+- métricas para idade, quantidade, tentativas e falhas da Outbox;
+- correlação do trace entre requisição, publicação e consumo.

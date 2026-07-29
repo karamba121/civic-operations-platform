@@ -1,0 +1,12 @@
+:host ::ng-deep .apexcharts-legend-marker {
+  width: 10px !important;
+  height: 10px !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+}
+
+:host ::ng-deep .apexcharts-legend-marker svg {
+  width: 10px !important;
+  height: 10px !important;
+  border-radius: 50% !important;
+}

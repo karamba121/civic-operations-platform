@@ -1,0 +1,335 @@
+@if (activeTab === 'general') {
+  <div class="mx-auto py-8.5 xl:max-w-[650px] animate-fade-in">
+    <h2
+      class="mb-6 border-b border-gray-200 pb-4 text-2xl font-semibold text-gray-900 dark:border-gray-800 dark:text-white/90"
+    >
+      General
+    </h2>
+    <div class="space-y-6">
+      <!-- PREFERENCE -->
+      <div class="space-y-4">
+        <h3
+          class="mb-2 text-xs font-medium text-gray-500 uppercase dark:text-gray-400"
+        >
+          Preference
+        </h3>
+        <div
+          class="rounded-2xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-white/3"
+        >
+          <!-- Theme -->
+          <div
+            class="flex flex-col justify-between gap-4 border-b border-gray-100 px-5 py-4 sm:flex-row sm:items-center dark:border-gray-800"
+          >
+            <div>
+              <p class="text-sm font-medium text-gray-800 dark:text-white/90">
+                Theme
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                Select your default theme
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <!-- Light -->
+              <button
+                (click)="setTheme('light')"
+                [class]="theme === 'light' ? 'bg-gray-100 dark:border-gray-700 border-gray-200 dark:bg-gray-800 ' : 'border-gray-100 hover:bg-gray-50 dark:hover:bg-white/5 dark:border-gray-800'"
+                class="flex flex-col items-center gap-1.5 rounded-lg border px-8 py-2.5 text-xs font-medium text-gray-800 transition dark:text-gray-300 cursor-pointer"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                >
+                  <path
+                    d="M9.99996 2.29102V3.54102M15.4508 4.55013L14.5669 5.43401M17.7083 9.99935H16.4583M15.4508 15.4486L14.5669 14.5647M9.99996 16.4577V17.7077M5.4329 14.5697L4.54902 15.4535M3.54163 9.99935H2.29163M5.4329 5.42904L4.54902 4.54515M6.04163 9.99935C6.04163 12.1855 7.81383 13.9577 9.99996 13.9577C12.1861 13.9577 13.9583 12.1855 13.9583 9.99935C13.9583 7.81322 12.1861 6.04102 9.99996 6.04102C7.81383 6.04102 6.04163 7.81322 6.04163 9.99935Z"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                Light
+              </button>
+              <!-- Dark -->
+              <button
+                (click)="setTheme('dark')"
+                [class]="theme === 'dark' ? 'bg-gray-100  border-gray-200 dark:bg-gray-800 dark:border-gray-700' : 'border-gray-100 hover:bg-gray-50 dark:hover:bg-white/5 dark:border-gray-800'"
+                class="flex flex-col items-center gap-1.5 rounded-lg border px-8 py-2.5 text-xs font-medium text-gray-800 transition dark:text-gray-300 cursor-pointer"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                >
+                  <path
+                    d="M6.2467 6.66825C6.2467 10.351 9.2322 13.3365 12.915 13.3365C14.6685 13.3365 16.264 12.6597 17.4543 11.553C16.5839 14.856 13.5764 17.2916 9.99996 17.2916C5.74276 17.2916 2.29163 13.8405 2.29163 9.58329C2.29163 6.00689 4.72724 2.99935 8.03024 2.12891C6.92355 3.31927 6.2467 4.91471 6.2467 6.66825Z"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                Dark
+              </button>
+              <!-- Auto -->
+              <button
+                (click)="setTheme('auto')"
+                [class]="theme === 'auto' ? 'bg-gray-100  border-gray-200 dark:bg-gray-800 dark:border-gray-700' : 'border-gray-100 hover:bg-gray-50 dark:hover:bg-white/5 dark:border-gray-800'"
+                class="flex flex-col items-center gap-1.5 rounded-lg border px-8 py-2.5 text-xs font-medium text-gray-800 transition dark:text-gray-300 cursor-pointer"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                >
+                  <circle
+                    cx="9.99998"
+                    cy="9.99913"
+                    r="8.34678"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  />
+                  <mask id="path-2-inside-1_6899_62617" fill="white">
+                    <path
+                      d="M9.99999 16.0506C9.99999 16.6028 10.45 17.0578 10.9967 16.9798C12.4982 16.7654 13.9005 16.0705 14.9856 14.9855C16.3078 13.6632 17.0507 11.8698 17.0507 9.99989C17.0507 8.12993 16.3078 6.33657 14.9856 5.01431C13.9005 3.92926 12.4982 3.23439 10.9967 3.01999C10.45 2.94193 9.99999 3.39693 9.99999 3.94922L9.99999 9.99989V16.0506Z"
+                    />
+                  </mask>
+                  <path
+                    d="M9.99999 16.0506C9.99999 16.6028 10.45 17.0578 10.9967 16.9798C12.4982 16.7654 13.9005 16.0705 14.9856 14.9855C16.3078 13.6632 17.0507 11.8698 17.0507 9.99989C17.0507 8.12993 16.3078 6.33657 14.9856 5.01431C13.9005 3.92926 12.4982 3.23439 10.9967 3.01999C10.45 2.94193 9.99999 3.39693 9.99999 3.94922L9.99999 9.99989V16.0506Z"
+                    stroke="currentColor"
+                    stroke-width="3"
+                    mask="url(#path-2-inside-1_6899_62617)"
+                  />
+                </svg>
+                Auto
+              </button>
+            </div>
+          </div>
+
+          <!-- Language -->
+          <div
+            class="flex flex-col justify-between gap-4 border-b border-gray-100 px-5 py-4 sm:flex-row sm:items-center dark:border-gray-800"
+          >
+            <p class="text-sm font-medium text-gray-800 dark:text-white/90">
+              Language
+            </p>
+            <div
+              class="relative"
+              (clickOutside)="langOpen = false"
+              [clickOutsideActive]="langOpen"
+            >
+              <button
+                (click)="langOpen = !langOpen"
+                class="flex items-center justify-between gap-2 rounded-lg border border-gray-300 bg-white py-2 pr-3 pl-3.5 text-sm text-gray-700 shadow-xs hover:bg-gray-50 sm:w-auto sm:min-w-25 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 cursor-pointer"
+              >
+                <span>{{ language }}</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                >
+                  <path
+                    d="M4.79163 8.02148L9.99996 13.2298L15.2083 8.02148"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+              @if (langOpen) {
+                <div
+                  class="absolute top-full left-0 z-50 mt-1 w-24 space-y-px rounded-xl bg-white p-1.5 shadow-lg sm:right-0 sm:left-auto dark:bg-gray-800 animate-fade-in"
+                >
+                  @for (lang of ['English', 'Español', 'Français', 'Deutsch', '日本語']; track lang) {
+                    <button
+                      (click)="setLanguage(lang)"
+                      [class]="language === lang ? 'bg-gray-100 dark:bg-white/10' : 'hover:bg-gray-50 dark:hover:bg-white/5'"
+                      class="flex w-full items-center rounded-lg px-1.5 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
+                    >
+                      {{ lang }}
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Time -->
+          <div
+            class="flex flex-col justify-between gap-4 px-5 py-4 sm:flex-row sm:items-center"
+          >
+            <p class="text-sm font-medium text-gray-800 dark:text-white/90">
+              Time
+            </p>
+            <div
+              class="relative"
+              (clickOutside)="timeOpen = false"
+              [clickOutsideActive]="timeOpen"
+            >
+              <button
+                (click)="timeOpen = !timeOpen"
+                class="flex items-center justify-between gap-2 rounded-lg border border-gray-300 bg-white py-2 pr-3 pl-3.5 text-sm text-gray-700 shadow-xs hover:bg-gray-50 sm:w-auto sm:min-w-25 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 cursor-pointer"
+              >
+                <span>{{ time }}</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                >
+                  <path
+                    d="M4.79163 8.02148L9.99996 13.2298L15.2083 8.02148"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+              @if (timeOpen) {
+                <div
+                  class="absolute top-full left-0 z-50 mt-1 w-48 space-y-px rounded-xl bg-white p-1.5 shadow-lg sm:right-0 sm:left-auto dark:bg-gray-800 animate-fade-in"
+                >
+                  @for (tz of ['UTC', 'Pacific (PST)', 'Eastern (EST)', 'Central Europe (CET)']; track tz) {
+                    <button
+                      (click)="setTimezone(tz)"
+                      [class]="time === tz ? 'bg-gray-100 dark:bg-white/10' : 'hover:bg-gray-50 dark:hover:bg-white/5'"
+                      class="flex w-full items-center rounded-lg px-1.5 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
+                    >
+                      {{ tz }}
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NOTIFICATION -->
+      <div class="space-y-4">
+        <h3
+          class="mb-2 text-xs font-medium text-gray-500 uppercase dark:text-gray-400"
+        >
+          Notification
+        </h3>
+        <div
+          class="rounded-2xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-white/3"
+        >
+          <!-- Activity & updates -->
+          <div
+            class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-800"
+          >
+            <div>
+              <p class="text-sm font-medium text-gray-800 dark:text-white/90">
+                Activity &amp; updates
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                Stay informed about activity and team mentions
+              </p>
+            </div>
+            <div>
+              <label
+                class="flex cursor-pointer items-center gap-3 text-sm font-medium text-gray-700 select-none dark:text-gray-400"
+              >
+                <div class="relative">
+                  <input
+                    type="checkbox"
+                    class="sr-only"
+                    [(ngModel)]="activityUpdates"
+                  />
+                  <div
+                    [class]="activityUpdates ? 'bg-brand-500 dark:bg-brand-500' : 'bg-gray-200 dark:bg-white/10'"
+                    class="block h-5 w-9 rounded-full duration-200"
+                  ></div>
+                  <div
+                    [class]="activityUpdates ? 'translate-x-full' : 'translate-x-0'"
+                    class="shadow-theme-sm absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition duration-200 ease-linear"
+                  ></div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Responses -->
+          <div
+            class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-800"
+          >
+            <div>
+              <p class="text-sm font-medium text-gray-800 dark:text-white/90">
+                Responses
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                Get notified when AI responds to requests
+              </p>
+            </div>
+            <div>
+              <label
+                class="flex cursor-pointer items-center gap-3 text-sm font-medium text-gray-700 select-none dark:text-gray-400"
+              >
+                <div class="relative">
+                  <input
+                    type="checkbox"
+                    class="sr-only"
+                    [(ngModel)]="responses"
+                  />
+                  <div
+                    [class]="responses ? 'bg-brand-500 dark:bg-brand-500' : 'bg-gray-200 dark:bg-white/10'"
+                    class="block h-5 w-9 rounded-full duration-200"
+                  ></div>
+                  <div
+                    [class]="responses ? 'translate-x-full' : 'translate-x-0'"
+                    class="shadow-theme-sm absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white duration-200 ease-linear"
+                  ></div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Product updates -->
+          <div class="flex items-center justify-between px-5 py-4">
+            <div>
+              <p class="text-sm font-medium text-gray-800 dark:text-white/90">
+                Product updates
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                Recent updates at a glance.
+              </p>
+            </div>
+            <div>
+              <label
+                class="flex cursor-pointer items-center gap-3 text-sm font-medium text-gray-700 select-none dark:text-gray-400"
+              >
+                <div class="relative">
+                  <input
+                    type="checkbox"
+                    class="sr-only"
+                    [(ngModel)]="productUpdates"
+                  />
+                  <div
+                    [class]="productUpdates ? 'bg-brand-500 dark:bg-brand-500' : 'bg-gray-200 dark:bg-white/10'"
+                    class="block h-5 w-9 rounded-full duration-200"
+                  ></div>
+                  <div
+                    [class]="productUpdates ? 'translate-x-full' : 'translate-x-0'"
+                    class="shadow-theme-sm absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white duration-200 ease-linear"
+                  ></div>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

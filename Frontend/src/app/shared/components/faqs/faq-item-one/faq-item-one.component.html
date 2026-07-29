@@ -1,0 +1,23 @@
+<div class="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+  <!-- Accordion Header -->
+  <div (click)="toggleAccordion()"
+       class="flex cursor-pointer items-center justify-between py-3 pl-6 pr-3"
+       [ngClass]="isOpen ? 'bg-gray-50 dark:bg-white/[0.03]' : ''">
+    <h4 class="text-lg font-medium text-gray-800 dark:text-white/90">
+      {{ title }}
+    </h4>
+    <button class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 duration-200 transition-transform ease-linear"
+            [ngClass]="isOpen ? 'text-gray-800 dark:text-white/90 rotate-180' : 'text-gray-500 dark:text-gray-400'">
+            <svg width="1em" height="1em" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" class="size-5"><path d="M4.79175 7.396L10.0001 12.6043L15.2084 7.396" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+    </button>
+  </div>
+
+  <!-- Accordion Content -->
+  @if (isOpen) {
+  <div class="px-6 py-7">
+    <p class="text-base text-gray-500 dark:text-gray-400">
+      {{ content }}
+    </p>
+  </div>
+  }
+</div>

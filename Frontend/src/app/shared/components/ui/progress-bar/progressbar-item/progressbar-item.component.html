@@ -1,0 +1,25 @@
+<div class="flex items-center" [ngClass]="className">
+  <div [ngClass]="[baseClasses, sizeClass]">
+    <div
+      [ngClass]="
+        progressClasses +
+        (label === 'inside' ? ' flex items-center justify-center' : '')
+      "
+      [ngStyle]="{ width: progress + '%' }"
+    >
+      @if (label === 'inside') {
+      <span
+        class="absolute inset-0 flex items-center justify-center text-white font-medium text-[10px] leading-tight"
+      >
+        {{ progress }}%
+      </span>
+      }
+    </div>
+  </div>
+  @if (label === 'outside') {
+    <span class="ml-3 text-sm font-medium text-gray-700 dark:text-gray-400">
+      {{ progress }}%
+    </span>
+  }
+</div>
+
