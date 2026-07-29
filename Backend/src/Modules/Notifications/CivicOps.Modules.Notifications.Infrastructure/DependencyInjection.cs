@@ -6,6 +6,7 @@ using CivicOps.Modules.Notifications.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace CivicOps.Modules.Notifications.Infrastructure;
 
@@ -28,8 +29,9 @@ public static class DependencyInjection
         services.AddScoped<IProcessedMessageStore, PostgresProcessedMessageStore>();
         services.AddScoped<INotificationsUnitOfWork, NotificationsUnitOfWork>();
         services.AddScoped<INotificationReadService, EfNotificationReadService>();
-        services.AddScoped<ProcessRequestAssignedHandler>();
+        services.AddScoped<IRequestAssignedNotificationProcessor, ProcessRequestAssignedHandler>();
         services.AddScoped<ListNotificationsHandler>();
+        services.TryAddSingleton(TimeProvider.System);
         services.AddSingleton(serviceProvider =>
             CreateConsumerOptions(
                 serviceProvider.GetRequiredService<IConfiguration>()));
@@ -58,7 +60,17 @@ public static class DependencyInjection
         configuration.GetSection("NotificationsConsumer").Bind(options);
 
         if (string.IsNullOrWhiteSpace(options.QueueName) ||
-            options.PrefetchCount == 0)
+            options.PrefetchCount == 0 ||
+            string.IsNullOrWhiteSpace(options.RetryExchangeName) ||
+            options.RetryDelays.Length is < 1 or > 10 ||
+            options.RetryDelays.Any(
+                delay => delay <= TimeSpan.Zero ||
+                    delay.TotalMilliseconds > int.MaxValue) ||
+            options.RetryDelays
+                .Zip(options.RetryDelays.Skip(1))
+                .Any(pair => pair.Second <= pair.First) ||
+            string.IsNullOrWhiteSpace(options.DeadLetterExchangeName) ||
+            string.IsNullOrWhiteSpace(options.DeadLetterQueueName))
         {
             throw new InvalidOperationException(
                 "A configuração NotificationsConsumer é inválida.");

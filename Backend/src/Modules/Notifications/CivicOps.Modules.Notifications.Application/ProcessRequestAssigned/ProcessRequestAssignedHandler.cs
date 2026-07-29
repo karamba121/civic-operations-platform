@@ -7,9 +7,9 @@ public sealed class ProcessRequestAssignedHandler(
     IProcessedMessageStore processedMessageStore,
     INotificationRepository notificationRepository,
     INotificationsUnitOfWork unitOfWork,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider) : IRequestAssignedNotificationProcessor
 {
-    public Task<ProcessNotificationResult> HandleAsync(
+    public Task<ProcessNotificationResult> ProcessAsync(
         ProcessRequestAssignedCommand command,
         CancellationToken cancellationToken)
     {

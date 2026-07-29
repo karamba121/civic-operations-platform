@@ -92,8 +92,7 @@ idempotente, no-op e comandos que sofrem rollback não criam registros
 duplicados. Um `BackgroundService` reivindica lotes com lease e
 `FOR UPDATE SKIP LOCKED`, publica mensagens persistentes no exchange topic
 `civicops.events` e só registra `processed_at_utc` depois da confirmação do
-broker. O contrato é `at-least-once`; retry exponencial e dead letter pertencem
-às próximas fatias.
+broker. O contrato é `at-least-once`.
 
 O módulo `Notifications` mantém schema, domínio e migrations próprios dentro do
 mesmo processo. O consumidor da fila
@@ -102,6 +101,17 @@ mesmo processo. O consumidor da fila
 `MessageId` em `notifications.processed_messages` na mesma transação do efeito.
 Uma entrega repetida recebe `ack` sem criar outra notificação; mensagens só
 recebem `ack` depois do commit no PostgreSQL.
+
+Falhas transitórias passam por filas duráveis de retry com atrasos crescentes
+configurados em `NotificationsConsumer:RetryDelays` (5 segundos, 30 segundos e
+2 minutos por padrão). Cada republicação usa publisher confirm e a entrega
+original só recebe `ack` depois da confirmação do broker. Ao expirar o atraso,
+a mensagem retorna diretamente para a fila original, sem republicar o evento
+para outros módulos. Ao esgotar as tentativas, a mensagem segue para
+`civicops.notifications.request-assigned.dead-letter`. Payloads inválidos vão
+diretamente para essa DLQ, sem retry. Os headers `x-civicops-retry-count`,
+`x-civicops-last-error`, `x-civicops-failed-at` e
+`x-civicops-dead-letter-reason` preservam o contexto operacional.
 
 ## Testes
 
@@ -127,7 +137,11 @@ Os testes de integração usam tenants aleatórios e verificam no PostgreSQL rea
 - publicação real no RabbitMQ com mensagem persistente, publisher confirm e
   marcação posterior da Outbox;
 - criação de notificação de atribuição e reprocessamento do mesmo `MessageId`
-  sem duplicar o efeito.
+  sem duplicar o efeito;
+- retry real no RabbitMQ com backoff, publisher confirm e encaminhamento para
+  DLQ após esgotar as tentativas;
+- encaminhamento direto de mensagens inválidas para DLQ, sem executar o
+  processador de aplicação.
 
 ## Migration
 

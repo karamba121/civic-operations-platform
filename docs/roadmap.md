@@ -30,7 +30,7 @@ contra PostgreSQL real cobrindo isolamento entre tenants e conflito concorrente.
 
 - [x] publicar eventos da Outbox no RabbitMQ;
 - [x] processar notificações de maneira idempotente;
-- aplicar retry, backoff e dead letter;
+- [x] aplicar retry, backoff e dead letter;
 - propagar contexto de observabilidade.
 
 **Evidência:** cenários automatizados de indisponibilidade, repetição de mensagem

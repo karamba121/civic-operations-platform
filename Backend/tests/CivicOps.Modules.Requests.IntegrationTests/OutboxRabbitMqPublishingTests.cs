@@ -20,6 +20,8 @@ public sealed class OutboxRabbitMqPublishingTests
     public async Task Publisher_ShouldConfirmMessageAndMarkOutboxAsProcessed()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
+        var exchangeName =
+            $"civicops.tests.outbox.{Guid.NewGuid():N}";
         var rabbitFactory = new ConnectionFactory
         {
             HostName = "localhost",
@@ -32,7 +34,7 @@ public sealed class OutboxRabbitMqPublishingTests
         await using var channel = await connection.CreateChannelAsync(
             cancellationToken: cancellationToken);
         await channel.ExchangeDeclareAsync(
-            "civicops.events",
+            exchangeName,
             ExchangeType.Topic,
             durable: true,
             autoDelete: false,
@@ -47,12 +49,12 @@ public sealed class OutboxRabbitMqPublishingTests
             cancellationToken: cancellationToken);
         await channel.QueueBindAsync(
             queue.QueueName,
-            "civicops.events",
+            exchangeName,
             "requests.#",
             arguments: null,
             cancellationToken: cancellationToken);
 
-        await using var factory = CreateFactory();
+        await using var factory = CreateFactory(exchangeName);
         var configuration =
             factory.Services.GetRequiredService<IConfiguration>();
         Assert.Equal("true", configuration["OutboxPublisher:Enabled"]);
@@ -95,9 +97,15 @@ public sealed class OutboxRabbitMqPublishingTests
             cancellationToken);
 
         Assert.True(processed);
+
+        await channel.ExchangeDeleteAsync(
+            exchangeName,
+            ifUnused: false,
+            cancellationToken: cancellationToken);
     }
 
-    private static WebApplicationFactory<Program> CreateFactory()
+    private static WebApplicationFactory<Program> CreateFactory(
+        string exchangeName)
     {
         return new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
@@ -111,6 +119,7 @@ public sealed class OutboxRabbitMqPublishingTests
                             {
                                 ["Database:ApplyMigrations"] = "true",
                                 ["OutboxPublisher:Enabled"] = "true",
+                                ["RabbitMq:ExchangeName"] = exchangeName,
                                 ["OutboxPublisher:BatchSize"] = "500",
                                 ["OutboxPublisher:PollingInterval"] = "00:00:00.100",
                                 ["OutboxPublisher:FailureDelay"] = "00:00:00.100"
