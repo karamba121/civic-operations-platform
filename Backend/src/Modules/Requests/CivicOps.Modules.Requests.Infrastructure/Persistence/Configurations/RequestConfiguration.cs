@@ -21,6 +21,9 @@ internal sealed class RequestConfiguration : IEntityTypeConfiguration<Request>
             .HasColumnName("tenant_id")
             .IsRequired();
 
+        builder.Property(request => request.CreatedByUserId)
+            .HasColumnName("created_by_user_id");
+
         builder.Property(request => request.ProtocolNumber)
             .HasConversion(
                 protocolNumber => protocolNumber.Value,

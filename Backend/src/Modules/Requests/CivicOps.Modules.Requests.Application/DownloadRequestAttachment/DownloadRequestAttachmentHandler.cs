@@ -3,6 +3,7 @@ using CivicOps.Modules.Requests.Application.Abstractions;
 namespace CivicOps.Modules.Requests.Application.DownloadRequestAttachment;
 
 public sealed class DownloadRequestAttachmentHandler(
+    IRequestRepository requestRepository,
     IRequestAttachmentReadService readService,
     IAttachmentContentStore contentStore)
 {
@@ -10,6 +11,20 @@ public sealed class DownloadRequestAttachmentHandler(
         DownloadRequestAttachmentQuery query,
         CancellationToken cancellationToken)
     {
+        var request = await requestRepository.GetAsync(
+            query.TenantId,
+            query.RequestId,
+            cancellationToken);
+
+        if (request is null)
+        {
+            return null;
+        }
+
+        RequestAttachmentAuthorization.EnsureCanAccess(
+            request,
+            query.UserId);
+
         var attachment = await readService.GetAsync(
             query.TenantId,
             query.RequestId,

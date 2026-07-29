@@ -39,7 +39,7 @@ e recuperação sem perda ou duplicação do efeito.
 ## 4. Documentos e segurança
 
 - [x] armazenar metadados e conteúdo fora do banco;
-- validar tamanho, tipo e autorização;
+- [x] validar tamanho, tipo e autorização;
 - implementar papéis e permissões por tenant;
 - auditar leitura e alteração de dados sensíveis.
 

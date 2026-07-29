@@ -14,6 +14,7 @@ internal sealed class FileSystemAttachmentContentStore(
 
     public async Task<StoredAttachmentContent> SaveAsync(
         string storageKey,
+        ValidatedAttachmentType attachmentType,
         Stream content,
         CancellationToken cancellationToken)
     {
@@ -29,6 +30,8 @@ internal sealed class FileSystemAttachmentContentStore(
         var temporaryPath =
             $"{destinationPath}.upload-{Guid.NewGuid():N}";
         var buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
+        var contentPrefix = new byte[8];
+        var contentPrefixLength = 0;
 
         try
         {
@@ -66,6 +69,16 @@ internal sealed class FileSystemAttachmentContentStore(
                             options.MaximumSizeBytes);
                     }
 
+                    if (contentPrefixLength < contentPrefix.Length)
+                    {
+                        var bytesToCopy = Math.Min(
+                            read,
+                            contentPrefix.Length - contentPrefixLength);
+                        buffer.AsSpan(0, bytesToCopy).CopyTo(
+                            contentPrefix.AsSpan(contentPrefixLength));
+                        contentPrefixLength += bytesToCopy;
+                    }
+
                     hash.AppendData(buffer, 0, read);
                     await destination.WriteAsync(
                         buffer.AsMemory(0, read),
@@ -73,6 +86,14 @@ internal sealed class FileSystemAttachmentContentStore(
                 }
 
                 await destination.FlushAsync(cancellationToken);
+            }
+
+            if (!AttachmentFilePolicy.HasValidSignature(
+                    attachmentType.Type,
+                    contentPrefix.AsSpan(0, contentPrefixLength)))
+            {
+                throw new AttachmentContentTypeNotAllowedException(
+                    "A assinatura do conteúdo não corresponde ao tipo de arquivo informado.");
             }
 
             File.Move(

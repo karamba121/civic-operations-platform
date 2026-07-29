@@ -11,6 +11,7 @@ public sealed class Request : AggregateRoot<Guid>
     private Request(
         Guid id,
         Guid tenantId,
+        Guid createdByUserId,
         ProtocolNumber protocolNumber,
         string title,
         string description,
@@ -18,6 +19,7 @@ public sealed class Request : AggregateRoot<Guid>
         : base(id)
     {
         TenantId = tenantId;
+        CreatedByUserId = createdByUserId;
         ProtocolNumber = protocolNumber;
         Title = title;
         Description = description;
@@ -35,6 +37,8 @@ public sealed class Request : AggregateRoot<Guid>
     }
 
     public Guid TenantId { get; private set; }
+
+    public Guid? CreatedByUserId { get; private set; }
 
     public ProtocolNumber ProtocolNumber { get; private set; }
 
@@ -82,6 +86,7 @@ public sealed class Request : AggregateRoot<Guid>
         var request = new Request(
             Guid.CreateVersion7(),
             tenantId,
+            actorUserId,
             protocolNumber,
             title,
             description,
@@ -99,6 +104,12 @@ public sealed class Request : AggregateRoot<Guid>
                 request.Version));
 
         return request;
+    }
+
+    public bool CanAccessAttachments(Guid userId)
+    {
+        return userId != Guid.Empty &&
+            (CreatedByUserId == userId || ResponsibleUserId == userId);
     }
 
     public void AssignResponsible(

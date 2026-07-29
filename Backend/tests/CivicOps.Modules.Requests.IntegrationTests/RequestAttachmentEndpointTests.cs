@@ -34,15 +34,15 @@ public sealed class RequestAttachmentEndpointTests
                 tenantId,
                 userId,
                 cancellationToken);
-            var content = "attachment evidence"u8.ToArray();
+            var content = "%PDF-1.7\nattachment evidence"u8.ToArray();
 
             using var uploadResponse = await UploadAsync(
                 client,
                 tenantId,
                 userId,
                 request.Id,
-                @"..\evidence.txt",
-                "text/plain",
+                @"..\evidence.pdf",
+                "application/pdf",
                 content,
                 cancellationToken);
 
@@ -53,8 +53,8 @@ public sealed class RequestAttachmentEndpointTests
                 .ReadFromJsonAsync<RequestAttachmentResponse>(
                     cancellationToken);
             Assert.NotNull(attachment);
-            Assert.Equal("evidence.txt", attachment.FileName);
-            Assert.Equal("text/plain", attachment.ContentType);
+            Assert.Equal("evidence.pdf", attachment.FileName);
+            Assert.Equal("application/pdf", attachment.ContentType);
             Assert.Equal(content.LongLength, attachment.SizeBytes);
             Assert.Equal(
                 Convert.ToHexString(SHA256.HashData(content))
@@ -121,6 +121,7 @@ public sealed class RequestAttachmentEndpointTests
                 HttpMethod.Get,
                 $"/api/v1/requests/{request.Id}/attachments",
                 tenantId,
+                userId,
                 cancellationToken);
             listResponse.EnsureSuccessStatusCode();
             var listed = await listResponse.Content
@@ -135,6 +136,7 @@ public sealed class RequestAttachmentEndpointTests
                 $"/api/v1/requests/{request.Id}/attachments/" +
                 $"{attachment.Id}/content",
                 tenantId,
+                userId,
                 cancellationToken);
             downloadResponse.EnsureSuccessStatusCode();
             Assert.Equal(
@@ -142,7 +144,7 @@ public sealed class RequestAttachmentEndpointTests
                 await downloadResponse.Content
                     .ReadAsByteArrayAsync(cancellationToken));
             Assert.Equal(
-                "text/plain",
+                "application/pdf",
                 downloadResponse.Content.Headers.ContentType?.MediaType);
 
             using var isolatedList = await SendForTenantAsync(
@@ -150,10 +152,117 @@ public sealed class RequestAttachmentEndpointTests
                 HttpMethod.Get,
                 $"/api/v1/requests/{request.Id}/attachments",
                 Guid.NewGuid(),
+                userId,
                 cancellationToken);
             Assert.Equal(
                 HttpStatusCode.NotFound,
                 isolatedList.StatusCode);
+
+            using var forbiddenList = await SendForTenantAsync(
+                client,
+                HttpMethod.Get,
+                $"/api/v1/requests/{request.Id}/attachments",
+                tenantId,
+                Guid.NewGuid(),
+                cancellationToken);
+            Assert.Equal(
+                HttpStatusCode.Forbidden,
+                forbiddenList.StatusCode);
+
+            using var forbiddenDownload = await SendForTenantAsync(
+                client,
+                HttpMethod.Get,
+                $"/api/v1/requests/{request.Id}/attachments/" +
+                $"{attachment.Id}/content",
+                tenantId,
+                Guid.NewGuid(),
+                cancellationToken);
+            Assert.Equal(
+                HttpStatusCode.Forbidden,
+                forbiddenDownload.StatusCode);
+        }
+        finally
+        {
+            await factory.DisposeAsync();
+            DeleteStorageRoot(storageRoot);
+        }
+    }
+
+    [Fact]
+    public async Task Upload_ShouldRejectUnauthorizedUnsupportedSpoofedAndOversizedFiles()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var storageRoot = CreateStorageRoot();
+        var factory = CreateFactory(storageRoot, maximumSizeBytes: 16);
+
+        try
+        {
+            using var client = factory.CreateClient();
+            var tenantId = Guid.NewGuid();
+            var creatorUserId = Guid.NewGuid();
+            var request = await CreateRequestAsync(
+                client,
+                tenantId,
+                creatorUserId,
+                cancellationToken);
+
+            using var unauthorized = await UploadAsync(
+                client,
+                tenantId,
+                Guid.NewGuid(),
+                request.Id,
+                "evidence.pdf",
+                "application/pdf",
+                "%PDF-1.7"u8.ToArray(),
+                cancellationToken);
+            Assert.Equal(HttpStatusCode.Forbidden, unauthorized.StatusCode);
+
+            using var unsupported = await UploadAsync(
+                client,
+                tenantId,
+                creatorUserId,
+                request.Id,
+                "evidence.exe",
+                "application/pdf",
+                "%PDF-1.7"u8.ToArray(),
+                cancellationToken);
+            Assert.Equal(
+                HttpStatusCode.UnsupportedMediaType,
+                unsupported.StatusCode);
+
+            using var spoofed = await UploadAsync(
+                client,
+                tenantId,
+                creatorUserId,
+                request.Id,
+                "evidence.pdf",
+                "application/pdf",
+                "not a pdf"u8.ToArray(),
+                cancellationToken);
+            Assert.Equal(
+                HttpStatusCode.UnsupportedMediaType,
+                spoofed.StatusCode);
+
+            using var oversized = await UploadAsync(
+                client,
+                tenantId,
+                creatorUserId,
+                request.Id,
+                "evidence.pdf",
+                "application/pdf",
+                "%PDF-1.7 content larger than limit"u8.ToArray(),
+                cancellationToken);
+            Assert.Equal(
+                HttpStatusCode.RequestEntityTooLarge,
+                oversized.StatusCode);
+
+            Assert.Empty(
+                Directory.Exists(storageRoot)
+                    ? Directory.EnumerateFiles(
+                        storageRoot,
+                        "*",
+                        SearchOption.AllDirectories)
+                    : Array.Empty<string>());
         }
         finally
         {
@@ -163,7 +272,8 @@ public sealed class RequestAttachmentEndpointTests
     }
 
     private static WebApplicationFactory<Program> CreateFactory(
-        string storageRoot)
+        string storageRoot,
+        long maximumSizeBytes = 1_048_576)
     {
         return new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
@@ -177,10 +287,13 @@ public sealed class RequestAttachmentEndpointTests
                             {
                                 ["Database:ApplyMigrations"] = "true",
                                 ["OutboxPublisher:Enabled"] = "false",
-                                ["NotificationsConsumer:Enabled"] = "false",
-                                ["AttachmentStorage:RootPath"] = storageRoot,
+                                ["NotificationsConsumer:Enabled"] =
+                                "false",
+                                ["AttachmentStorage:RootPath"] =
+                                storageRoot,
                                 ["AttachmentStorage:MaximumSizeBytes"] =
-                                    "1048576"
+                                maximumSizeBytes.ToString(
+                                    System.Globalization.CultureInfo.InvariantCulture)
                             });
                     });
             });
@@ -244,10 +357,12 @@ public sealed class RequestAttachmentEndpointTests
         HttpMethod method,
         string path,
         Guid tenantId,
+        Guid userId,
         CancellationToken cancellationToken)
     {
         using var request = new HttpRequestMessage(method, path);
         request.Headers.Add("X-Tenant-Id", tenantId.ToString());
+        request.Headers.Add("X-User-Id", userId.ToString());
         return await client.SendAsync(request, cancellationToken);
     }
 

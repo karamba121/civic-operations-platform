@@ -4,6 +4,7 @@ public interface IAttachmentContentStore
 {
     Task<StoredAttachmentContent> SaveAsync(
         string storageKey,
+        ValidatedAttachmentType attachmentType,
         Stream content,
         CancellationToken cancellationToken);
 

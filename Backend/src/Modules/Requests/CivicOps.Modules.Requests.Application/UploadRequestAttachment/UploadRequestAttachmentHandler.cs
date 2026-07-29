@@ -25,15 +25,21 @@ public sealed class UploadRequestAttachmentHandler(
             return null;
         }
 
+        RequestAttachmentAuthorization.EnsureCanAccess(
+            request,
+            command.UploadedByUserId);
+
         var fileName = NormalizeFileName(command.FileName);
-        var contentType = string.IsNullOrWhiteSpace(command.ContentType)
-            ? "application/octet-stream"
-            : command.ContentType.Trim();
+        var attachmentType = AttachmentFilePolicy.ValidateDeclaredType(
+            fileName,
+            command.ContentType ?? string.Empty);
+        var contentType = attachmentType.ContentType;
         var attachmentId = Guid.CreateVersion7();
         var storageKey =
             $"{command.TenantId:N}/{command.RequestId:N}/{attachmentId:N}";
         var storedContent = await contentStore.SaveAsync(
             storageKey,
+            attachmentType,
             command.Content,
             cancellationToken);
 

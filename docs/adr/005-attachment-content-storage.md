@@ -41,8 +41,9 @@ gravados metadados, auditoria e Outbox.
   um objeto órfão;
 - será necessário um reconciliador periódico para remover objetos sem
   metadados quando o adapter evoluir para produção;
-- autorização, allowlist de tipos, inspeção de conteúdo e antimalware serão
-  tratados na próxima decisão de segurança.
+- autorização, allowlist de tipos e inspeção da assinatura são definidas no
+  [ADR-006](006-attachment-security-baseline.md); antimalware permanece como
+  evolução posterior.
 
 ## Evidências exigidas
 

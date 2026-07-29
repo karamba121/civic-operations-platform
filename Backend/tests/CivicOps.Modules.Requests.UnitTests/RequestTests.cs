@@ -34,6 +34,7 @@ public sealed class RequestTests
 
         Assert.NotEqual(Guid.Empty, request.Id);
         Assert.Equal(TenantId, request.TenantId);
+        Assert.Equal(ActorUserId, request.CreatedByUserId);
         Assert.Equal("2026-000042", request.ProtocolNumber.Value);
         Assert.Equal("Iluminação pública", request.Title);
         Assert.Equal("Poste sem iluminação.", request.Description);

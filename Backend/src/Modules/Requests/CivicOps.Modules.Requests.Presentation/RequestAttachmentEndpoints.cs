@@ -70,9 +70,11 @@ public static class RequestAttachmentEndpoints
             .Produces<RequestAttachmentResponse>(
                 StatusCodes.Status201Created)
             .Produces(StatusCodes.Status404NotFound)
-            .ProducesProblem(StatusCodes.Status400BadRequest)
-            .ProducesProblem(
-                StatusCodes.Status413PayloadTooLarge)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status403Forbidden)
+        .ProducesProblem(StatusCodes.Status415UnsupportedMediaType)
+        .ProducesProblem(
+            StatusCodes.Status413PayloadTooLarge)
             .ProducesProblem(
                 StatusCodes.Status422UnprocessableEntity);
 
@@ -89,10 +91,16 @@ public static class RequestAttachmentEndpoints
                     return InvalidTenantProblem();
                 }
 
+                if (!TryGetUserId(httpContext, out var userId))
+                {
+                    return InvalidUserProblem();
+                }
+
                 var result = await handler.HandleAsync(
                     new ListRequestAttachmentsQuery(
                         tenantId,
-                        requestId),
+                        requestId,
+                        userId),
                     cancellationToken);
 
                 if (result is null)
@@ -113,8 +121,9 @@ public static class RequestAttachmentEndpoints
             .WithName("ListRequestAttachments")
             .Produces<IReadOnlyCollection<RequestAttachmentResponse>>(
                 StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound)
-            .ProducesProblem(StatusCodes.Status400BadRequest);
+        .Produces(StatusCodes.Status404NotFound)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status403Forbidden);
 
         group.MapGet(
             "/{attachmentId:guid}/content",
@@ -130,11 +139,17 @@ public static class RequestAttachmentEndpoints
                     return InvalidTenantProblem();
                 }
 
+                if (!TryGetUserId(httpContext, out var userId))
+                {
+                    return InvalidUserProblem();
+                }
+
                 var result = await handler.HandleAsync(
                     new DownloadRequestAttachmentQuery(
                         tenantId,
                         requestId,
-                        attachmentId),
+                        attachmentId,
+                        userId),
                     cancellationToken);
 
                 return result is null
@@ -147,9 +162,10 @@ public static class RequestAttachmentEndpoints
             })
             .WithName("DownloadRequestAttachment")
             .Produces(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound)
-            .ProducesProblem(StatusCodes.Status400BadRequest)
-            .ProducesProblem(
+        .Produces(StatusCodes.Status404NotFound)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status403Forbidden)
+        .ProducesProblem(
                 StatusCodes.Status503ServiceUnavailable);
 
         return endpoints;

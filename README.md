@@ -107,6 +107,7 @@ partem de eventos gravados na Outbox.
 - [ADR-003: Outbox para publicação confiável](docs/adr/003-transactional-outbox.md)
 - [ADR-004: contexto de observabilidade através da Outbox](docs/adr/004-observability-context-through-outbox.md)
 - [ADR-005: conteúdo de anexos fora do banco relacional](docs/adr/005-attachment-content-storage.md)
+- [ADR-006: segurança básica de anexos](docs/adr/006-attachment-security-baseline.md)
 - [Roadmap orientado a evidências](docs/roadmap.md)
 
 ## Execução local

@@ -108,8 +108,8 @@ X-User-Id: {{userId}}
 Content-Type: multipart/form-data; boundary=CivicOpsBoundary
 
 --CivicOpsBoundary
-Content-Disposition: form-data; name="file"; filename="evidence.txt"
-Content-Type: text/plain
+Content-Disposition: form-data; name="file"; filename="evidence.pdf"
+Content-Type: application/pdf
 
 Conteúdo de exemplo do anexo.
 --CivicOpsBoundary--
@@ -117,7 +117,9 @@ Conteúdo de exemplo do anexo.
 ### Listar anexos
 GET {{host}}/api/v1/requests/{{requestId}}/attachments
 X-Tenant-Id: {{tenantId}}
+X-User-Id: {{userId}}
 
 ### Baixar anexo
 GET {{host}}/api/v1/requests/{{requestId}}/attachments/{{attachmentId}}/content
 X-Tenant-Id: {{tenantId}}
+X-User-Id: {{userId}}

@@ -53,6 +53,8 @@ builder.Services.AddExceptionHandler<RequestQueryValidationExceptionHandler>();
 builder.Services.AddExceptionHandler<RequestConcurrencyExceptionHandler>();
 builder.Services.AddExceptionHandler<NotificationQueryValidationExceptionHandler>();
 builder.Services.AddExceptionHandler<AttachmentContentTooLargeExceptionHandler>();
+builder.Services.AddExceptionHandler<AttachmentContentTypeNotAllowedExceptionHandler>();
+builder.Services.AddExceptionHandler<AttachmentAccessDeniedExceptionHandler>();
 builder.Services.AddExceptionHandler<AttachmentContentUnavailableExceptionHandler>();
 builder.Services.AddNotificationsModule(builder.Configuration);
 builder.Services.AddRequestsModule(builder.Configuration);
@@ -282,6 +284,67 @@ internal sealed class AttachmentContentUnavailableExceptionHandler(
                     Status = StatusCodes.Status503ServiceUnavailable,
                     Title = "Conteúdo temporariamente indisponível",
                     Detail = unavailable.Message
+                },
+                Exception = exception
+            });
+    }
+}
+
+internal sealed class AttachmentContentTypeNotAllowedExceptionHandler(
+    IProblemDetailsService problemDetailsService) : IExceptionHandler
+{
+    public async ValueTask<bool> TryHandleAsync(
+        HttpContext httpContext,
+        Exception exception,
+        CancellationToken cancellationToken)
+    {
+        if (exception is not AttachmentContentTypeNotAllowedException notAllowed)
+        {
+            return false;
+        }
+
+        httpContext.Response.StatusCode =
+            StatusCodes.Status415UnsupportedMediaType;
+
+        return await problemDetailsService.TryWriteAsync(
+            new ProblemDetailsContext
+            {
+                HttpContext = httpContext,
+                ProblemDetails = new ProblemDetails
+                {
+                    Status = StatusCodes.Status415UnsupportedMediaType,
+                    Title = "Tipo de anexo não permitido",
+                    Detail = notAllowed.Message
+                },
+                Exception = exception
+            });
+    }
+}
+
+internal sealed class AttachmentAccessDeniedExceptionHandler(
+    IProblemDetailsService problemDetailsService) : IExceptionHandler
+{
+    public async ValueTask<bool> TryHandleAsync(
+        HttpContext httpContext,
+        Exception exception,
+        CancellationToken cancellationToken)
+    {
+        if (exception is not AttachmentAccessDeniedException denied)
+        {
+            return false;
+        }
+
+        httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
+
+        return await problemDetailsService.TryWriteAsync(
+            new ProblemDetailsContext
+            {
+                HttpContext = httpContext,
+                ProblemDetails = new ProblemDetails
+                {
+                    Status = StatusCodes.Status403Forbidden,
+                    Title = "Acesso ao anexo negado",
+                    Detail = denied.Message
                 },
                 Exception = exception
             });

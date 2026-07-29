@@ -1,4 +1,5 @@
 using CivicOps.BuildingBlocks.Domain;
+using CivicOps.Modules.Requests.Application;
 using CivicOps.Modules.Requests.Domain.Requests;
 using CivicOps.Modules.Requests.Domain.Requests.Events;
 using Xunit;
@@ -104,5 +105,79 @@ public sealed class RequestAttachmentTests
         Assert.Equal(attachment.Id, domainEvent.AttachmentId);
         Assert.Equal(attachment.Sha256, domainEvent.Sha256);
         Assert.Equal(request.Id, domainEvent.RequestId);
+    }
+
+    [Theory]
+    [InlineData("document.pdf", "application/pdf", "application/pdf")]
+    [InlineData("image.png", "image/png", "image/png")]
+    [InlineData("photo.jpg", "image/jpeg", "image/jpeg")]
+    [InlineData("photo.jpeg", "image/jpeg", "image/jpeg")]
+    public void FilePolicy_ShouldAcceptMatchingExtensionAndContentType(
+        string fileName,
+        string contentType,
+        string expectedContentType)
+    {
+        var validated = AttachmentFilePolicy.ValidateDeclaredType(
+            fileName,
+            contentType);
+
+        Assert.Equal(expectedContentType, validated.ContentType);
+    }
+
+    [Fact]
+    public void FilePolicy_ShouldRejectMismatchedExtensionAndContentType()
+    {
+        var action = () =>
+        {
+            AttachmentFilePolicy.ValidateDeclaredType(
+                "document.pdf",
+                "image/png");
+        };
+
+        Assert.Throws<AttachmentContentTypeNotAllowedException>(action);
+    }
+
+    [Fact]
+    public void FilePolicy_ShouldValidateRealContentSignatures()
+    {
+        Assert.True(AttachmentFilePolicy.HasValidSignature(
+            SupportedAttachmentType.Pdf,
+            "%PDF-1.7"u8));
+        Assert.True(AttachmentFilePolicy.HasValidSignature(
+            SupportedAttachmentType.Png,
+            new byte[]
+            {
+                0x89, 0x50, 0x4E, 0x47,
+                0x0D, 0x0A, 0x1A, 0x0A
+            }));
+        Assert.True(AttachmentFilePolicy.HasValidSignature(
+            SupportedAttachmentType.Jpeg,
+            new byte[] { 0xFF, 0xD8, 0xFF, 0xE0 }));
+        Assert.False(AttachmentFilePolicy.HasValidSignature(
+            SupportedAttachmentType.Pdf,
+            "not a pdf"u8));
+    }
+
+    [Fact]
+    public void Request_ShouldAuthorizeCreatorAndAssignedResponsible()
+    {
+        var request = Request.Create(
+            TenantId,
+            UserId,
+            ProtocolNumber.Create(2026, 1),
+            "Solicitação",
+            "Descrição",
+            DateTimeOffset.UtcNow);
+        var responsibleUserId = Guid.NewGuid();
+
+        request.AssignResponsible(
+            responsibleUserId,
+            request.Version,
+            UserId,
+            DateTimeOffset.UtcNow);
+
+        Assert.True(request.CanAccessAttachments(UserId));
+        Assert.True(request.CanAccessAttachments(responsibleUserId));
+        Assert.False(request.CanAccessAttachments(Guid.NewGuid()));
     }
 }

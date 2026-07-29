@@ -36,7 +36,9 @@ migrations são aplicadas na inicialização. O painel local do RabbitMQ fica em
 Uma requisição de exemplo está em [CivicOps.Api.http](CivicOps.Api.http). O
 cabeçalho `X-Tenant-Id` é provisório e será substituído pelo tenant obtido da
 identidade autenticada. Escritas também exigem `X-User-Id`, usado como autor da
-operação na auditoria e igualmente provisório até o módulo de identidade.
+operação na auditoria e igualmente provisório até o módulo de identidade. As
+operações de anexos exigem ambos os cabeçalhos também nas leituras para aplicar
+a autorização do autor ou responsável.
 
 O endpoint `POST /api/v1/requests` também exige `Idempotency-Key`. Repetir a
 mesma chave, tenant e conteúdo retorna a solicitação originalmente criada sem
@@ -151,6 +153,11 @@ O nome informado pelo cliente nunca participa da chave física. A implementaçã
 filesystem mantém o desenvolvimento local autocontido; a porta permite
 substituir o adapter por S3/MinIO sem alterar o domínio.
 
+São permitidos PDF, PNG e JPEG. Extensão, `Content-Type` e assinatura real do
+arquivo precisam corresponder. Autor e responsável da solicitação podem enviar,
+listar e baixar anexos; outro usuário do mesmo tenant recebe `403`. O tamanho é
+conferido durante o streaming, sem confiar no valor declarado no multipart.
+
 ## Testes
 
 Com PostgreSQL e RabbitMQ do Compose em execução:
@@ -183,7 +190,9 @@ Os testes de integração usam tenants aleatórios e verificam no PostgreSQL rea
 - preservação do mesmo `traceId` entre HTTP, Outbox, publicação confirmada,
   retries e DLQ;
 - upload multipart, metadados no PostgreSQL, conteúdo no filesystem, SHA-256,
-  download, auditoria, Outbox e isolamento por tenant.
+  download, auditoria, Outbox e isolamento por tenant;
+- autorização negativa de anexos, allowlist de formatos, assinatura real,
+  limite durante streaming e limpeza de arquivos rejeitados.
 
 ## Migration
 
