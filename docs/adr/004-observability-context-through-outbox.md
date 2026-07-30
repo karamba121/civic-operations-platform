@@ -51,3 +51,11 @@ republicar o evento no exchange compartilhado.
 - teste que valide o mesmo `traceId` após retries e encaminhamento para DLQ;
 - ausência de republicação dos retries no exchange público de eventos;
 - configuração OTLP opcional e aplicação executável sem collector.
+
+**Rastreabilidade:** a propagação HTTP-Outbox-RabbitMQ está coberta por
+[OutboxRabbitMqPublishingTests](../../Backend/tests/CivicOps.Modules.Requests.IntegrationTests/OutboxRabbitMqPublishingTests.cs);
+retries e DLQ por
+[NotificationIdempotencyTests](../../Backend/tests/CivicOps.Modules.Notifications.IntegrationTests/NotificationIdempotencyTests.cs);
+e a configuração executável por
+[compose.yaml](../../compose.yaml) e
+[prometheus.yaml](../../observability/prometheus.yaml).

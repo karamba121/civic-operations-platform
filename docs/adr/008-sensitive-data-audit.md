@@ -2,6 +2,7 @@
 
 - **Status:** aceito
 - **Data:** 2026-07-29
+- **Política operacional:** [retenção de Outbox e auditorias](../operations/data-retention.md)
 
 ## Contexto
 
@@ -33,6 +34,11 @@ Cada módulo registra sua própria auditoria no schema sob sua autoridade:
   transação PostgreSQL;
 - auditorias de leitura não geram mensagens na Outbox.
 
+Os registros seguem a política de retenção operacional, com prazo padrão de
+cinco anos, suporte a retenção legal e expiração em lotes auditáveis. A rotina
+de expiração não faz parte desta ADR e permanece como trabalho operacional
+pendente.
+
 As ações iniciais são:
 
 - `AttachmentMetadataListed`;
@@ -59,3 +65,10 @@ As ações iniciais são:
 - concessões de papel bem-sucedidas e listagem de membros são auditadas;
 - operações rejeitadas não deixam registros de alteração;
 - payloads de auditoria não contêm conteúdo ou nome de arquivo.
+
+**Rastreabilidade:** auditoria de anexos e suas respostas negativas estão
+cobertas por
+[RequestAttachmentEndpointTests](../../Backend/tests/CivicOps.Modules.Requests.IntegrationTests/RequestAttachmentEndpointTests.cs);
+auditoria de mutações e isolamento por tenant por
+[AuditAndOutboxEndpointTests](../../Backend/tests/CivicOps.Modules.Requests.IntegrationTests/AuditAndOutboxEndpointTests.cs).
+A automação de retenção permanece pendente no [roadmap](../roadmap.md).

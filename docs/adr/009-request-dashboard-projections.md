@@ -2,6 +2,8 @@
 
 - **Status:** aceito
 - **Data:** 2026-07-29
+- **Complementada por:** [ADR-010](010-request-dashboard-indexes.md) e
+  [ADR-011](011-request-dashboard-cache.md)
 
 ## Contexto
 
@@ -36,8 +38,9 @@ roadmap, com planos de execução e medições reproduzíveis.
 
 ## Consequências
 
-- o dashboard exige duas consultas pequenas: uma agregação e uma projeção dos
-  cinco itens recentes;
+- a decisão original exige duas consultas pequenas; a especialização definida
+  na [ADR-010](010-request-dashboard-indexes.md) evolui a implementação para
+  três consultas;
 - a resposta permanece consistente com o estado confirmado no PostgreSQL;
 - não existe atraso de sincronização nem novo processador assíncrono;
 - o custo das agregações cresce com o volume do tenant e deverá ser medido;
@@ -50,3 +53,11 @@ roadmap, com planos de execução e medições reproduzíveis.
 - ordenação determinística dos itens recentes;
 - resposta vazia com todos os totais zerados;
 - consulta sem carregamento de descrição ou agregado completo.
+
+**Rastreabilidade:** projeção, isolamento, resposta vazia, índices e cache
+estão cobertos por
+[RequestDashboardEndpointTests](../../Backend/tests/CivicOps.Modules.Requests.IntegrationTests/RequestDashboardEndpointTests.cs).
+As medições estão registradas nos relatórios de
+[carga](../performance/2026-07-29-request-dashboard-load-test.md),
+[índices](../performance/2026-07-29-request-dashboard-indexes.md) e
+[cache](../performance/2026-07-29-request-dashboard-cache.md).

@@ -18,19 +18,24 @@ lista de projetos recentes; ambas apontam para os mesmos projetos.
 Na raiz do repositório:
 
 ```powershell
-docker compose up -d --wait
+docker compose up -d --build --wait
 ```
 
-Em `Backend/`:
+A API estará em `http://localhost:5080` e o frontend em
+`http://localhost:4200`. As migrations são aplicadas pela API durante a
+inicialização da composição.
+
+Para executar a API diretamente com hot reload, suba somente as dependências:
 
 ```powershell
+docker compose up -d --wait postgres rabbitmq redis
+cd Backend
 dotnet tool restore
 dotnet restore CivicOperationsPlatform.sln
 dotnet run --project src/CivicOps.Api/CivicOps.Api.csproj
 ```
 
-A API estará em `http://localhost:5080`. Em ambiente de desenvolvimento, as
-migrations são aplicadas na inicialização. O painel local do RabbitMQ fica em
+O painel local do RabbitMQ fica em
 `http://localhost:15672`, com as credenciais definidas no Compose.
 
 Uma requisição de exemplo está em [CivicOps.Api.http](CivicOps.Api.http). O
@@ -157,10 +162,8 @@ estão documentados em
 Para validar métricas e alertas localmente, use o perfil de observabilidade:
 
 ```powershell
-docker compose --profile observability up -d --wait
-$env:OpenTelemetry__Otlp__Enabled = "true"
-$env:OpenTelemetry__Otlp__Endpoint = "http://localhost:4317"
-dotnet run --project src/CivicOps.Api/CivicOps.Api.csproj
+$env:OTEL_ENABLED = "true"
+docker compose --profile observability up -d --build --wait
 ```
 
 O Prometheus fica em `http://localhost:9090`. Objetivos, orçamentos de erro,

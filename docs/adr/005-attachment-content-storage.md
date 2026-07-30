@@ -53,3 +53,9 @@ gravados metadados, auditoria e Outbox.
 - download com o mesmo hash e bytes enviados;
 - isolamento por tenant;
 - auditoria e evento Outbox atômicos para `AttachmentAdded`.
+
+**Rastreabilidade:** armazenamento externo, integridade, isolamento,
+autorização e atomicidade estão cobertos por
+[RequestAttachmentEndpointTests](../../Backend/tests/CivicOps.Modules.Requests.IntegrationTests/RequestAttachmentEndpointTests.cs)
+e pelas regras de domínio em
+[RequestAttachmentTests](../../Backend/tests/CivicOps.Modules.Requests.UnitTests/RequestAttachmentTests.cs).

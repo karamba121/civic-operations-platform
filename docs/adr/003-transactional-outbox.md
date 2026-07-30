@@ -2,6 +2,7 @@
 
 - **Status:** aceito
 - **Data:** 2026-07-29
+- **Política operacional:** [retenção de Outbox e auditorias](../operations/data-retention.md)
 
 ## Contexto
 
@@ -22,6 +23,9 @@ estável da mensagem para impedir efeitos duplicados.
 Falhas transitórias no consumidor terão retry com backoff. Mensagens que
 excederem o limite de tentativas serão movidas para uma dead-letter queue.
 
+Mensagens processadas seguem a política de retenção operacional. Mensagens
+pendentes ou com falha nunca expiram automaticamente.
+
 ## Consequências
 
 - nenhuma alteração confirmada perde silenciosamente seu evento;
@@ -36,3 +40,12 @@ excederem o limite de tentativas serão movidas para uma dead-letter queue.
 - teste de entrega duplicada sem duplicação do efeito;
 - métricas para idade, quantidade, tentativas e falhas da Outbox;
 - correlação do trace entre requisição, publicação e consumo.
+
+**Rastreabilidade:** a atomicidade e o replay estão cobertos por
+[AuditAndOutboxEndpointTests](../../Backend/tests/CivicOps.Modules.Requests.IntegrationTests/AuditAndOutboxEndpointTests.cs);
+a publicação confirmada e a propagação do trace por
+[OutboxRabbitMqPublishingTests](../../Backend/tests/CivicOps.Modules.Requests.IntegrationTests/OutboxRabbitMqPublishingTests.cs);
+idempotência, retries e dead letter por
+[NotificationIdempotencyTests](../../Backend/tests/CivicOps.Modules.Notifications.IntegrationTests/NotificationIdempotencyTests.cs).
+As métricas completas e a automação de retenção permanecem pendentes no
+[roadmap](../roadmap.md).

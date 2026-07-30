@@ -10,6 +10,8 @@ RUN dotnet publish src/CivicOps.Api/CivicOps.Api.csproj \
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
+RUN mkdir -p /data/attachments \
+    && chown -R $APP_UID /data/attachments
 COPY --from=build /app/publish .
 USER $APP_UID
 EXPOSE 8080

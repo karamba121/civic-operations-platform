@@ -72,3 +72,8 @@ negação para leitor, acesso de operador, isolamento entre tenants, proteção 
 
 A auditoria de bootstrap, alteração de papel e listagem de membros é definida
 no [ADR-008](008-sensitive-data-audit.md).
+
+**Rastreabilidade:** catálogo e regras de menor privilégio estão cobertos por
+[IdentityAccessTests](../../Backend/tests/CivicOps.Modules.Requests.UnitTests/IdentityAccessTests.cs);
+autorização, isolamento e bootstrap por
+[RequestAttachmentEndpointTests](../../Backend/tests/CivicOps.Modules.Requests.IntegrationTests/RequestAttachmentEndpointTests.cs).

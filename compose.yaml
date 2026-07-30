@@ -55,6 +55,67 @@ services:
       start_period: 5s
     restart: unless-stopped
 
+  api:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: civic-operations-api
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=${POSTGRES_DB:-civic_operations};Username=${POSTGRES_USER:-civic_ops};Password=${POSTGRES_PASSWORD:-civic_ops_dev}
+      ConnectionStrings__Redis: redis:6379,abortConnect=false,connectTimeout=500,asyncTimeout=250,syncTimeout=250
+      RabbitMq__HostName: rabbitmq
+      RabbitMq__Port: 5672
+      RabbitMq__UserName: ${RABBITMQ_USER:-civic_ops}
+      RabbitMq__Password: ${RABBITMQ_PASSWORD:-civic_ops_dev}
+      Database__ApplyMigrations: "true"
+      AttachmentStorage__RootPath: /data/attachments
+      OpenTelemetry__Otlp__Enabled: ${OTEL_ENABLED:-false}
+      OpenTelemetry__Otlp__Endpoint: http://otel-collector:4317
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "${API_PORT:-5080}:8080"
+    volumes:
+      - civic_operations_attachments:/data/attachments
+    healthcheck:
+      test:
+        - CMD
+        - bash
+        - -c
+        - >-
+          exec 3<>/dev/tcp/127.0.0.1/8080 &&
+          printf 'GET /health HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 &&
+          grep -q '200 OK' <&3
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: civic-operations-frontend
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_PORT:-4200}:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.128.0
     container_name: civic-operations-otel-collector
@@ -74,8 +135,6 @@ services:
     container_name: civic-operations-blackbox-exporter
     command: ["--config.file=/etc/blackbox_exporter/config.yaml"]
     profiles: ["observability"]
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     volumes:
       - ./observability/blackbox.yaml:/etc/blackbox_exporter/config.yaml:ro
     restart: unless-stopped
@@ -103,4 +162,5 @@ volumes:
   civic_operations_postgres_data:
   civic_operations_rabbitmq_data:
   civic_operations_redis_data:
+  civic_operations_attachments:
   civic_operations_prometheus_data:

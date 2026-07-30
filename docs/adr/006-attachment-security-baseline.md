@@ -2,6 +2,8 @@
 
 - **Status:** aceito
 - **Data:** 2026-07-29
+- **Complementada por:** [ADR-007](007-tenant-roles-and-permissions.md) e
+  [ADR-008](008-sensitive-data-audit.md)
 
 ## Contexto
 
@@ -58,6 +60,10 @@ Testes unitários cobrem combinações permitidas, incompatibilidade de MIME,
 assinaturas e acesso do autor/responsável. Testes de integração contra
 PostgreSQL real cobrem `403`, `413`, `415`, isolamento entre tenants e remoção
 dos arquivos temporários rejeitados.
+
+**Rastreabilidade:** as validações de formato, tamanho, autorização, isolamento
+por tenant e limpeza de arquivos rejeitados estão cobertas por
+[RequestAttachmentEndpointTests](../../Backend/tests/CivicOps.Modules.Requests.IntegrationTests/RequestAttachmentEndpointTests.cs).
 
 ## Evolução
 

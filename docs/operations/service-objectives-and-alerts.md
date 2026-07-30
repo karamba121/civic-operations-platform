@@ -139,25 +139,18 @@ A taxa de hit ficou abaixo de 80% por 15 minutos, com pelo menos 100 leituras.
 
 ## Execução local
 
-Suba a infraestrutura e o perfil de observabilidade:
+Suba a aplicação, a infraestrutura e o perfil de observabilidade:
 
 ```powershell
-docker compose --profile observability up -d --wait
-```
-
-Inicie a API exportando OTLP:
-
-```powershell
-$env:OpenTelemetry__Otlp__Enabled = "true"
-$env:OpenTelemetry__Otlp__Endpoint = "http://localhost:4317"
-dotnet run --project Backend/src/CivicOps.Api/CivicOps.Api.csproj
+$env:OTEL_ENABLED = "true"
+docker compose --profile observability up -d --build --wait
 ```
 
 O Prometheus fica em `http://localhost:9090`. O perfil inclui:
 
 - OpenTelemetry Collector recebendo OTLP gRPC/HTTP;
 - exporter Prometheus em `http://localhost:8889/metrics`;
-- Blackbox Exporter verificando `http://host.docker.internal:5080/health`;
+- Blackbox Exporter verificando `http://api:8080/health` pela rede Docker;
 - Prometheus com regras e retenção local de sete dias.
 
 Para validar a configuração sem iniciar os serviços:

@@ -1,8 +1,39 @@
-# Angular Tailadmin Pro
+# Frontend
+
+Painel administrativo Angular da Civic Operations Platform, usando TailAdmin
+como base visual. A implementação funcional será feita em fatias verticais
+versionadas no [roadmap](../docs/roadmap.md).
+
+## Executar pela composição
+
+Na raiz do repositório:
+
+```powershell
+docker compose up -d --build --wait
+```
+
+O frontend estará em `http://localhost:4200`. O Nginx serve a aplicação e
+encaminha requisições iniciadas por `/api` para o serviço `api`, evitando
+configuração CORS diferente entre desenvolvimento e a imagem local.
+
+## Desenvolvimento
+
+```powershell
+npm ci
+npm start
+```
+
+O servidor de desenvolvimento fica em `http://localhost:4200`. Até a camada
+HTTP da aplicação ser implementada, o conteúdo continua sendo o template
+TailAdmin e não representa uma integração concluída com a API.
+
+## Base visual
+
+### Angular TailAdmin Pro
 
 TailAdmin is a premium Angular administrative dashboard template featuring a modern design, multiple layouts, and specialized dashboards for various business needs.
 
-## Development server
+### Development server
 
 To start a local development server, run:
 
@@ -12,7 +43,7 @@ npm start
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
-## Code scaffolding
+### Code scaffolding
 
 Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
 
@@ -20,7 +51,7 @@ Angular CLI includes powerful code scaffolding tools. To generate a new componen
 ng generate component component-name
 ```
 
-## Building
+### Building
 
 To build the project run:
 
@@ -30,7 +61,7 @@ ng build
 
 This will compile your project and store the build artifacts in the `dist/` directory.
 
-## Changelog
+### Changelog
 
 ### v1.1.1 (2026-05-23)
 - **New Feature**: Added **AI Settings** page to configure models, keys, and token limits.

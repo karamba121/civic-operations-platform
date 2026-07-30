@@ -70,7 +70,6 @@ automatizado, métrica ou decisão documentada.
 - Angular
 - Docker Compose
 - OpenTelemetry
-- GitHub Actions
 
 ## Módulos planejados
 
@@ -112,6 +111,7 @@ partem de eventos gravados na Outbox.
 - [ADR-009: projeções do dashboard](docs/adr/009-request-dashboard-projections.md)
 - [ADR-010: índices do dashboard](docs/adr/010-request-dashboard-indexes.md)
 - [ADR-011: cache medido do dashboard](docs/adr/011-request-dashboard-cache.md)
+- [Política de retenção de Outbox e auditorias](docs/operations/data-retention.md)
 - [Teste de carga reproduzível do dashboard](docs/performance/2026-07-29-request-dashboard-load-test.md)
 - [Objetivos de serviço, alertas e runbooks](docs/operations/service-objectives-and-alerts.md)
 - [Roadmap orientado a evidências](docs/roadmap.md)
@@ -119,15 +119,19 @@ partem de eventos gravados na Outbox.
 ## Execução local
 
 ```powershell
-docker compose up -d --wait
-cd Backend
-dotnet tool restore
-dotnet restore CivicOperationsPlatform.sln
-dotnet run --project src/CivicOps.Api/CivicOps.Api.csproj
+docker compose up -d --build --wait
 ```
 
-Consulte o [README do backend](Backend/README.md) para chamadas de exemplo,
-testes e criação de migrations.
+A composição inicia:
+
+- frontend em `http://localhost:4200`;
+- API em `http://localhost:5080`;
+- RabbitMQ Management em `http://localhost:15672`;
+- PostgreSQL, RabbitMQ e Redis nas portas documentadas em `.env.example`.
+
+O Nginx do frontend encaminha `/api` para a API dentro da rede Docker. Consulte
+os READMEs do [backend](Backend/README.md) e do [frontend](Frontend/README.md)
+para desenvolvimento fora dos containers.
 
 ## Licença
 
