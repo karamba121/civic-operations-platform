@@ -28,6 +28,7 @@ secrets/
 TestResults/
 coverage/
 *.trx
+Backend/performance/.results/
 
 # Operating systems
 .DS_Store

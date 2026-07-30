@@ -112,6 +112,7 @@ partem de eventos gravados na Outbox.
 - [ADR-009: projeções do dashboard](docs/adr/009-request-dashboard-projections.md)
 - [ADR-010: índices do dashboard](docs/adr/010-request-dashboard-indexes.md)
 - [ADR-011: cache medido do dashboard](docs/adr/011-request-dashboard-cache.md)
+- [Teste de carga reproduzível do dashboard](docs/performance/2026-07-29-request-dashboard-load-test.md)
 - [Roadmap orientado a evidências](docs/roadmap.md)
 
 ## Execução local

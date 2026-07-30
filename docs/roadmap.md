@@ -51,7 +51,7 @@ vida do anexo.
 - [x] criar dashboard e consultas projetadas;
 - [x] definir índices a partir de planos de execução;
 - [x] introduzir cache apenas onde houver ganho medido;
-- executar testes de carga reproduzíveis;
+- [x] executar testes de carga reproduzíveis;
 - documentar objetivos de serviço e alertas.
 
 **Evidência:** relatório versionado com dataset, hardware, parâmetros, latências

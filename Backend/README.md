@@ -243,6 +243,17 @@ Os planos de execução do dashboard e o dataset reproduzível estão documentad
 em
 [`docs/performance/2026-07-29-request-dashboard-indexes.md`](../docs/performance/2026-07-29-request-dashboard-indexes.md).
 
+O teste de carga reproduzível constrói a API, cria 100 mil solicitações, compara
+PostgreSQL sem cache com hits no Redis e limpa os recursos temporários:
+
+```powershell
+powershell -ExecutionPolicy Bypass `
+  -File performance/run-request-dashboard-load-test.ps1
+```
+
+Parâmetros, ambiente, percentis, throughput, erros e limitações estão no
+[relatório de carga](../docs/performance/2026-07-29-request-dashboard-load-test.md).
+
 ## Migration
 
 Para criar uma nova migration do módulo Requests:
