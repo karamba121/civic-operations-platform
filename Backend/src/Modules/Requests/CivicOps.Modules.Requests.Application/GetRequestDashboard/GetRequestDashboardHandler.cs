@@ -5,9 +5,10 @@ namespace CivicOps.Modules.Requests.Application.GetRequestDashboard;
 
 public sealed class GetRequestDashboardHandler(
     IRequestReadService readService,
+    IRequestDashboardCache cache,
     TimeProvider timeProvider)
 {
-    public Task<RequestDashboardResult> HandleAsync(
+    public async Task<RequestDashboardResult> HandleAsync(
         Guid tenantId,
         CancellationToken cancellationToken)
     {
@@ -17,9 +18,21 @@ public sealed class GetRequestDashboardHandler(
                 "O tenant é obrigatório.");
         }
 
-        return readService.GetDashboardAsync(
+        var cached = await cache.GetAsync(tenantId, cancellationToken);
+        if (cached.Dashboard is not null)
+        {
+            return cached.Dashboard;
+        }
+
+        var dashboard = await readService.GetDashboardAsync(
             tenantId,
             timeProvider.GetUtcNow(),
             cancellationToken);
+        await cache.SetAsync(
+            tenantId,
+            cached.Generation,
+            dashboard,
+            cancellationToken);
+        return dashboard;
     }
 }

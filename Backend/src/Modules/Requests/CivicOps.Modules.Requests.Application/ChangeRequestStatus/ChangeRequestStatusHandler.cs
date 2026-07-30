@@ -5,13 +5,14 @@ namespace CivicOps.Modules.Requests.Application.ChangeRequestStatus;
 public sealed class ChangeRequestStatusHandler(
     IRequestRepository repository,
     IRequestsUnitOfWork unitOfWork,
+    IRequestDashboardCache dashboardCache,
     TimeProvider timeProvider)
 {
-    public Task<RequestMutationResult?> HandleAsync(
+    public async Task<RequestMutationResult?> HandleAsync(
         ChangeRequestStatusCommand command,
         CancellationToken cancellationToken)
     {
-        return unitOfWork.ExecuteInTransactionAsync(
+        var result = await unitOfWork.ExecuteInTransactionAsync(
             async transactionCancellationToken =>
             {
                 var request = await repository.GetAsync(
@@ -39,5 +40,13 @@ public sealed class ChangeRequestStatusHandler(
                     request.Version);
             },
             cancellationToken);
+        if (result is not null)
+        {
+            await dashboardCache.InvalidateAsync(
+                command.TenantId,
+                CancellationToken.None);
+        }
+
+        return result;
     }
 }

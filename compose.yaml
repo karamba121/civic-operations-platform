@@ -39,6 +39,23 @@ services:
       start_period: 10s
     restart: unless-stopped
 
+  redis:
+    image: redis:8-alpine
+    container_name: civic-operations-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - civic_operations_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+
 volumes:
   civic_operations_postgres_data:
   civic_operations_rabbitmq_data:
+  civic_operations_redis_data:

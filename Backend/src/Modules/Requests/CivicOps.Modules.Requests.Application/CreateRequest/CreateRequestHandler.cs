@@ -10,13 +10,14 @@ public sealed class CreateRequestHandler(
     IProtocolNumberGenerator protocolNumberGenerator,
     IRequestIdempotencyStore idempotencyStore,
     IRequestsUnitOfWork unitOfWork,
+    IRequestDashboardCache dashboardCache,
     TimeProvider timeProvider)
 {
-    public Task<CreateRequestResult> HandleAsync(
+    public async Task<CreateRequestResult> HandleAsync(
         CreateRequestCommand command,
         CancellationToken cancellationToken)
     {
-        return unitOfWork.ExecuteInTransactionAsync(
+        var result = await unitOfWork.ExecuteInTransactionAsync(
             async transactionCancellationToken =>
             {
                 var now = timeProvider.GetUtcNow();
@@ -63,6 +64,10 @@ public sealed class CreateRequestHandler(
                 return ToResult(request);
             },
             cancellationToken);
+        await dashboardCache.InvalidateAsync(
+            command.TenantId,
+            CancellationToken.None);
+        return result;
     }
 
     private static CreateRequestResult ToResult(Request request)

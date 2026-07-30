@@ -7,12 +7,14 @@ using CivicOps.Modules.Requests.Application.CreateRequest;
 using CivicOps.Modules.Requests.Application.ListRequests;
 using CivicOps.Modules.Requests.Domain.Requests;
 using CivicOps.Modules.Requests.Infrastructure;
+using CivicOps.Modules.Requests.Infrastructure.Caching;
 using CivicOps.Modules.Requests.Presentation;
 using CivicOps.Modules.Notifications.Application.ListNotifications;
 using CivicOps.Modules.Notifications.Infrastructure;
 using CivicOps.Modules.Notifications.Presentation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
@@ -38,6 +40,25 @@ builder.Services
                 "OpenTelemetry:Otlp:Enabled"))
         {
             tracing.AddOtlpExporter(options =>
+            {
+                var endpoint = builder.Configuration[
+                    "OpenTelemetry:Otlp:Endpoint"];
+
+                if (!string.IsNullOrWhiteSpace(endpoint))
+                {
+                    options.Endpoint = new Uri(endpoint);
+                }
+            });
+        }
+    })
+    .WithMetrics(metrics =>
+    {
+        metrics.AddMeter(RequestDashboardCacheDiagnostics.MeterName);
+
+        if (builder.Configuration.GetValue<bool>(
+                "OpenTelemetry:Otlp:Enabled"))
+        {
+            metrics.AddOtlpExporter(options =>
             {
                 var endpoint = builder.Configuration[
                     "OpenTelemetry:Otlp:Endpoint"];

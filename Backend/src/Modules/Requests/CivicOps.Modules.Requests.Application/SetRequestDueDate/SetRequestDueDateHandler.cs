@@ -5,13 +5,14 @@ namespace CivicOps.Modules.Requests.Application.SetRequestDueDate;
 public sealed class SetRequestDueDateHandler(
     IRequestRepository repository,
     IRequestsUnitOfWork unitOfWork,
+    IRequestDashboardCache dashboardCache,
     TimeProvider timeProvider)
 {
-    public Task<RequestMutationResult?> HandleAsync(
+    public async Task<RequestMutationResult?> HandleAsync(
         SetRequestDueDateCommand command,
         CancellationToken cancellationToken)
     {
-        return unitOfWork.ExecuteInTransactionAsync(
+        var result = await unitOfWork.ExecuteInTransactionAsync(
             async transactionCancellationToken =>
             {
                 var request = await repository.GetAsync(
@@ -39,5 +40,13 @@ public sealed class SetRequestDueDateHandler(
                     request.Version);
             },
             cancellationToken);
+        if (result is not null)
+        {
+            await dashboardCache.InvalidateAsync(
+                command.TenantId,
+                CancellationToken.None);
+        }
+
+        return result;
     }
 }

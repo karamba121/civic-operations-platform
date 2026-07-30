@@ -111,6 +111,7 @@ partem de eventos gravados na Outbox.
 - [ADR-008: auditoria de dados sensíveis](docs/adr/008-sensitive-data-audit.md)
 - [ADR-009: projeções do dashboard](docs/adr/009-request-dashboard-projections.md)
 - [ADR-010: índices do dashboard](docs/adr/010-request-dashboard-indexes.md)
+- [ADR-011: cache medido do dashboard](docs/adr/011-request-dashboard-cache.md)
 - [Roadmap orientado a evidências](docs/roadmap.md)
 
 ## Execução local

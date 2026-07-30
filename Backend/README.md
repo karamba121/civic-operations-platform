@@ -64,6 +64,13 @@ As leituras disponíveis são:
   `X-User-Id`, sempre isoladas pelo tenant;
 - `GET /api/v1/access/members`: associações, papéis e permissões do tenant.
 
+O dashboard usa cache-aside no Redis, isolado por tenant e com TTL padrão de
+30 segundos. Criação e alterações de situação, responsável ou prazo invalidam
+a geração do tenant depois do commit. Se Redis estiver indisponível, a leitura
+continua pelo PostgreSQL. O cache pode ser desativado com
+`DashboardCache:Enabled=false`, e o TTL é configurado por
+`DashboardCache:TimeToLive`.
+
 As escritas disponíveis são:
 
 - `PATCH /api/v1/requests/{id}/assignment`: atribui um responsável;
@@ -141,6 +148,11 @@ $env:OpenTelemetry__Otlp__Enabled = "true"
 $env:OpenTelemetry__Otlp__Endpoint = "http://localhost:4317"
 dotnet run --project src/CivicOps.Api/CivicOps.Api.csproj
 ```
+
+O meter `CivicOps.Requests.Cache` publica contadores de hit, miss, falha e
+invalidação, além da duração das operações do cache. A decisão e o ganho medido
+estão documentados em
+[`docs/performance/2026-07-29-request-dashboard-cache.md`](../docs/performance/2026-07-29-request-dashboard-cache.md).
 
 ## Identity & Access
 

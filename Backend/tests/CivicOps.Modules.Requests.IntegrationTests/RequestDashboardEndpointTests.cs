@@ -1,3 +1,4 @@
+using CivicOps.Modules.Requests.Application.Abstractions;
 using CivicOps.Modules.Requests.Infrastructure.Persistence;
 using CivicOps.Modules.Requests.Presentation;
 using CivicOps.Modules.Requests.Presentation.CreateRequest;
@@ -230,8 +231,95 @@ public sealed class RequestDashboardEndpointTests
                     TestContext.Current.CancellationToken)));
     }
 
+    [Fact]
+    public async Task DashboardCache_ShouldStoreAndInvalidateByTenant()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var clock = new AdjustableTimeProvider(DateTimeOffset.UtcNow);
+        await using var factory = CreateFactory(clock);
+        using var client = factory.CreateClient();
+        var tenantId = Guid.NewGuid();
+        var actorUserId = Guid.NewGuid();
+
+        await CreateAsync(
+            client,
+            tenantId,
+            actorUserId,
+            "Primeira solicitação",
+            cancellationToken);
+        var first = await GetDashboardAsync(
+            client,
+            tenantId,
+            cancellationToken);
+        var second = await GetDashboardAsync(
+            client,
+            tenantId,
+            cancellationToken);
+        var cache = factory.Services
+            .GetRequiredService<IRequestDashboardCache>();
+        var cached = await cache.GetAsync(tenantId, cancellationToken);
+
+        Assert.Equal(1, first.Total);
+        Assert.Equal(first.Total, second.Total);
+        Assert.Equal(
+            first.Recent.Select(item => item.Id),
+            second.Recent.Select(item => item.Id));
+        Assert.NotNull(cached.Dashboard);
+        Assert.Equal(1, cached.Dashboard.Total);
+
+        await CreateAsync(
+            client,
+            tenantId,
+            actorUserId,
+            "Segunda solicitação",
+            cancellationToken);
+        var invalidated = await cache.GetAsync(
+            tenantId,
+            cancellationToken);
+        var refreshed = await GetDashboardAsync(
+            client,
+            tenantId,
+            cancellationToken);
+
+        Assert.Null(invalidated.Dashboard);
+        Assert.True(invalidated.Generation > cached.Generation);
+        Assert.Equal(2, refreshed.Total);
+    }
+
+    [Fact]
+    public async Task Dashboard_ShouldFallBackWhenRedisIsUnavailable()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var clock = new AdjustableTimeProvider(DateTimeOffset.UtcNow);
+        await using var factory = CreateFactory(
+            clock,
+            new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:Redis"] =
+                    "127.0.0.1:6398,abortConnect=false," +
+                    "connectRetry=0,connectTimeout=100," +
+                    "asyncTimeout=100,syncTimeout=100"
+            });
+        using var client = factory.CreateClient();
+        var tenantId = Guid.NewGuid();
+
+        await CreateAsync(
+            client,
+            tenantId,
+            Guid.NewGuid(),
+            "Redis indisponível",
+            cancellationToken);
+        var dashboard = await GetDashboardAsync(
+            client,
+            tenantId,
+            cancellationToken);
+
+        Assert.Equal(1, dashboard.Total);
+    }
+
     private static WebApplicationFactory<Program> CreateFactory(
-        AdjustableTimeProvider clock)
+        AdjustableTimeProvider clock,
+        IReadOnlyDictionary<string, string?>? overrides = null)
     {
         return new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
@@ -240,11 +328,20 @@ public sealed class RequestDashboardEndpointTests
                 builder.ConfigureAppConfiguration(
                     (_, configuration) =>
                     {
-                        configuration.AddInMemoryCollection(
-                            new Dictionary<string, string?>
+                        var settings = new Dictionary<string, string?>
+                        {
+                            ["Database:ApplyMigrations"] = "true"
+                        };
+                        if (overrides is not null)
+                        {
+                            foreach (var (key, value) in overrides)
                             {
-                                ["Database:ApplyMigrations"] = "true"
-                            });
+                                settings[key] = value;
+                            }
+                        }
+
+                        configuration.AddInMemoryCollection(
+                            settings);
                     });
                 builder.ConfigureServices(services =>
                 {

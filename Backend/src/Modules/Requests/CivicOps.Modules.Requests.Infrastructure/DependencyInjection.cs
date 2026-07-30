@@ -14,12 +14,14 @@ using CivicOps.Modules.Requests.Application.ListRequestAudit;
 using CivicOps.Modules.Requests.Application.SetRequestDueDate;
 using CivicOps.Modules.Requests.Application.UploadRequestAttachment;
 using CivicOps.Modules.Requests.Infrastructure.Attachments;
+using CivicOps.Modules.Requests.Infrastructure.Caching;
 using CivicOps.Modules.Requests.Infrastructure.Persistence;
 using CivicOps.Modules.Requests.Infrastructure.Outbox;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using StackExchange.Redis;
 
 namespace CivicOps.Modules.Requests.Infrastructure;
 
@@ -47,6 +49,7 @@ public static class DependencyInjection
             EfRequestAttachmentReadService>();
         services.AddScoped<IRequestSensitiveDataAudit,
             RequestSensitiveDataAudit>();
+        AddDashboardCache(services, configuration);
         services.AddSingleton<IAttachmentContentStore,
             FileSystemAttachmentContentStore>();
         services.AddScoped<IRequestReadService, EfRequestReadService>();
@@ -85,6 +88,41 @@ public static class DependencyInjection
         services.AddSingleton(TimeProvider.System);
 
         return services;
+    }
+
+    private static void AddDashboardCache(
+        IServiceCollection services,
+        IConfiguration configuration)
+    {
+        var options = new RequestDashboardCacheOptions();
+        configuration.GetSection("DashboardCache").Bind(options);
+
+        if (options.TimeToLive < TimeSpan.FromSeconds(1) ||
+            options.TimeToLive > TimeSpan.FromMinutes(10))
+        {
+            throw new InvalidOperationException(
+                "DashboardCache:TimeToLive deve estar entre 1 segundo e 10 minutos.");
+        }
+
+        services.AddSingleton(options);
+
+        if (!options.Enabled)
+        {
+            services.AddSingleton<
+                IRequestDashboardCache,
+                DisabledRequestDashboardCache>();
+            return;
+        }
+
+        var connectionString =
+            configuration.GetConnectionString("Redis")
+            ?? throw new InvalidOperationException(
+                "A connection string 'Redis' não foi configurada.");
+        services.AddSingleton<IConnectionMultiplexer>(
+            _ => ConnectionMultiplexer.Connect(connectionString));
+        services.AddSingleton<
+            IRequestDashboardCache,
+            RedisRequestDashboardCache>();
     }
 
     private static OutboxPublisherOptions CreateOutboxOptions(
