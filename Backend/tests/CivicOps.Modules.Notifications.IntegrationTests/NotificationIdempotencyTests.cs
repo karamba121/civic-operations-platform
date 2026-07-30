@@ -689,6 +689,10 @@ public sealed class NotificationIdempotencyTests
         string queueName,
         CancellationToken cancellationToken)
     {
+        await WaitUntilQueueExistsAsync(
+            queueName,
+            cancellationToken);
+
         var factory = CreateRabbitFactory();
         await using var connection =
             await factory.CreateConnectionAsync(cancellationToken);
