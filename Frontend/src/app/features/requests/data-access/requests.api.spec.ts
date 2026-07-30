@@ -76,4 +76,69 @@ describe(RequestsApi.name, () => {
       version: 'version-id',
     });
   });
+
+  it('creates a request with its idempotency key', () => {
+    api
+      .create(
+        {
+          title: 'Iluminação pública',
+          description: 'Poste apagado.',
+        },
+        'stable-idempotency-key',
+      )
+      .subscribe();
+
+    const request = http.expectOne('/api/v1/requests');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.headers.get('Idempotency-Key')).toBe(
+      'stable-idempotency-key',
+    );
+    expect(request.request.body).toEqual({
+      title: 'Iluminação pública',
+      description: 'Poste apagado.',
+    });
+    request.flush({
+      id: 'request-id',
+      protocolNumber: 'REQ-2026-0001',
+      status: 'Submitted',
+      createdAtUtc: '2026-07-30T00:00:00Z',
+      version: 'version-id',
+    });
+  });
+
+  it('loads paged comments and audit records', () => {
+    api.listComments('request-id', 2).subscribe();
+    api.listAudit('request-id', 3).subscribe();
+
+    const comments = http.expectOne(
+      (request) =>
+        request.url === '/api/v1/requests/request-id/comments' &&
+        request.params.get('page') === '2' &&
+        request.params.get('pageSize') === '5',
+    );
+    const audit = http.expectOne(
+      (request) =>
+        request.url === '/api/v1/requests/request-id/audit' &&
+        request.params.get('page') === '3' &&
+        request.params.get('pageSize') === '5',
+    );
+
+    expect(comments.request.method).toBe('GET');
+    expect(audit.request.method).toBe('GET');
+
+    comments.flush({
+      items: [],
+      page: 2,
+      pageSize: 5,
+      totalItems: 0,
+      totalPages: 0,
+    });
+    audit.flush({
+      items: [],
+      page: 3,
+      pageSize: 5,
+      totalItems: 0,
+      totalPages: 0,
+    });
+  });
 });

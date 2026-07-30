@@ -105,7 +105,7 @@ concluído.
   estados de carregamento, vazio, erro e atualização;
 - [x] implementar listagem de solicitações com busca, filtros, paginação e
   navegação para o detalhe;
-- [ ] implementar criação idempotente e detalhe da solicitação com protocolo,
+- [x] implementar criação idempotente e detalhe da solicitação com protocolo,
   situação, responsável, prazo, comentários e auditoria;
 - [ ] implementar atribuição, transição de situação e alteração de prazo com
   tratamento de concorrência otimista;
@@ -124,11 +124,12 @@ concluído.
 end-to-end contra a composição Docker, nenhum dado demonstrativo no bundle,
 auditoria das operações sensíveis e relatório de acessibilidade e tamanho.
 
-**Evidência atual do frontend:** shell, dashboard, listagem e entrada do detalhe
-compilados por instalação limpa na imagem Docker, bundle inicial de `362,18 kB`
-e nove testes Angular cobrindo clientes HTTP, contexto provisório, Problem
-Details, estados do dashboard, busca com debounce, filtros sincronizados com a
-URL e navegação para a solicitação.
+**Evidência atual do frontend:** shell, dashboard, listagem, criação idempotente
+e detalhe com comentários e auditoria compilados pela imagem Docker, bundle
+inicial de `364,69 kB` e quinze testes Angular cobrindo clientes HTTP, contexto
+provisório, Problem Details, estados do dashboard, busca com debounce, filtros
+sincronizados com a URL, reutilização da chave idempotente, validação do
+formulário e carregamento independente do detalhe, comentários e auditoria.
 
 ## Fora do escopo inicial
 

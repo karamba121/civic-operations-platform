@@ -8,7 +8,11 @@ import { catchError, Observable, throwError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { toCivicOpsApiError } from '../../../core/http/civic-ops-api-error';
 import {
+  CreateRequestInput,
+  CreateRequestResult,
   ListRequestsQuery,
+  PagedRequestAudit,
+  PagedRequestComments,
   PagedRequests,
   RequestDetails,
 } from './request.model';
@@ -44,5 +48,52 @@ export class RequestsApi {
         throwError(() => toCivicOpsApiError(error)),
       ),
     );
+  }
+
+  create(
+    input: CreateRequestInput,
+    idempotencyKey: string,
+  ): Observable<CreateRequestResult> {
+    return this.http
+      .post<CreateRequestResult>(this.baseUrl, input, {
+        headers: { 'Idempotency-Key': idempotencyKey },
+      })
+      .pipe(
+        catchError((error: HttpErrorResponse) =>
+          throwError(() => toCivicOpsApiError(error)),
+        ),
+      );
+  }
+
+  listComments(
+    requestId: string,
+    page: number,
+    pageSize = 5,
+  ): Observable<PagedRequestComments> {
+    const params = new HttpParams().set('page', page).set('pageSize', pageSize);
+    return this.http
+      .get<PagedRequestComments>(`${this.baseUrl}/${requestId}/comments`, {
+        params,
+      })
+      .pipe(
+        catchError((error: HttpErrorResponse) =>
+          throwError(() => toCivicOpsApiError(error)),
+        ),
+      );
+  }
+
+  listAudit(
+    requestId: string,
+    page: number,
+    pageSize = 5,
+  ): Observable<PagedRequestAudit> {
+    const params = new HttpParams().set('page', page).set('pageSize', pageSize);
+    return this.http
+      .get<PagedRequestAudit>(`${this.baseUrl}/${requestId}/audit`, { params })
+      .pipe(
+        catchError((error: HttpErrorResponse) =>
+          throwError(() => toCivicOpsApiError(error)),
+        ),
+      );
   }
 }

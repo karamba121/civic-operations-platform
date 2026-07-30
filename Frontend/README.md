@@ -11,7 +11,10 @@ demonstrativas foram removidos.
 - proxy local de `/api` para a API;
 - contexto provisório de tenant e usuário;
 - cliente HTTP tipado com tratamento de Problem Details;
-- dashboard operacional de solicitações.
+- dashboard operacional de solicitações;
+- listagem com busca, filtros e paginação;
+- criação idempotente com geração de protocolo;
+- detalhe com comentários e histórico de auditoria.
 
 As próximas fatias estão versionadas no
 [roadmap](../docs/roadmap.md).

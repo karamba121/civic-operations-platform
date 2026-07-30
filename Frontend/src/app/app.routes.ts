@@ -24,6 +24,14 @@ export const routes: Routes = [
         title: 'Solicitações | CivicOps',
       },
       {
+        path: 'solicitacoes/nova',
+        loadComponent: () =>
+          import('./features/requests/request-create.component').then(
+            (module) => module.RequestCreateComponent,
+          ),
+        title: 'Nova solicitação | CivicOps',
+      },
+      {
         path: 'solicitacoes/:id',
         loadComponent: () =>
           import('./features/requests/request-details.component').then(

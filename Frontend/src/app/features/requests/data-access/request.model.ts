@@ -41,3 +41,55 @@ export interface RequestDetails {
   createdAtUtc: string;
   version: string;
 }
+
+export interface CreateRequestInput {
+  title: string;
+  description: string;
+}
+
+export interface CreateRequestResult {
+  id: string;
+  protocolNumber: string;
+  status: RequestStatus;
+  createdAtUtc: string;
+  version: string;
+}
+
+export interface RequestComment {
+  id: string;
+  authorUserId: string;
+  content: string;
+  createdAtUtc: string;
+}
+
+export interface PagedRequestComments {
+  items: RequestComment[];
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+}
+
+export interface RequestAuditRecord {
+  id: string;
+  eventId: string;
+  actorUserId: string;
+  action:
+    | 'RequestCreated'
+    | 'ResponsibleAssigned'
+    | 'StatusChanged'
+    | 'DueDateChanged'
+    | 'CommentAdded'
+    | 'AttachmentAdded'
+    | string;
+  data: Record<string, unknown>;
+  occurredAtUtc: string;
+}
+
+export interface PagedRequestAudit {
+  items: RequestAuditRecord[];
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+}
