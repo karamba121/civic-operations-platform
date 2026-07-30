@@ -109,9 +109,7 @@ app.MapPlatformAdministrationEndpoints();
 
 if (app.Configuration.GetValue<bool>("Database:ApplyMigrations"))
 {
-    await app.Services.ApplyIdentityAccessMigrationsAsync();
-    await app.Services.ApplyRequestsMigrationsAsync();
-    await app.Services.ApplyNotificationsMigrationsAsync();
+    await DatabaseMigrationCoordinator.ApplyAsync(app.Services);
 }
 
 await app.RunAsync();
