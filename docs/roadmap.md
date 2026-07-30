@@ -12,12 +12,15 @@ concluída quando comportamento, testes e operação local podem ser demonstrado
 - [x] configurar testes unitários e de integração;
 - [ ] validar fronteiras dos módulos com testes de arquitetura;
 - [ ] criar CI para backend, frontend, validação das regras Prometheus e
-  construção das imagens Docker.
+  construção e publicação das imagens Docker no Docker Hub.
 
 **Evidência atual:** os comandos estão documentados no
 [README do backend](../Backend/README.md) e a composição local em
-[compose.yaml](../compose.yaml). Testes de arquitetura e CI permanecem
-pendentes e, portanto, impedem a conclusão integral da fundação.
+[compose.yaml](../compose.yaml) e o CI versionado em
+[`ci-dockerhub.yml`](../.github/workflows/ci-dockerhub.yml). Os testes de
+arquitetura permanecem pendentes e, portanto, impedem conclusão integral da
+fundação. O workflow está implementado e validado localmente; o item será
+concluído após a primeira execução remota publicar ambas as imagens.
 
 ## 2. Primeira fatia vertical: solicitações
 

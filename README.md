@@ -135,6 +135,27 @@ O Nginx do frontend encaminha `/api` para a API dentro da rede Docker. Consulte
 os READMEs do [backend](Backend/README.md) e do [frontend](Frontend/README.md)
 para desenvolvimento fora dos containers.
 
+## CI e imagens Docker
+
+O workflow
+[`ci-dockerhub.yml`](.github/workflows/ci-dockerhub.yml) valida backend,
+frontend, Docker Compose e regras Prometheus. Em pushes para `master`, tags
+`v*` e execuções manuais, ele publica:
+
+- `<usuario>/civic-operations-backend`;
+- `<usuario>/civic-operations-frontend`.
+
+Configure estes secrets na seção Actions secrets do repositório GitHub:
+
+- `DOCKERHUB_USERNAME`: nome do usuário ou organização no Docker Hub;
+- `DOCKERHUB_TOKEN`: access token do Docker Hub com permissão de leitura e
+  escrita.
+
+Pull requests executam somente as validações e nunca recebem as credenciais nem
+publicam imagens. A branch padrão também recebe a tag `latest`; todas as
+publicações recebem uma tag imutável `sha-<commit>`, e tags Git `v*` são
+preservadas como tags Docker.
+
 ## Licença
 
 MIT - veja [LICENSE](LICENSE).

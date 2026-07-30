@@ -50,6 +50,7 @@ public sealed class AuditAndOutboxEndpointTests
         using var auditResponse = await GetAuditAsync(
             client,
             tenantId,
+            actorUserId,
             created.Id,
             cancellationToken);
         var audit = await auditResponse.Content
@@ -196,6 +197,7 @@ public sealed class AuditAndOutboxEndpointTests
         using var isolatedResponse = await GetAuditAsync(
             client,
             Guid.NewGuid(),
+            actorUserId,
             created.Id,
             cancellationToken);
 
@@ -260,6 +262,7 @@ public sealed class AuditAndOutboxEndpointTests
     private static async Task<HttpResponseMessage> GetAuditAsync(
         HttpClient client,
         Guid tenantId,
+        Guid actorUserId,
         Guid requestId,
         CancellationToken cancellationToken)
     {
@@ -267,6 +270,7 @@ public sealed class AuditAndOutboxEndpointTests
             HttpMethod.Get,
             $"/api/v1/requests/{requestId}/audit");
         request.Headers.Add("X-Tenant-Id", tenantId.ToString());
+        request.Headers.Add("X-User-Id", actorUserId.ToString());
         return await client.SendAsync(request, cancellationToken);
     }
 
