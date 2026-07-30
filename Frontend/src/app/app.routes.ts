@@ -1,9 +1,31 @@
 import { Routes } from '@angular/router';
+import {
+  platformAdministratorGuard,
+  tenantWorkspaceGuard,
+} from './core/auth/authorization.guards';
 import { AppLayoutComponent } from './shared/layout/app-layout/app-layout.component';
 
 export const routes: Routes = [
   {
+    path: 'platform',
+    canMatch: [platformAdministratorGuard],
+    loadComponent: () =>
+      import('./features/platform/platform-admin.component').then(
+        (module) => module.PlatformAdminComponent,
+      ),
+    title: 'Administração da plataforma | CivicOps',
+  },
+  {
+    path: 'identidade-invalida',
+    loadComponent: () =>
+      import('./features/auth/invalid-identity.component').then(
+        (module) => module.InvalidIdentityComponent,
+      ),
+    title: 'Identidade sem acesso | CivicOps',
+  },
+  {
     path: '',
+    canMatch: [tenantWorkspaceGuard],
     component: AppLayoutComponent,
     children: [
       {
@@ -50,10 +72,10 @@ export const routes: Routes = [
       {
         path: 'administracao/membros',
         loadComponent: () =>
-          import('./features/access/members-admin.component').then(
-            (module) => module.MembersAdminComponent,
-          ),
-        title: 'Membros e permissões | CivicOps',
+          import(
+            './features/access/tenant-users-admin.component'
+          ).then((module) => module.TenantUsersAdminComponent),
+        title: 'Usuários e permissões | CivicOps',
       },
     ],
   },

@@ -105,6 +105,7 @@ app.MapRequestEndpoints();
 app.MapRequestAttachmentEndpoints();
 app.MapNotificationEndpoints();
 app.MapIdentityAccessEndpoints();
+app.MapPlatformAdministrationEndpoints();
 
 if (app.Configuration.GetValue<bool>("Database:ApplyMigrations"))
 {

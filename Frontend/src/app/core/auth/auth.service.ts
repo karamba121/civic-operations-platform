@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 interface CivicOpsTokenClaims extends KeycloakTokenParsed {
   tenant_id?: string;
   tenant_name?: string;
+  platform_admin?: boolean | string;
   name?: string;
   preferred_username?: string;
 }
@@ -58,6 +59,12 @@ export class AuthService {
     return this.keycloak.token ?? null;
   }
 
+  get isPlatformAdministrator(): boolean {
+    return (
+      this.claims.platform_admin === true ||
+      this.claims.platform_admin === 'true'
+    );
+  }
   get tenantId(): string {
     return this.claims.tenant_id ?? '';
   }

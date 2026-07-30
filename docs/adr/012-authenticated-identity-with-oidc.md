@@ -25,9 +25,10 @@ A API usa autenticação JWT Bearer e exige:
 - assinatura válida e metadados obtidos do provedor configurado;
 - emissor e audiência esperados;
 - token dentro do período de validade;
-- `sub` e `tenant_id` como UUIDs não vazios.
+- `sub` como UUID não vazio;
+- `tenant_id` como UUID para usuários de tenant ou `platform_admin=true` para administradores globais.
 
-O claim `sub` identifica o usuário e `tenant_id` identifica a organização. A
+O claim `sub` identifica o usuário, `tenant_id` identifica a organização e `platform_admin` distingue a administração global. A
 API remove qualquer `X-Tenant-Id` ou `X-User-Id` recebido externamente e cria o
 contexto interno somente depois da validação do token. Isso permite migrar os
 casos de uso existentes de forma incremental sem confiar nos cabeçalhos do

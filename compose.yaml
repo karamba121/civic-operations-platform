@@ -108,7 +108,13 @@ services:
       Authentication__Issuer: http://localhost:${FRONTEND_PORT:-4200}/auth/realms/civicops
       Authentication__Audience: civicops-api
       Authentication__RequireHttpsMetadata: "false"
-      IdentityAccess__BootstrapEnabled: "true"
+      IdentityAccess__BootstrapEnabled: "false"
+      KeycloakAdministration__Enabled: "true"
+      KeycloakAdministration__BaseUrl: http://keycloak:8080/auth
+      KeycloakAdministration__Realm: civicops
+      KeycloakAdministration__AdminRealm: master
+      KeycloakAdministration__AdminUsername: ${KEYCLOAK_ADMIN:-admin}
+      KeycloakAdministration__AdminPassword: ${KEYCLOAK_ADMIN_PASSWORD:-civic_ops_dev}
       AttachmentStorage__RootPath: /data/attachments
       OpenTelemetry__Otlp__Enabled: ${OTEL_ENABLED:-false}
       OpenTelemetry__Otlp__Endpoint: http://otel-collector:4317

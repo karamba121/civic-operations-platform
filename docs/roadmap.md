@@ -95,7 +95,26 @@ alertas validados pelo `promtool`. A retenção possui teste de unidade para
 lotes, limite e falhas, teste PostgreSQL que preserva mensagens recentes e não
 processadas e procedimento operacional de suspensão, retomada e recuperação.
 
-## 7. Painel administrativo Angular
+## 7. Administração da plataforma multi-tenant
+
+- [x] distinguir administrador global de administrador de tenant;
+- [x] criar catálogo persistente de tenants e usuários gerenciados;
+- [x] criar o administrador global local no primeiro startup;
+- [x] provisionar identidades no Keycloak sem persistir senhas;
+- [x] criar um administrador inicial junto com cada tenant;
+- [x] permitir que o administrador do tenant crie usuários somente no próprio
+  tenant;
+- [x] separar o painel global do workspace operacional após o login;
+- [x] auditar criação de tenants e administradores globais;
+- [x] cobrir o fluxo vertical e a autorização negativa com PostgreSQL real.
+
+**Evidência:** decisão em
+[ADR-013](adr/013-platform-and-tenant-administration.md), migration do módulo
+IdentityAccess, teste
+[PlatformAdministrationEndpointTests](../Backend/tests/CivicOps.Modules.Requests.IntegrationTests/PlatformAdministrationEndpointTests.cs)
+e clientes e painéis Angular separados por claim autenticada.
+
+## 8. Painel administrativo Angular
 
 O TailAdmin fornece somente a base visual. Cada item abaixo deve entregar uma
 fatia navegável, integrada à API e coberta por testes antes de ser marcado como
@@ -121,7 +140,7 @@ concluído.
   tenant e usuário de claims confiáveis;
 - [ ] cobrir os fluxos com testes unitários, de componentes e end-to-end,
   incluindo autorização negativa, acessibilidade e regressão responsiva;
-- [ ] definir budgets de bundle, eliminar vulnerabilidades de produção e
+- [x] definir budgets de bundle, eliminar vulnerabilidades de produção e
   publicar a imagem do frontend pelo mesmo pipeline da aplicação.
 
 **Evidência:** fluxo completo executável pelo navegador e pela API, testes
@@ -130,8 +149,9 @@ auditoria das operações sensíveis e relatório de acessibilidade e tamanho.
 
 **Evidência atual do frontend:** shell, dashboard, solicitações, gestão do
 atendimento, comentários, anexos, notificações e administração de membros
-compilados pela imagem Docker, bundle inicial de `398,98 kB`, autenticação OIDC
-validada no navegador e trinta e dois testes Angular cobrindo clientes HTTP,
+compilados pela imagem Docker, bundle inicial de `405,37 kB`, budget de erro
+de `600 kB`, zero vulnerabilidades na árvore de produção, autenticação OIDC
+validada no navegador e trinta e quatro testes Angular cobrindo clientes HTTP,
 Bearer token, ausência dos cabeçalhos provisórios, Problem Details,
 estados de interface, filtros sincronizados com a URL, idempotência, validações,
 encadeamento de versões, conflitos de concorrência, multipart, download,

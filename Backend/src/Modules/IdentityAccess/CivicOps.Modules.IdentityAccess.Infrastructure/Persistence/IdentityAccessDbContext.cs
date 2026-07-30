@@ -8,8 +8,16 @@ public sealed class IdentityAccessDbContext(
     public DbSet<TenantMembership> TenantMemberships =>
         Set<TenantMembership>();
 
+    public DbSet<Tenant> Tenants => Set<Tenant>();
+
+    public DbSet<ManagedUser> ManagedUsers => Set<ManagedUser>();
+
     internal DbSet<IdentityAccessAuditRecord> AuditRecords =>
         Set<IdentityAccessAuditRecord>();
+
+    internal DbSet<PlatformAdministrationAuditRecord>
+        PlatformAdministrationAuditRecords =>
+            Set<PlatformAdministrationAuditRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

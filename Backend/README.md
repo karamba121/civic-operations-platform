@@ -85,6 +85,9 @@ As escritas disponíveis são:
   campo `file`;
 - `POST /api/v1/access/bootstrap`: cria o primeiro administrador do tenant;
 - `PUT /api/v1/access/members/{userId}`: concede um papel ao usuário.
+- GET|POST /api/v1/platform/tenants: lista ou cria tenants e seu administrador inicial;
+- GET|POST /api/v1/platform/administrators: administra usuários globais;
+- GET|POST /api/v1/access/users: lista ou cria usuários no tenant autenticado.
 
 `pageSize` aceita de 1 a 100. A busca é case-insensitive sobre título e
 descrição e também aceita um número de protocolo completo.
@@ -195,11 +198,17 @@ Os testes de integração executam no ambiente `IntegrationTests`, onde um
 handler restrito ao processo de teste converte os cabeçalhos existentes em
 claims. Esse modo não é habilitado pela configuração de execução normal.
 
+Administradores globais são identidades sem `tenant_id` e com o claim
+`platform_admin=true`. Eles entram em `/platform`, criam tenants e outros
+administradores globais. A criação de tenant provisiona no Keycloak seu
+administrador inicial e grava tenant, usuário, vínculo e auditoria em uma
+transação PostgreSQL. Senhas nunca são persistidas pela aplicação.
+
 As associações são independentes por tenant e usam os papéis
 `Administrator`, `Operator` e `Reader`. O catálogo de permissões é versionado
 no código e a associação fica em `identity_access.tenant_memberships`.
 
-O bootstrap do primeiro administrador usa lock transacional no PostgreSQL e é
+O endpoint legado de bootstrap do primeiro administrador usa lock transacional no PostgreSQL e é
 habilitado por `IdentityAccess:BootstrapEnabled`. Ele fica desabilitado por
 padrão e deve ser ativado somente durante o provisionamento inicial. Depois
 dele, apenas `Administrator` pode conceder papéis e listar membros. O último

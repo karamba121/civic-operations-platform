@@ -21,7 +21,9 @@ demonstrativas foram removidos.
 - inclusão de comentários;
 - envio, validação, listagem e download de anexos PDF, PNG e JPEG;
 - central paginada de notificações vinculadas às solicitações;
-- administração de membros, papéis e permissões por tenant.
+- painel global para criação de tenants e administradores da plataforma;
+- criação do administrador inicial junto com o tenant;
+- administração de usuários, papéis e permissões pelo administrador do tenant.
 
 As próximas fatias estão versionadas no
 [roadmap](../docs/roadmap.md).
@@ -41,9 +43,9 @@ O ambiente local contém um usuário demonstrativo:
 
 - usuário: `admin`;
 - senha: `civic_ops_dev`;
-- organização: `Prefeitura Municipal`.
+- perfil: administrador global da plataforma.
 
-Essas credenciais existem somente no realm local versionado em
+No primeiro startup, o realm e a migration registram o mesmo usuário como administrador global. Essas credenciais existem somente no realm local versionado em
 `identity/keycloak/civicops-realm.json` e devem ser substituídas em qualquer
 ambiente compartilhado.
 

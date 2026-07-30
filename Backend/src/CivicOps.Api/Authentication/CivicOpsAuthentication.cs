@@ -12,6 +12,7 @@ internal static class CivicOpsClaimTypes
 {
     public const string TenantId = "tenant_id";
     public const string UserId = "sub";
+    public const string PlatformAdministrator = "platform_admin";
 }
 
 internal sealed class CivicOpsAuthenticationOptions
@@ -34,6 +35,8 @@ internal static class CivicOpsAuthenticationExtensions
     private const string TrustedHeadersScheme = "TrustedHeaders";
     private const string TenantHeader = "X-Tenant-Id";
     private const string UserHeader = "X-User-Id";
+    private const string PlatformAdministratorHeader =
+        "X-Platform-Administrator";
 
     public static IServiceCollection AddCivicOpsAuthentication(
         this IServiceCollection services,
@@ -121,15 +124,37 @@ internal static class CivicOpsAuthenticationExtensions
                 CivicOpsClaimTypes.TenantId);
             var userClaim = context.User.FindFirstValue(
                 CivicOpsClaimTypes.UserId);
+            var platformAdministratorClaim =
+                context.User.FindFirstValue(
+                    CivicOpsClaimTypes.PlatformAdministrator);
+            var isPlatformAdministrator = bool.TryParse(
+                platformAdministratorClaim,
+                out var parsedPlatformAdministrator) &&
+                parsedPlatformAdministrator;
 
             context.Request.Headers.Remove(TenantHeader);
             context.Request.Headers.Remove(UserHeader);
+            context.Request.Headers.Remove(
+                PlatformAdministratorHeader);
 
-            if (TryParseRequiredId(tenantClaim, out var tenantId) &&
-                TryParseRequiredId(userClaim, out var userId))
+            if (TryParseRequiredId(userClaim, out var userId) &&
+                (isPlatformAdministrator ||
+                 TryParseRequiredId(tenantClaim, out _)))
             {
-                context.Request.Headers[TenantHeader] = tenantId.ToString();
                 context.Request.Headers[UserHeader] = userId.ToString();
+
+                if (TryParseRequiredId(tenantClaim, out var tenantId))
+                {
+                    context.Request.Headers[TenantHeader] =
+                        tenantId.ToString();
+                }
+
+                if (isPlatformAdministrator)
+                {
+                    context.Request.Headers[
+                        PlatformAdministratorHeader] = "true";
+                }
+
                 await next(context);
                 return;
             }
@@ -147,7 +172,8 @@ internal static class CivicOpsAuthenticationExtensions
                 title = "Identidade incompleta",
                 status = StatusCodes.Status403Forbidden,
                 detail =
-                    "O token autenticado deve conter os claims sub e tenant_id como UUIDs válidos."
+                    "O token deve conter sub e, para usuários de tenant, " +
+                    "tenant_id como UUID válido."
             });
         });
     }
@@ -171,6 +197,10 @@ internal static class CivicOpsAuthenticationExtensions
             var claims = new List<Claim>();
             AddClaimIfValid(TenantHeader, CivicOpsClaimTypes.TenantId, claims);
             AddClaimIfValid(UserHeader, CivicOpsClaimTypes.UserId, claims);
+            AddBooleanClaimIfValid(
+                PlatformAdministratorHeader,
+                CivicOpsClaimTypes.PlatformAdministrator,
+                claims);
 
             var identity = new ClaimsIdentity(claims, Scheme.Name);
             var principal = new ClaimsPrincipal(identity);
@@ -178,6 +208,17 @@ internal static class CivicOpsAuthenticationExtensions
             return Task.FromResult(AuthenticateResult.Success(ticket));
         }
 
+        private void AddBooleanClaimIfValid(
+            string header,
+            string claimType,
+            ICollection<Claim> claims)
+        {
+            var value = Request.Headers[header].ToString();
+            if (bool.TryParse(value, out var parsed) && parsed)
+            {
+                claims.Add(new Claim(claimType, "true"));
+            }
+        }
         private void AddClaimIfValid(
             string header,
             string claimType,

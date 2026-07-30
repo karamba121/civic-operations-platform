@@ -1,0 +1,134 @@
+<section class="space-y-6">
+  <header>
+    <p class="text-sm font-medium text-brand-600">Administração do tenant</p>
+    <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">
+      Usuários e permissões
+    </h1>
+    <p class="mt-1 text-sm text-gray-500">
+      Crie logins vinculados exclusivamente a este tenant.
+    </p>
+  </header>
+
+  @if (errorMessage) {
+    <div role="alert" class="rounded-lg bg-error-50 p-4 text-sm text-error-700">
+      {{ errorMessage }}
+    </div>
+  }
+  @if (successMessage) {
+    <div role="status" class="rounded-lg bg-success-50 p-4 text-sm text-success-700">
+      {{ successMessage }}
+    </div>
+  }
+
+  <div class="grid gap-6 xl:grid-cols-[380px_1fr]">
+    <form
+      class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900"
+      (ngSubmit)="createUser()"
+    >
+      <h2 class="text-lg font-semibold">Novo usuário</h2>
+      <div class="mt-5 grid gap-4">
+        <label>
+          <span class="mb-1 block text-sm font-medium">Login</span>
+          <input
+            name="username"
+            required
+            minlength="3"
+            class="h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-950"
+            [(ngModel)]="form.username"
+          />
+        </label>
+        <label>
+          <span class="mb-1 block text-sm font-medium">Nome completo</span>
+          <input
+            name="displayName"
+            required
+            minlength="3"
+            class="h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-950"
+            [(ngModel)]="form.displayName"
+          />
+        </label>
+        <label>
+          <span class="mb-1 block text-sm font-medium">E-mail</span>
+          <input
+            name="email"
+            type="email"
+            required
+            class="h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-950"
+            [(ngModel)]="form.email"
+          />
+        </label>
+        <label>
+          <span class="mb-1 block text-sm font-medium">Senha inicial</span>
+          <input
+            name="password"
+            type="password"
+            required
+            minlength="8"
+            class="h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-950"
+            [(ngModel)]="form.password"
+          />
+        </label>
+        <label>
+          <span class="mb-1 block text-sm font-medium">Papel</span>
+          <select
+            name="role"
+            class="h-11 w-full rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-950"
+            [(ngModel)]="form.role"
+          >
+            <option value="Reader">Leitor</option>
+            <option value="Operator">Operador</option>
+            <option value="Administrator">Administrador</option>
+          </select>
+        </label>
+      </div>
+      <button
+        type="submit"
+        class="mt-5 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+        [disabled]="saving"
+      >
+        {{ saving ? 'Criando...' : 'Criar usuário' }}
+      </button>
+    </form>
+
+    <div
+      class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900"
+    >
+      <h2 class="text-lg font-semibold">Usuários do tenant</h2>
+      @if (loading) {
+        <p class="mt-4 text-sm text-gray-500">Carregando...</p>
+      } @else if (!users.length) {
+        <p class="mt-4 text-sm text-gray-500">
+          Nenhum usuário gerenciado cadastrado.
+        </p>
+      } @else {
+        <div class="mt-4 overflow-x-auto">
+          <table class="min-w-full text-left text-sm">
+            <thead class="border-b border-gray-200 text-xs uppercase text-gray-500">
+              <tr>
+                <th class="px-3 py-3">Usuário</th>
+                <th class="px-3 py-3">Login</th>
+                <th class="px-3 py-3">Papel</th>
+                <th class="px-3 py-3">Situação</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+              @for (user of users; track user.id) {
+                <tr>
+                  <td class="px-3 py-3">
+                    <p class="font-medium">{{ user.displayName }}</p>
+                    <p class="text-xs text-gray-500">{{ user.email }}</p>
+                  </td>
+                  <td class="px-3 py-3">{{ user.username }}</td>
+                  <td class="px-3 py-3">{{ user.role }}</td>
+                  <td class="px-3 py-3">
+                    {{ user.isActive ? 'Ativo' : 'Inativo' }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+</section>
