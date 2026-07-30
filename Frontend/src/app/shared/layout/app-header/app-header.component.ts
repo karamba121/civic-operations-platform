@@ -1,7 +1,7 @@
 import { AsyncPipe, NgClass } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { ActorContextService } from '../../../core/context/actor-context.service';
-import { ThemeToggleButtonComponent } from '../../components/common/theme-toggle/theme-toggle-button.component';
+import { ThemeToggleButtonComponent } from '../../ui/theme-toggle/theme-toggle-button.component';
 import { SidebarService } from '../../services/sidebar.service';
 
 @Component({

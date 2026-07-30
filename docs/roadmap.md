@@ -97,11 +97,11 @@ O TailAdmin fornece somente a base visual. Cada item abaixo deve entregar uma
 fatia navegável, integrada à API e coberta por testes antes de ser marcado como
 concluído.
 
-- [ ] adaptar o shell do TailAdmin ao domínio cívico, removendo rotas, páginas,
+- [x] adaptar o shell do TailAdmin ao domínio cívico, removendo rotas, páginas,
   dados demonstrativos e dependências sem uso;
-- [ ] criar configuração por ambiente, proxy `/api`, cliente HTTP tipado,
+- [x] criar configuração por ambiente, proxy `/api`, cliente HTTP tipado,
   tratamento de Problem Details e contexto provisório de tenant e usuário;
-- [ ] implementar dashboard operacional com totais, prazos, itens recentes,
+- [x] implementar dashboard operacional com totais, prazos, itens recentes,
   estados de carregamento, vazio, erro e atualização;
 - [ ] implementar listagem de solicitações com busca, filtros, paginação e
   navegação para o detalhe;
@@ -123,6 +123,11 @@ concluído.
 **Evidência:** fluxo completo executável pelo navegador e pela API, testes
 end-to-end contra a composição Docker, nenhum dado demonstrativo no bundle,
 auditoria das operações sensíveis e relatório de acessibilidade e tamanho.
+
+**Evidência atual do frontend:** shell e dashboard compilados por instalação
+limpa na imagem Docker, bundle inicial de `354,66 kB` e quatro testes Angular
+cobrindo o cliente HTTP, o contexto provisório, Problem Details e os estados
+vazio e de erro do dashboard.
 
 ## Fora do escopo inicial
 

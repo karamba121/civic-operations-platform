@@ -1,8 +1,20 @@
 # Frontend
 
-Painel administrativo Angular da Civic Operations Platform, usando TailAdmin
-como base visual. A implementação funcional será feita em fatias verticais
-versionadas no [roadmap](../docs/roadmap.md).
+Painel administrativo Angular da Civic Operations Platform. O TailAdmin é
+mantido apenas como fundação visual; rotas, componentes, dados e dependências
+demonstrativas foram removidos.
+
+## Funcionalidades atuais
+
+- shell administrativo adaptado ao domínio cívico;
+- configuração de desenvolvimento e produção;
+- proxy local de `/api` para a API;
+- contexto provisório de tenant e usuário;
+- cliente HTTP tipado com tratamento de Problem Details;
+- dashboard operacional de solicitações.
+
+As próximas fatias estão versionadas no
+[roadmap](../docs/roadmap.md).
 
 ## Executar pela composição
 
@@ -13,8 +25,7 @@ docker compose up -d --build --wait
 ```
 
 O frontend estará em `http://localhost:4200`. O Nginx serve a aplicação e
-encaminha requisições iniciadas por `/api` para o serviço `api`, evitando
-configuração CORS diferente entre desenvolvimento e a imagem local.
+encaminha `/api` para o serviço da API.
 
 ## Desenvolvimento
 
@@ -23,67 +34,12 @@ npm ci
 npm start
 ```
 
-O servidor de desenvolvimento fica em `http://localhost:4200`. Até a camada
-HTTP da aplicação ser implementada, o conteúdo continua sendo o template
-TailAdmin e não representa uma integração concluída com a API.
+O servidor de desenvolvimento usa `proxy.conf.json` e fica disponível em
+`http://localhost:4200`.
 
-## Base visual
+## Validação
 
-### Angular TailAdmin Pro
-
-TailAdmin is a premium Angular administrative dashboard template featuring a modern design, multiple layouts, and specialized dashboards for various business needs.
-
-### Development server
-
-To start a local development server, run:
-
-```bash
-npm start
+```powershell
+npm run build
+npm test -- --watch=false --browsers=ChromeHeadless
 ```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-### Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-### Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory.
-
-### Changelog
-
-### v1.1.1 (2026-05-23)
-- **New Feature**: Added **AI Settings** page to configure models, keys, and token limits.
-- **New Feature**: Added **Maps** page with MapLibre GL, Leaflet, and iframe styles.
-- **New Feature**: Added **Vector Maps** page powered by AmCharts 5 geodata (World & USA).
-- **New Feature**: Added **Radar Charts** page with 3 unique formats.
-- **New Feature**: Added **Radial Progress Charts** page featuring 4 custom layout templates.
-- **Enhancement**: Introduced new **Bar Charts Five & Six** and **Pie Charts Four & Five**.
-- **Bug Fix**: Resolved dropdown menu z-index stacking context overlapping issue in AI Chat history.
-- **Enhancement**: Resolved spacing gaps under map card containers.
-
-### v1.1.0 (2026-04-28)
-- **New Feature**: Added **AI Dashboard** with token usage and revenue tracking.
-- **New Feature**: Added **Sales Dashboard** with retention and multi-channel analytics.
-- **New Feature**: Added **Finance Dashboard** with cashflow and balance management.
-- **New Feature**: Introduced **6 New Layout variations** for improved UI flexibility.
-- **Enhancement**: Integrated **Advanced Data Visualization** with 7+ new chart types.
-
-### v1.0.3 (2026-03-15)
-- **Upgrade**: update angular dependencies and remove commented code.
-
-### v1.0.2 (2025-12-30)
-- **Upgrade**: Successfully upgraded project to **Angular 21**.
-- **New Feature**: Implementing **Dynamic API Keys** management.
-- **Enhancement**: Integrated **Flatpickr** date range picker.

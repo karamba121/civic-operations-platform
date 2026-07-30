@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "ng-tailadmin": {
+    "civic-operations-frontend": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -13,17 +13,11 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
-            "outputPath": "dist/ng-tailadmin",
+            "outputPath": "dist/civic-operations-frontend",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
               "zone.js"
-            ],
-            "allowedCommonJsDependencies": [
-               "prismjs",
-               "polylabel",
-               "leaflet",
-               "maplibre-gl"
             ],
             "tsConfig": "tsconfig.app.json",
             "assets": [
@@ -75,10 +69,10 @@
           },
           "configurations": {
             "production": {
-              "buildTarget": "ng-tailadmin:build:production"
+              "buildTarget": "civic-operations-frontend:build:production"
             },
             "development": {
-              "buildTarget": "ng-tailadmin:build:development"
+              "buildTarget": "civic-operations-frontend:build:development"
             }
           },
           "defaultConfiguration": "development"
