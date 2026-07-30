@@ -8,10 +8,8 @@ import {
 } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { civicOpsContextInterceptor } from '../../../core/http/civic-ops-context.interceptor';
-import {
-  CivicOpsApiError,
-  RequestDashboardApi,
-} from './request-dashboard.api';
+import { CivicOpsApiError } from '../../../core/http/civic-ops-api-error';
+import { RequestDashboardApi } from './request-dashboard.api';
 import { RequestDashboard } from './request-dashboard.model';
 
 describe(RequestDashboardApi.name, () => {

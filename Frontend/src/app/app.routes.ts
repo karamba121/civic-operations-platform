@@ -15,6 +15,22 @@ export const routes: Routes = [
           ),
         title: 'Visão geral | CivicOps',
       },
+      {
+        path: 'solicitacoes',
+        loadComponent: () =>
+          import('./features/requests/requests-list.component').then(
+            (module) => module.RequestsListComponent,
+          ),
+        title: 'Solicitações | CivicOps',
+      },
+      {
+        path: 'solicitacoes/:id',
+        loadComponent: () =>
+          import('./features/requests/request-details.component').then(
+            (module) => module.RequestDetailsComponent,
+          ),
+        title: 'Detalhe da solicitação | CivicOps',
+      },
     ],
   },
   {

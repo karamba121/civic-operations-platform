@@ -1,0 +1,284 @@
+<section aria-labelledby="requests-title" class="space-y-6">
+  <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="mb-1 text-sm font-medium text-brand-600 dark:text-brand-400">
+        Atendimento municipal
+      </p>
+      <h1
+        id="requests-title"
+        class="text-2xl font-semibold text-gray-900 dark:text-white"
+      >
+        Solicitações
+      </h1>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        Consulte protocolos e acompanhe o andamento dos atendimentos.
+      </p>
+    </div>
+  </header>
+
+  <div
+    class="rounded-2xl border border-gray-200 bg-white p-4 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] sm:p-5"
+  >
+    <div class="grid gap-3 lg:grid-cols-[minmax(280px,1fr)_220px_140px_auto]">
+      <label class="relative block">
+        <span class="sr-only">Buscar solicitações</span>
+        <svg
+          aria-hidden="true"
+          class="absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-gray-400"
+          viewBox="0 0 20 20"
+          fill="none"
+        >
+          <path
+            d="m14.5 14.5 3 3m-1.75-8.25a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+        </svg>
+        <input
+          type="search"
+          [value]="search"
+          (input)="onSearchInput($event)"
+          placeholder="Buscar por protocolo, título ou descrição"
+          class="h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-11 pr-4 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-brand-400 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:text-white/90"
+        />
+      </label>
+
+      <label>
+        <span class="sr-only">Filtrar por situação</span>
+        <select
+          [value]="status"
+          (change)="onStatusChange($event)"
+          class="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition focus:border-brand-400 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
+        >
+          <option value="">Todas as situações</option>
+          @for (item of statuses; track item) {
+            <option [value]="item">{{ statusLabels[item] }}</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        <span class="sr-only">Itens por página</span>
+        <select
+          [value]="pageSize"
+          (change)="onPageSizeChange($event)"
+          class="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition focus:border-brand-400 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
+        >
+          @for (option of pageSizeOptions; track option) {
+            <option [value]="option">{{ option }} por página</option>
+          }
+        </select>
+      </label>
+
+      @if (hasFilters) {
+        <button
+          type="button"
+          (click)="clearFilters()"
+          class="h-11 rounded-lg px-4 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
+        >
+          Limpar filtros
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (errorMessage) {
+    <div
+      role="alert"
+      class="flex flex-col gap-4 rounded-xl border border-error-200 bg-error-50 p-5 sm:flex-row sm:items-center sm:justify-between dark:border-error-500/30 dark:bg-error-500/10"
+    >
+      <div>
+        <p class="font-medium text-error-700 dark:text-error-400">
+          Não foi possível carregar as solicitações
+        </p>
+        <p class="mt-1 text-sm text-error-600 dark:text-error-300">
+          {{ errorMessage }}
+        </p>
+      </div>
+      <button
+        type="button"
+        (click)="retry()"
+        class="text-sm font-medium text-error-700 underline underline-offset-4 dark:text-error-300"
+      >
+        Tentar novamente
+      </button>
+    </div>
+  }
+
+  @if (loading && !result) {
+    <div
+      aria-label="Carregando solicitações"
+      class="space-y-3 rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]"
+    >
+      @for (item of [1, 2, 3, 4, 5]; track item) {
+        <div class="h-14 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800"></div>
+      }
+    </div>
+  } @else if (result) {
+    <section
+      aria-label="Resultados da busca"
+      class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]"
+    >
+      @if (result.items.length === 0) {
+        <div class="px-6 py-16 text-center">
+          <div
+            class="mx-auto flex size-12 items-center justify-center rounded-full bg-brand-50 text-brand-500 dark:bg-brand-500/15"
+          >
+            <svg
+              aria-hidden="true"
+              class="size-6"
+              viewBox="0 0 24 24"
+              fill="none"
+            >
+              <path
+                d="M7 3h10v4H7V3ZM5 5H4v16h16V5h-1M8 12h8M8 16h5"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+          <p class="mt-4 font-medium text-gray-800 dark:text-white/90">
+            Nenhuma solicitação encontrada
+          </p>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            @if (hasFilters) {
+              Ajuste os filtros para ampliar a busca.
+            } @else {
+              Os novos protocolos aparecerão aqui.
+            }
+          </p>
+          @if (hasFilters) {
+            <button
+              type="button"
+              (click)="clearFilters()"
+              class="mt-4 text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400"
+            >
+              Limpar filtros
+            </button>
+          }
+        </div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="min-w-full">
+            <thead>
+              <tr
+                class="border-b border-gray-100 bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-400"
+              >
+                <th class="px-5 py-3 font-medium sm:px-6">Protocolo</th>
+                <th class="px-5 py-3 font-medium">Solicitação</th>
+                <th class="px-5 py-3 font-medium">Situação</th>
+                <th class="hidden px-5 py-3 font-medium md:table-cell">Prazo</th>
+                <th class="hidden px-5 py-3 font-medium lg:table-cell">
+                  Responsável
+                </th>
+                <th class="px-5 py-3"><span class="sr-only">Ações</span></th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+              @for (request of result.items; track request.id) {
+                <tr class="text-sm text-gray-700 dark:text-gray-300">
+                  <td
+                    class="whitespace-nowrap px-5 py-4 font-semibold text-gray-900 dark:text-white sm:px-6"
+                  >
+                    {{ request.protocolNumber }}
+                  </td>
+                  <td class="min-w-60 px-5 py-4">
+                    <a
+                      [routerLink]="['/solicitacoes', request.id]"
+                      class="line-clamp-2 font-medium text-gray-800 transition hover:text-brand-600 dark:text-white/90 dark:hover:text-brand-400"
+                    >
+                      {{ request.title }}
+                    </a>
+                    <p class="mt-1 text-xs text-gray-500">
+                      Criada em
+                      {{ request.createdAtUtc | date: "dd/MM/yyyy, HH:mm" }}
+                    </p>
+                  </td>
+                  <td class="whitespace-nowrap px-5 py-4">
+                    <span
+                      class="rounded-full px-2.5 py-1 text-xs font-medium"
+                      [class]="statusClasses(request.status)"
+                    >
+                      {{ statusLabels[request.status] }}
+                    </span>
+                  </td>
+                  <td class="hidden whitespace-nowrap px-5 py-4 md:table-cell">
+                    {{
+                      request.dueDateUtc
+                        ? (request.dueDateUtc | date: "dd/MM/yyyy")
+                        : "Sem prazo"
+                    }}
+                  </td>
+                  <td class="hidden whitespace-nowrap px-5 py-4 lg:table-cell">
+                    {{
+                      request.responsibleUserId
+                        ? "Atribuída"
+                        : "Não atribuído"
+                    }}
+                  </td>
+                  <td class="px-5 py-4 text-right">
+                    <a
+                      [routerLink]="['/solicitacoes', request.id]"
+                      class="inline-flex size-9 items-center justify-center rounded-lg text-gray-500 transition hover:bg-brand-50 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-brand-500/10 dark:hover:text-brand-400"
+                      [attr.aria-label]="
+                        'Abrir solicitação ' + request.protocolNumber
+                      "
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="size-5"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                      >
+                        <path
+                          d="m7.5 4 6 6-6 6"
+                          stroke="currentColor"
+                          stroke-width="1.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    </a>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <footer
+        class="flex flex-col gap-3 border-t border-gray-100 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between sm:px-6"
+      >
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Exibindo {{ rangeStart | number }}–{{ rangeEnd | number }} de
+          {{ result.totalItems | number }}
+        </p>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            (click)="goToPage(page - 1)"
+            [disabled]="page <= 1"
+            class="inline-flex h-9 items-center rounded-lg border border-gray-300 px-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5"
+          >
+            Anterior
+          </button>
+          <span class="px-2 text-sm text-gray-600 dark:text-gray-400">
+            Página {{ result.page }} de {{ result.totalPages || 1 }}
+          </span>
+          <button
+            type="button"
+            (click)="goToPage(page + 1)"
+            [disabled]="page >= result.totalPages"
+            class="inline-flex h-9 items-center rounded-lg border border-gray-300 px-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5"
+          >
+            Próxima
+          </button>
+        </div>
+      </footer>
+    </section>
+  }
+</section>

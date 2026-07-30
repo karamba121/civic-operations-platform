@@ -103,7 +103,7 @@ concluído.
   tratamento de Problem Details e contexto provisório de tenant e usuário;
 - [x] implementar dashboard operacional com totais, prazos, itens recentes,
   estados de carregamento, vazio, erro e atualização;
-- [ ] implementar listagem de solicitações com busca, filtros, paginação e
+- [x] implementar listagem de solicitações com busca, filtros, paginação e
   navegação para o detalhe;
 - [ ] implementar criação idempotente e detalhe da solicitação com protocolo,
   situação, responsável, prazo, comentários e auditoria;
@@ -124,10 +124,11 @@ concluído.
 end-to-end contra a composição Docker, nenhum dado demonstrativo no bundle,
 auditoria das operações sensíveis e relatório de acessibilidade e tamanho.
 
-**Evidência atual do frontend:** shell e dashboard compilados por instalação
-limpa na imagem Docker, bundle inicial de `354,66 kB` e quatro testes Angular
-cobrindo o cliente HTTP, o contexto provisório, Problem Details e os estados
-vazio e de erro do dashboard.
+**Evidência atual do frontend:** shell, dashboard, listagem e entrada do detalhe
+compilados por instalação limpa na imagem Docker, bundle inicial de `362,18 kB`
+e nove testes Angular cobrindo clientes HTTP, contexto provisório, Problem
+Details, estados do dashboard, busca com debounce, filtros sincronizados com a
+URL e navegação para a solicitação.
 
 ## Fora do escopo inicial
 

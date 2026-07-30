@@ -2,10 +2,8 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
-import {
-  CivicOpsApiError,
-  RequestDashboardApi,
-} from './data-access/request-dashboard.api';
+import { CivicOpsApiError } from '../../core/http/civic-ops-api-error';
+import { RequestDashboardApi } from './data-access/request-dashboard.api';
 import {
   RequestDashboard,
   RequestStatus,

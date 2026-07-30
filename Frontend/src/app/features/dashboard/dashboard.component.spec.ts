@@ -1,9 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
-import {
-  CivicOpsApiError,
-  RequestDashboardApi,
-} from './data-access/request-dashboard.api';
+import { CivicOpsApiError } from '../../core/http/civic-ops-api-error';
+import { RequestDashboardApi } from './data-access/request-dashboard.api';
 import { RequestDashboard } from './data-access/request-dashboard.model';
 import { DashboardComponent } from './dashboard.component';
 
