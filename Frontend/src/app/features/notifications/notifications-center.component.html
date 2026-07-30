@@ -1,0 +1,141 @@
+<section aria-labelledby="notifications-title" class="space-y-6">
+  <header>
+    <p class="text-sm font-medium text-brand-600 dark:text-brand-400">
+      Acompanhamento
+    </p>
+    <h1
+      id="notifications-title"
+      class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white"
+    >
+      Central de notificações
+    </h1>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      Atualizações destinadas ao usuário atual neste tenant.
+    </p>
+  </header>
+
+  <div
+    class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]"
+  >
+    @if (loading && !result) {
+      <div
+        aria-label="Carregando notificações"
+        class="space-y-3 p-5 sm:p-6"
+      >
+        @for (item of [1, 2, 3, 4]; track item) {
+          <div
+            class="h-24 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800"
+          ></div>
+        }
+      </div>
+    } @else if (errorMessage) {
+      <div role="alert" class="p-6 text-center">
+        <p class="font-medium text-error-700 dark:text-error-400">
+          Não foi possível abrir as notificações
+        </p>
+        <p class="mt-1 text-sm text-error-600 dark:text-error-300">
+          {{ errorMessage }}
+        </p>
+        <button
+          type="button"
+          (click)="retry()"
+          class="mt-4 text-sm font-medium text-brand-600 dark:text-brand-400"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    } @else if (result) {
+      @if (result.items.length === 0) {
+        <div class="px-6 py-16 text-center">
+          <span
+            class="mx-auto flex size-12 items-center justify-center rounded-full bg-brand-50 text-brand-600 dark:bg-brand-500/15 dark:text-brand-300"
+          >
+            <svg
+              aria-hidden="true"
+              class="size-6"
+              viewBox="0 0 24 24"
+              fill="none"
+            >
+              <path
+                d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </span>
+          <p class="mt-4 font-medium text-gray-800 dark:text-white/90">
+            Nenhuma notificação
+          </p>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Novas atribuições aparecerão aqui.
+          </p>
+        </div>
+      } @else {
+        <ol class="divide-y divide-gray-100 dark:divide-gray-800">
+          @for (notification of result.items; track notification.id) {
+            <li class="p-5 sm:p-6">
+              <div class="flex flex-col gap-3 sm:flex-row sm:justify-between">
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span
+                      class="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-700 dark:bg-brand-500/15 dark:text-brand-300"
+                    >
+                      {{ typeLabel(notification.type) }}
+                    </span>
+                    <span class="text-xs text-gray-400">
+                      {{ notification.createdAtUtc | date: "dd/MM/yyyy, HH:mm" }}
+                    </span>
+                  </div>
+                  <h2
+                    class="mt-3 font-semibold text-gray-900 dark:text-white"
+                  >
+                    {{ notification.title }}
+                  </h2>
+                  <p
+                    class="mt-1 text-sm leading-6 text-gray-600 dark:text-gray-300"
+                  >
+                    {{ notification.content }}
+                  </p>
+                </div>
+                <a
+                  [routerLink]="['/solicitacoes', notification.requestId]"
+                  class="inline-flex h-10 shrink-0 items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5"
+                >
+                  Ver {{ notification.protocolNumber }}
+                </a>
+              </div>
+            </li>
+          }
+        </ol>
+      }
+
+      <footer
+        class="flex flex-col gap-3 border-t border-gray-100 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between sm:px-6"
+      >
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          {{ result.totalItems | number }} notificação(ões)
+        </p>
+        <div class="flex gap-2">
+          <button
+            type="button"
+            (click)="goToPage(result.page - 1)"
+            [disabled]="result.page <= 1 || loading"
+            class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-600 disabled:opacity-40 dark:border-gray-700 dark:text-gray-400"
+          >
+            Anterior
+          </button>
+          <button
+            type="button"
+            (click)="goToPage(result.page + 1)"
+            [disabled]="result.page >= result.totalPages || loading"
+            class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-600 disabled:opacity-40 dark:border-gray-700 dark:text-gray-400"
+          >
+            Próxima
+          </button>
+        </div>
+      </footer>
+    }
+  </div>
+</section>

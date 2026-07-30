@@ -18,7 +18,9 @@ demonstrativas foram removidos.
 - atribuição de responsável, transições de situação e gestão de prazo;
 - recuperação orientada em conflitos de atualização simultânea;
 - inclusão de comentários;
-- envio, validação, listagem e download de anexos PDF, PNG e JPEG.
+- envio, validação, listagem e download de anexos PDF, PNG e JPEG;
+- central paginada de notificações vinculadas às solicitações;
+- administração de membros, papéis e permissões por tenant.
 
 As próximas fatias estão versionadas no
 [roadmap](../docs/roadmap.md).

@@ -39,6 +39,22 @@ export const routes: Routes = [
           ),
         title: 'Detalhe da solicitação | CivicOps',
       },
+      {
+        path: 'notificacoes',
+        loadComponent: () =>
+          import(
+            './features/notifications/notifications-center.component'
+          ).then((module) => module.NotificationsCenterComponent),
+        title: 'Notificações | CivicOps',
+      },
+      {
+        path: 'administracao/membros',
+        loadComponent: () =>
+          import('./features/access/members-admin.component').then(
+            (module) => module.MembersAdminComponent,
+          ),
+        title: 'Membros e permissões | CivicOps',
+      },
     ],
   },
   {

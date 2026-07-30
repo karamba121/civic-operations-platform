@@ -111,7 +111,7 @@ concluído.
   tratamento de concorrência otimista;
 - [x] implementar comentários e anexos, incluindo upload, validações, listagem,
   download e respostas `403`, `413` e `415`;
-- [ ] implementar central de notificações e administração de membros, papéis e
+- [x] implementar central de notificações e administração de membros, papéis e
   permissões por tenant;
 - [ ] substituir os cabeçalhos provisórios por identidade autenticada e obter
   tenant e usuário de claims confiáveis;
@@ -124,14 +124,14 @@ concluído.
 end-to-end contra a composição Docker, nenhum dado demonstrativo no bundle,
 auditoria das operações sensíveis e relatório de acessibilidade e tamanho.
 
-**Evidência atual do frontend:** shell, dashboard, listagem, criação idempotente,
-detalhe, gestão do atendimento, comentários e anexos compilados pela imagem
-Docker, bundle inicial de `367,57 kB` e vinte e cinco testes Angular cobrindo
-clientes HTTP, contexto provisório, Problem Details, estados do dashboard,
-busca com debounce, filtros sincronizados com a URL, reutilização da chave
-idempotente, validações, carregamento independente, encadeamento de versões,
-conflitos de concorrência, multipart, download e respostas `403`, `413` e
-`415`.
+**Evidência atual do frontend:** shell, dashboard, solicitações, gestão do
+atendimento, comentários, anexos, notificações e administração de membros
+compilados pela imagem Docker, bundle inicial de `369,98 kB` e trinta e dois
+testes Angular cobrindo clientes HTTP, contexto provisório, Problem Details,
+estados de interface, filtros sincronizados com a URL, idempotência, validações,
+encadeamento de versões, conflitos de concorrência, multipart, download,
+respostas negativas, paginação de notificações e concessão de papéis com suas
+permissões.
 
 ## Fora do escopo inicial
 

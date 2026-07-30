@@ -133,6 +133,70 @@
         <span class="menu-item-text">Solicitações</span>
       }
     </a>
+
+    <a
+      routerLink="/notificacoes"
+      routerLinkActive="menu-item-active"
+      class="menu-item menu-item-inactive group mt-2"
+      (click)="closeOnMobile()"
+      aria-label="Notificações"
+    >
+      <span class="menu-item-icon-size">
+        <svg
+          aria-hidden="true"
+          class="size-6"
+          viewBox="0 0 24 24"
+          fill="none"
+        >
+          <path
+            d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </span>
+      @if (
+        (isExpanded$ | async) ||
+        (isHovered$ | async) ||
+        (isMobileOpen$ | async)
+      ) {
+        <span class="menu-item-text">Notificações</span>
+      }
+    </a>
+
+    <a
+      routerLink="/administracao/membros"
+      routerLinkActive="menu-item-active"
+      class="menu-item menu-item-inactive group mt-2"
+      (click)="closeOnMobile()"
+      aria-label="Membros e permissões"
+    >
+      <span class="menu-item-icon-size">
+        <svg
+          aria-hidden="true"
+          class="size-6"
+          viewBox="0 0 24 24"
+          fill="none"
+        >
+          <path
+            d="M16 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2M9.5 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM17 11l2 2 3-4"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </span>
+      @if (
+        (isExpanded$ | async) ||
+        (isHovered$ | async) ||
+        (isMobileOpen$ | async)
+      ) {
+        <span class="menu-item-text">Membros e permissões</span>
+      }
+    </a>
   </nav>
 
   @if (
