@@ -1,5 +1,12 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { DatePipe, DecimalPipe, DOCUMENT } from '@angular/common';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  inject,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { finalize, Observable } from 'rxjs';
@@ -7,6 +14,7 @@ import { CivicOpsApiError } from '../../core/http/civic-ops-api-error';
 import {
   PagedRequestAudit,
   PagedRequestComments,
+  RequestAttachment,
   RequestAuditRecord,
   RequestDetails,
   RequestMutationResult,
@@ -25,16 +33,32 @@ export class RequestDetailsComponent implements OnInit {
   private readonly api = inject(RequestsApi);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly document = inject(DOCUMENT);
+
+  @ViewChild('attachmentInput')
+  private attachmentInput?: ElementRef<HTMLInputElement>;
 
   request: RequestDetails | null = null;
   comments: PagedRequestComments | null = null;
+  attachments: RequestAttachment[] | null = null;
   audit: PagedRequestAudit | null = null;
   loading = true;
   commentsLoading = true;
+  attachmentsLoading = true;
   auditLoading = true;
   errorMessage = '';
   commentsError = '';
+  attachmentsError = '';
   auditError = '';
+  commentContent = '';
+  commentError = '';
+  commentSuccess = '';
+  submittingComment = false;
+  selectedAttachment: File | null = null;
+  attachmentUploadError = '';
+  attachmentSuccess = '';
+  uploadingAttachment = false;
+  downloadingAttachmentId: string | null = null;
   responsibleUserId = '';
   selectedStatus: RequestStatus | '' = '';
   dueDateLocal = '';
@@ -73,6 +97,7 @@ export class RequestDetailsComponent implements OnInit {
   ngOnInit(): void {
     this.loadDetails();
     this.loadComments(1);
+    this.loadAttachments();
     this.loadAudit(1);
   }
 
@@ -176,6 +201,56 @@ export class RequestDetailsComponent implements OnInit {
     );
   }
 
+  onCommentInput(event: Event): void {
+    this.commentContent = (event.target as HTMLTextAreaElement).value;
+    this.commentError = '';
+    this.commentSuccess = '';
+  }
+
+  addComment(event: Event): void {
+    event.preventDefault();
+    const content = this.commentContent.trim();
+
+    if (!content) {
+      this.commentError = 'Escreva um comentário antes de enviar.';
+      return;
+    }
+
+    if (content.length > 2000) {
+      this.commentError = 'O comentário deve ter no máximo 2.000 caracteres.';
+      return;
+    }
+
+    const requestId = this.requestId;
+    if (!requestId) {
+      return;
+    }
+
+    this.submittingComment = true;
+    this.commentError = '';
+    this.commentSuccess = '';
+    this.api
+      .addComment(requestId, content)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => (this.submittingComment = false)),
+      )
+      .subscribe({
+        next: () => {
+          this.commentContent = '';
+          this.commentSuccess = 'Comentário adicionado com sucesso.';
+          this.loadComments(1);
+          this.loadAudit(1);
+        },
+        error: (error: unknown) => {
+          this.commentError = this.errorText(
+            error,
+            'Não foi possível adicionar o comentário.',
+          );
+        },
+      });
+  }
+
   loadComments(page: number): void {
     const requestId = this.requestId;
     if (!requestId) {
@@ -199,6 +274,138 @@ export class RequestDetailsComponent implements OnInit {
           );
         },
       });
+  }
+
+  onAttachmentSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.selectedAttachment = input.files?.item(0) ?? null;
+    this.attachmentUploadError = '';
+    this.attachmentSuccess = '';
+
+    if (
+      this.selectedAttachment &&
+      !this.validateAttachment(this.selectedAttachment)
+    ) {
+      this.selectedAttachment = null;
+      input.value = '';
+    }
+  }
+
+  uploadAttachment(event: Event): void {
+    event.preventDefault();
+    const requestId = this.requestId;
+    const file = this.selectedAttachment;
+    if (!requestId || !file) {
+      this.attachmentUploadError =
+        'Selecione um arquivo PDF, PNG ou JPEG para enviar.';
+      return;
+    }
+
+    this.uploadingAttachment = true;
+    this.attachmentUploadError = '';
+    this.attachmentSuccess = '';
+    this.api
+      .uploadAttachment(requestId, file)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => (this.uploadingAttachment = false)),
+      )
+      .subscribe({
+        next: (attachment) => {
+          this.attachments = [
+            attachment,
+            ...(this.attachments ?? []).filter(
+              (current) => current.id !== attachment.id,
+            ),
+          ];
+          this.selectedAttachment = null;
+          if (this.attachmentInput) {
+            this.attachmentInput.nativeElement.value = '';
+          }
+          this.attachmentSuccess = 'Anexo enviado com sucesso.';
+          this.loadAudit(1);
+        },
+        error: (error: unknown) => {
+          this.attachmentUploadError = this.attachmentErrorText(
+            error,
+            'Não foi possível enviar o anexo.',
+          );
+        },
+      });
+  }
+
+  loadAttachments(): void {
+    const requestId = this.requestId;
+    if (!requestId) {
+      return;
+    }
+
+    this.attachmentsLoading = true;
+    this.attachmentsError = '';
+    this.api
+      .listAttachments(requestId)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => (this.attachmentsLoading = false)),
+      )
+      .subscribe({
+        next: (attachments) => (this.attachments = attachments),
+        error: (error: unknown) => {
+          this.attachments = null;
+          this.attachmentsError = this.attachmentErrorText(
+            error,
+            'Não foi possível carregar os anexos.',
+          );
+        },
+      });
+  }
+
+  downloadAttachment(attachment: RequestAttachment): void {
+    const requestId = this.requestId;
+    if (!requestId || this.downloadingAttachmentId) {
+      return;
+    }
+
+    this.downloadingAttachmentId = attachment.id;
+    this.attachmentsError = '';
+    this.api
+      .downloadAttachment(requestId, attachment.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => (this.downloadingAttachmentId = null)),
+      )
+      .subscribe({
+        next: (content) => {
+          const objectUrl = URL.createObjectURL(content);
+          const link = this.document.createElement('a');
+          link.href = objectUrl;
+          link.download = attachment.fileName;
+          link.style.display = 'none';
+          this.document.body.appendChild(link);
+          link.click();
+          link.remove();
+          URL.revokeObjectURL(objectUrl);
+          this.loadAudit(1);
+        },
+        error: (error: unknown) => {
+          this.attachmentsError = this.attachmentErrorText(
+            error,
+            'Não foi possível baixar o anexo.',
+          );
+        },
+      });
+  }
+
+  formatFileSize(sizeBytes: number): string {
+    if (sizeBytes < 1024) {
+      return `${sizeBytes} B`;
+    }
+
+    if (sizeBytes < 1024 * 1024) {
+      return `${(sizeBytes / 1024).toFixed(1)} KB`;
+    }
+
+    return `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 
   loadAudit(page: number): void {
@@ -404,6 +611,53 @@ export class RequestDetailsComponent implements OnInit {
         value,
       ) && value !== '00000000-0000-0000-0000-000000000000'
     );
+  }
+
+  private validateAttachment(file: File): boolean {
+    const maximumSizeBytes = 25 * 1024 * 1024;
+    if (file.size > maximumSizeBytes) {
+      this.attachmentUploadError = 'O arquivo deve ter no máximo 25 MB.';
+      return false;
+    }
+
+    if (file.name.length > 255) {
+      this.attachmentUploadError =
+        'O nome do arquivo deve ter no máximo 255 caracteres.';
+      return false;
+    }
+
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    const acceptedTypes: Record<string, string[]> = {
+      pdf: ['application/pdf'],
+      png: ['image/png'],
+      jpg: ['image/jpeg'],
+      jpeg: ['image/jpeg'],
+    };
+
+    if (!extension || !acceptedTypes[extension]?.includes(file.type)) {
+      this.attachmentUploadError =
+        'Formato não permitido. Selecione um arquivo PDF, PNG ou JPEG válido.';
+      return false;
+    }
+
+    return true;
+  }
+
+  private attachmentErrorText(error: unknown, fallback: string): string {
+    if (!(error instanceof CivicOpsApiError)) {
+      return fallback;
+    }
+
+    switch (error.status) {
+      case 403:
+        return 'Você não tem permissão para acessar os anexos desta solicitação.';
+      case 413:
+        return 'O arquivo excede o limite de 25 MB.';
+      case 415:
+        return 'Formato não permitido. Envie apenas arquivos PDF, PNG ou JPEG válidos.';
+      default:
+        return error.message;
+    }
   }
 
   private setMutationError(kind: MutationKind, message: string): void {

@@ -196,4 +196,67 @@ describe(RequestsApi.name, () => {
       totalPages: 0,
     });
   });
+
+  it('adds a comment to a request', () => {
+    api.addComment('request-id', 'Equipe acionada.').subscribe();
+
+    const request = http.expectOne(
+      '/api/v1/requests/request-id/comments',
+    );
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({ content: 'Equipe acionada.' });
+    request.flush({
+      id: 'comment-id',
+      authorUserId: '33333333-3333-3333-3333-333333333333',
+      content: 'Equipe acionada.',
+      createdAtUtc: '2026-07-30T01:00:00Z',
+    });
+  });
+
+  it('lists, uploads and downloads request attachments', () => {
+    const file = new File(['%PDF-1.7'], 'evidence.pdf', {
+      type: 'application/pdf',
+    });
+
+    api.listAttachments('request-id').subscribe();
+    api.uploadAttachment('request-id', file).subscribe();
+    api.downloadAttachment('request-id', 'attachment-id').subscribe();
+
+    const list = http.expectOne(
+      (request) =>
+        request.url === '/api/v1/requests/request-id/attachments' &&
+        request.method === 'GET',
+    );
+    const upload = http.expectOne(
+      (request) =>
+        request.url === '/api/v1/requests/request-id/attachments' &&
+        request.method === 'POST',
+    );
+    const download = http.expectOne(
+      '/api/v1/requests/request-id/attachments/attachment-id/content',
+    );
+
+    expect(list.request.method).toBe('GET');
+    expect(upload.request.method).toBe('POST');
+    expect(upload.request.body instanceof FormData).toBeTrue();
+    const uploadedFile = (upload.request.body as FormData).get('file') as File;
+    expect(uploadedFile.name).toBe(file.name);
+    expect(uploadedFile.type).toBe(file.type);
+    expect(uploadedFile.size).toBe(file.size);
+    expect(download.request.method).toBe('GET');
+    expect(download.request.responseType).toBe('blob');
+
+    const attachment = {
+      id: 'attachment-id',
+      uploadedByUserId: '33333333-3333-3333-3333-333333333333',
+      fileName: 'evidence.pdf',
+      contentType: 'application/pdf',
+      sizeBytes: file.size,
+      sha256: 'hash',
+      createdAtUtc: '2026-07-30T02:00:00Z',
+    };
+    list.flush([attachment]);
+    upload.flush(attachment);
+    download.flush(new Blob(['%PDF-1.7'], { type: 'application/pdf' }));
+  });
 });

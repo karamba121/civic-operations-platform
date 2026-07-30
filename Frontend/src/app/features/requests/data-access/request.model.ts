@@ -86,6 +86,16 @@ export interface RequestComment {
   createdAtUtc: string;
 }
 
+export interface RequestAttachment {
+  id: string;
+  uploadedByUserId: string;
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+  sha256: string;
+  createdAtUtc: string;
+}
+
 export interface PagedRequestComments {
   items: RequestComment[];
   page: number;

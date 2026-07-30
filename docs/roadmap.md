@@ -109,7 +109,7 @@ concluído.
   situação, responsável, prazo, comentários e auditoria;
 - [x] implementar atribuição, transição de situação e alteração de prazo com
   tratamento de concorrência otimista;
-- [ ] implementar comentários e anexos, incluindo upload, validações, listagem,
+- [x] implementar comentários e anexos, incluindo upload, validações, listagem,
   download e respostas `403`, `413` e `415`;
 - [ ] implementar central de notificações e administração de membros, papéis e
   permissões por tenant;
@@ -125,12 +125,13 @@ end-to-end contra a composição Docker, nenhum dado demonstrativo no bundle,
 auditoria das operações sensíveis e relatório de acessibilidade e tamanho.
 
 **Evidência atual do frontend:** shell, dashboard, listagem, criação idempotente,
-detalhe, atribuição, transições de situação e gestão de prazo compilados pela
-imagem Docker, bundle inicial de `365,38 kB` e dezoito testes Angular cobrindo
+detalhe, gestão do atendimento, comentários e anexos compilados pela imagem
+Docker, bundle inicial de `367,57 kB` e vinte e cinco testes Angular cobrindo
 clientes HTTP, contexto provisório, Problem Details, estados do dashboard,
 busca com debounce, filtros sincronizados com a URL, reutilização da chave
-idempotente, validações, carregamento independente de comentários e auditoria,
-encadeamento de versões e recuperação de conflitos de concorrência.
+idempotente, validações, carregamento independente, encadeamento de versões,
+conflitos de concorrência, multipart, download e respostas `403`, `413` e
+`415`.
 
 ## Fora do escopo inicial
 

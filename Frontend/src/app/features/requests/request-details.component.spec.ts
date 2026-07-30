@@ -13,6 +13,10 @@ describe(RequestDetailsComponent.name, () => {
   let assignResponsible: jasmine.Spy;
   let changeStatus: jasmine.Spy;
   let setDueDate: jasmine.Spy;
+  let addComment: jasmine.Spy;
+  let listAttachments: jasmine.Spy;
+  let uploadAttachment: jasmine.Spy;
+  let downloadAttachment: jasmine.Spy;
 
   beforeEach(async () => {
     getById = jasmine.createSpy('getById').and.returnValue(
@@ -94,6 +98,41 @@ describe(RequestDetailsComponent.name, () => {
         version: 'version-4',
       }),
     );
+    addComment = jasmine.createSpy('addComment').and.returnValue(
+      of({
+        id: 'new-comment-id',
+        authorUserId: '33333333-3333-3333-3333-333333333333',
+        content: 'Nova atualização.',
+        createdAtUtc: '2026-07-30T02:00:00Z',
+      }),
+    );
+    listAttachments = jasmine.createSpy('listAttachments').and.returnValue(
+      of([
+        {
+          id: 'attachment-id',
+          uploadedByUserId: '33333333-3333-3333-3333-333333333333',
+          fileName: 'evidence.pdf',
+          contentType: 'application/pdf',
+          sizeBytes: 1024,
+          sha256: 'hash',
+          createdAtUtc: '2026-07-30T02:00:00Z',
+        },
+      ]),
+    );
+    uploadAttachment = jasmine.createSpy('uploadAttachment').and.returnValue(
+      of({
+        id: 'new-attachment-id',
+        uploadedByUserId: '33333333-3333-3333-3333-333333333333',
+        fileName: 'new-evidence.pdf',
+        contentType: 'application/pdf',
+        sizeBytes: 12,
+        sha256: 'new-hash',
+        createdAtUtc: '2026-07-30T03:00:00Z',
+      }),
+    );
+    downloadAttachment = jasmine
+      .createSpy('downloadAttachment')
+      .and.returnValue(of(new Blob(['%PDF-1.7'])));
 
     await TestBed.configureTestingModule({
       imports: [RequestDetailsComponent],
@@ -117,6 +156,10 @@ describe(RequestDetailsComponent.name, () => {
             assignResponsible,
             changeStatus,
             setDueDate,
+            addComment,
+            listAttachments,
+            uploadAttachment,
+            downloadAttachment,
           },
         },
       ],
@@ -131,10 +174,49 @@ describe(RequestDetailsComponent.name, () => {
     expect(text).toContain('Solicitação registrada com sucesso');
     expect(text).toContain('REQ-2026-0001');
     expect(text).toContain('Equipe acionada.');
+    expect(text).toContain('evidence.pdf');
     expect(text).toContain('Solicitação registrada');
     expect(getById).toHaveBeenCalledWith('request-id');
     expect(listComments).toHaveBeenCalledWith('request-id', 1);
+    expect(listAttachments).toHaveBeenCalledWith('request-id');
     expect(listAudit).toHaveBeenCalledWith('request-id', 1);
+  });
+
+  it('adds a comment and refreshes comments and audit', () => {
+    fixture = TestBed.createComponent(RequestDetailsComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    listComments.calls.reset();
+    listAudit.calls.reset();
+
+    component.commentContent = '  Nova atualização.  ';
+    component.addComment(new Event('submit'));
+
+    expect(addComment).toHaveBeenCalledWith(
+      'request-id',
+      'Nova atualização.',
+    );
+    expect(component.commentContent).toBe('');
+    expect(component.commentSuccess).toContain('sucesso');
+    expect(listComments).toHaveBeenCalledWith('request-id', 1);
+    expect(listAudit).toHaveBeenCalledWith('request-id', 1);
+  });
+
+  it('uploads a valid attachment and adds it to the list', () => {
+    fixture = TestBed.createComponent(RequestDetailsComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    const file = new File(['%PDF-1.7'], 'new-evidence.pdf', {
+      type: 'application/pdf',
+    });
+
+    component.selectedAttachment = file;
+    component.uploadAttachment(new Event('submit'));
+
+    expect(uploadAttachment).toHaveBeenCalledWith('request-id', file);
+    expect(component.attachments?.[0].fileName).toBe('new-evidence.pdf');
+    expect(component.selectedAttachment).toBeNull();
+    expect(component.attachmentSuccess).toContain('sucesso');
   });
 
   it('uses the latest version across assignment, status and due date updates', () => {
@@ -187,4 +269,33 @@ describe(RequestDetailsComponent.name, () => {
     expect(component.conflictMessage).toContain('Outra pessoa alterou');
     expect(component.successMessage).toBe('');
   });
+
+  for (const scenario of [
+    { status: 403, message: 'não tem permissão' },
+    { status: 413, message: 'limite de 25 MB' },
+    { status: 415, message: 'Formato não permitido' },
+  ]) {
+    it(`explains attachment upload error ${scenario.status}`, () => {
+      uploadAttachment.and.returnValue(
+        throwError(
+          () =>
+            new CivicOpsApiError(scenario.status, {
+              title: 'Falha no anexo',
+            }),
+        ),
+      );
+      fixture = TestBed.createComponent(RequestDetailsComponent);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+      component.selectedAttachment = new File(
+        ['%PDF-1.7'],
+        'evidence.pdf',
+        { type: 'application/pdf' },
+      );
+
+      component.uploadAttachment(new Event('submit'));
+
+      expect(component.attachmentUploadError).toContain(scenario.message);
+    });
+  }
 });

@@ -16,6 +16,8 @@ import {
   PagedRequestAudit,
   PagedRequestComments,
   PagedRequests,
+  RequestAttachment,
+  RequestComment,
   RequestDetails,
   RequestMutationResult,
   SetRequestDueDateInput,
@@ -100,6 +102,63 @@ export class RequestsApi {
       .get<PagedRequestComments>(`${this.baseUrl}/${requestId}/comments`, {
         params,
       })
+      .pipe(
+        catchError((error: HttpErrorResponse) =>
+          throwError(() => toCivicOpsApiError(error)),
+        ),
+      );
+  }
+
+  addComment(requestId: string, content: string): Observable<RequestComment> {
+    return this.http
+      .post<RequestComment>(`${this.baseUrl}/${requestId}/comments`, {
+        content,
+      })
+      .pipe(
+        catchError((error: HttpErrorResponse) =>
+          throwError(() => toCivicOpsApiError(error)),
+        ),
+      );
+  }
+
+  listAttachments(requestId: string): Observable<RequestAttachment[]> {
+    return this.http
+      .get<RequestAttachment[]>(`${this.baseUrl}/${requestId}/attachments`)
+      .pipe(
+        catchError((error: HttpErrorResponse) =>
+          throwError(() => toCivicOpsApiError(error)),
+        ),
+      );
+  }
+
+  uploadAttachment(
+    requestId: string,
+    file: File,
+  ): Observable<RequestAttachment> {
+    const form = new FormData();
+    form.append('file', file, file.name);
+
+    return this.http
+      .post<RequestAttachment>(
+        `${this.baseUrl}/${requestId}/attachments`,
+        form,
+      )
+      .pipe(
+        catchError((error: HttpErrorResponse) =>
+          throwError(() => toCivicOpsApiError(error)),
+        ),
+      );
+  }
+
+  downloadAttachment(
+    requestId: string,
+    attachmentId: string,
+  ): Observable<Blob> {
+    return this.http
+      .get(
+        `${this.baseUrl}/${requestId}/attachments/${attachmentId}/content`,
+        { responseType: 'blob' },
+      )
       .pipe(
         catchError((error: HttpErrorResponse) =>
           throwError(() => toCivicOpsApiError(error)),

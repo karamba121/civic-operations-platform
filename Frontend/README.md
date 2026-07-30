@@ -16,7 +16,9 @@ demonstrativas foram removidos.
 - criação idempotente com geração de protocolo;
 - detalhe com comentários e histórico de auditoria;
 - atribuição de responsável, transições de situação e gestão de prazo;
-- recuperação orientada em conflitos de atualização simultânea.
+- recuperação orientada em conflitos de atualização simultânea;
+- inclusão de comentários;
+- envio, validação, listagem e download de anexos PDF, PNG e JPEG.
 
 As próximas fatias estão versionadas no
 [roadmap](../docs/roadmap.md).
