@@ -1,0 +1,316 @@
+<section aria-labelledby="dashboard-title" class="space-y-6">
+  <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="mb-1 text-sm font-medium text-brand-600 dark:text-brand-400">
+        Operação municipal
+      </p>
+      <h1
+        id="dashboard-title"
+        class="text-2xl font-semibold text-gray-900 dark:text-white"
+      >
+        Visão geral das solicitações
+      </h1>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        Acompanhe volume, prazos e itens que precisam de atenção.
+      </p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      @if (lastUpdatedAt) {
+        <span class="hidden text-xs text-gray-500 dark:text-gray-400 sm:inline">
+          Atualizado às {{ lastUpdatedAt | date: "HH:mm" }}
+        </span>
+      }
+      <button
+        type="button"
+        (click)="refresh()"
+        [disabled]="loading"
+        class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-brand-500 px-4 text-sm font-medium text-white shadow-theme-xs transition hover:bg-brand-600 disabled:cursor-wait disabled:opacity-60"
+      >
+        <svg
+          aria-hidden="true"
+          class="size-4"
+          [class.animate-spin]="loading"
+          viewBox="0 0 24 24"
+          fill="none"
+        >
+          <path
+            d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        Atualizar
+      </button>
+    </div>
+  </header>
+
+  @if (errorMessage) {
+    <div
+      role="alert"
+      class="flex flex-col gap-4 rounded-xl border border-error-200 bg-error-50 p-5 sm:flex-row sm:items-center sm:justify-between dark:border-error-500/30 dark:bg-error-500/10"
+    >
+      <div>
+        <p class="font-medium text-error-700 dark:text-error-400">
+          Não foi possível carregar o painel
+        </p>
+        <p class="mt-1 text-sm text-error-600 dark:text-error-300">
+          {{ errorMessage }}
+        </p>
+      </div>
+      <button
+        type="button"
+        (click)="refresh()"
+        class="text-sm font-medium text-error-700 underline underline-offset-4 dark:text-error-300"
+      >
+        Tentar novamente
+      </button>
+    </div>
+  }
+
+  @if (loading && !dashboard) {
+    <div
+      aria-label="Carregando indicadores"
+      class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+    >
+      @for (item of [1, 2, 3, 4]; track item) {
+        <div
+          class="h-36 animate-pulse rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]"
+        >
+          <div class="h-4 w-28 rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="mt-6 h-9 w-20 rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div class="mt-4 h-3 w-36 rounded bg-gray-100 dark:bg-gray-800"></div>
+        </div>
+      }
+    </div>
+  } @else if (dashboard) {
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <article
+        class="flex min-h-36 flex-col rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]"
+      >
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400">
+          Total de solicitações
+        </span>
+        <strong
+          class="mt-3 text-3xl font-semibold text-gray-900 dark:text-white"
+          >{{ dashboard.total | number }}</strong
+        >
+        <span
+          class="mt-auto pt-3 text-xs text-gray-500 dark:text-gray-400"
+        >
+          {{ dashboard.submitted | number }} recebidas
+        </span>
+      </article>
+      <article
+        class="flex min-h-36 flex-col rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03]"
+      >
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400">
+          Em andamento
+        </span>
+        <strong
+          class="mt-3 text-3xl font-semibold text-gray-900 dark:text-white"
+        >
+          {{ dashboard.inProgress | number }}
+        </strong>
+        <span
+          class="mt-auto pt-3 text-xs text-gray-500 dark:text-gray-400"
+          >Atendimento ativo</span
+        >
+      </article>
+      <article
+        class="flex min-h-36 flex-col rounded-2xl border border-error-200 bg-white p-5 shadow-theme-xs dark:border-error-500/30 dark:bg-white/[0.03]"
+      >
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400">
+          Em atraso
+        </span>
+        <strong
+          class="mt-3 text-3xl font-semibold text-gray-900 dark:text-white"
+          >{{ dashboard.overdue | number }}</strong
+        >
+        <span
+          class="mt-auto pt-3 text-xs text-gray-500 dark:text-gray-400"
+        >
+          {{ dashboard.dueSoon | number }} vencem em até 7 dias
+        </span>
+      </article>
+      <article
+        class="flex min-h-36 flex-col rounded-2xl border border-warning-200 bg-white p-5 shadow-theme-xs dark:border-warning-500/30 dark:bg-white/[0.03]"
+      >
+        <span class="text-sm font-medium text-gray-500 dark:text-gray-400">
+          Sem responsável
+        </span>
+        <strong
+          class="mt-3 text-3xl font-semibold text-gray-900 dark:text-white"
+        >
+          {{ dashboard.unassignedActive | number }}
+        </strong>
+        <span
+          class="mt-auto pt-3 text-xs text-gray-500 dark:text-gray-400"
+          >Solicitações ativas</span
+        >
+      </article>
+    </div>
+
+    <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <section
+        class="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]"
+        aria-labelledby="recent-title"
+      >
+        <div
+          class="border-b border-gray-200 px-5 py-4 dark:border-gray-800 sm:px-6"
+        >
+          <h2
+            id="recent-title"
+            class="font-semibold text-gray-900 dark:text-white"
+          >
+            Solicitações recentes
+          </h2>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Os cinco registros mais novos desta organização.
+          </p>
+        </div>
+
+        @if (dashboard.recent.length === 0) {
+          <div class="px-6 py-14 text-center">
+            <div
+              class="mx-auto flex size-12 items-center justify-center rounded-full bg-brand-50 text-brand-500 dark:bg-brand-500/15"
+            >
+              <svg
+                aria-hidden="true"
+                class="size-6"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M8 3h8l4 4v14H4V3h4Zm0 0v5h8V3M8 13h8M8 17h5"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+            <p class="mt-4 font-medium text-gray-800 dark:text-white/90">
+              Nenhuma solicitação registrada
+            </p>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Os novos registros aparecerão aqui.
+            </p>
+          </div>
+        } @else {
+          <div class="overflow-x-auto">
+            <table class="min-w-full">
+              <thead>
+                <tr
+                  class="border-b border-gray-100 text-left text-xs uppercase tracking-wide text-gray-500 dark:border-gray-800 dark:text-gray-400"
+                >
+                  <th class="px-5 py-3 font-medium sm:px-6">Protocolo</th>
+                  <th class="px-5 py-3 font-medium">Solicitação</th>
+                  <th class="px-5 py-3 font-medium">Situação</th>
+                  <th class="px-5 py-3 font-medium">Prazo</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                @for (request of dashboard.recent; track request.id) {
+                  <tr class="text-sm text-gray-700 dark:text-gray-300">
+                    <td
+                      class="whitespace-nowrap px-5 py-4 font-medium text-gray-900 dark:text-white sm:px-6"
+                    >
+                      {{ request.protocolNumber }}
+                    </td>
+                    <td class="min-w-64 px-5 py-4">
+                      <p
+                        class="line-clamp-2 font-medium text-gray-800 dark:text-white/90"
+                      >
+                        {{ request.title }}
+                      </p>
+                      <p class="mt-1 text-xs text-gray-500">
+                        Criada em
+                        {{ request.createdAtUtc | date: "dd/MM/yyyy" }}
+                      </p>
+                    </td>
+                    <td class="whitespace-nowrap px-5 py-4">
+                      <span
+                        class="rounded-full px-2.5 py-1 text-xs font-medium"
+                        [class]="statusClasses(request.status)"
+                      >
+                        {{ statusLabels[request.status] }}
+                      </span>
+                    </td>
+                    <td class="whitespace-nowrap px-5 py-4">
+                      {{
+                        request.dueDateUtc
+                          ? (request.dueDateUtc | date: "dd/MM/yyyy")
+                          : "Sem prazo"
+                      }}
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+
+      <aside
+        class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] sm:p-6"
+        aria-labelledby="distribution-title"
+      >
+        <h2
+          id="distribution-title"
+          class="font-semibold text-gray-900 dark:text-white"
+        >
+          Distribuição por situação
+        </h2>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Estado atual de todo o volume.
+        </p>
+        <dl class="mt-6 space-y-5">
+          <div
+            class="flex items-center justify-between border-b border-gray-100 pb-4 text-sm dark:border-gray-800"
+          >
+            <dt class="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+              <span class="size-2.5 rounded-full bg-blue-light-500"></span
+              >Recebidas
+            </dt>
+            <dd class="font-semibold text-gray-900 dark:text-white">
+              {{ dashboard.submitted | number }}
+            </dd>
+          </div>
+          <div
+            class="flex items-center justify-between border-b border-gray-100 pb-4 text-sm dark:border-gray-800"
+          >
+            <dt class="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+              <span class="size-2.5 rounded-full bg-warning-500"></span>Em
+              andamento
+            </dt>
+            <dd class="font-semibold text-gray-900 dark:text-white">
+              {{ dashboard.inProgress | number }}
+            </dd>
+          </div>
+          <div
+            class="flex items-center justify-between border-b border-gray-100 pb-4 text-sm dark:border-gray-800"
+          >
+            <dt class="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+              <span class="size-2.5 rounded-full bg-success-500"></span
+              >Concluídas
+            </dt>
+            <dd class="font-semibold text-gray-900 dark:text-white">
+              {{ dashboard.completed | number }}
+            </dd>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <dt class="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+              <span class="size-2.5 rounded-full bg-gray-400"></span>Canceladas
+            </dt>
+            <dd class="font-semibold text-gray-900 dark:text-white">
+              {{ dashboard.cancelled | number }}
+            </dd>
+          </div>
+        </dl>
+      </aside>
+    </div>
+  }
+</section>

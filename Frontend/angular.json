@@ -35,9 +35,7 @@
             "styles": [
               "src/styles.css"
             ],
-            "scripts": [
-              "node_modules/apexcharts/dist/apexcharts.min.js"
-            ]
+            "scripts": []
           },
           "configurations": {
             "production": {
@@ -58,7 +56,13 @@
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.development.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -66,7 +70,8 @@
         "serve": {
           "builder": "@angular/build:dev-server",
           "options": {
-            "allowedHosts": ["b9c0-2401-f40-1533-13-896f-6fba-a052-8636.ngrok-free.app"]
+            "allowedHosts": ["b9c0-2401-f40-1533-13-896f-6fba-a052-8636.ngrok-free.app"],
+            "proxyConfig": "proxy.conf.json"
           },
           "configurations": {
             "production": {

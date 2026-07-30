@@ -2,10 +2,6 @@
 layer(base);
 
 @import "tailwindcss";
-@import "swiper/css/bundle";
-@import "flatpickr/dist/flatpickr.css";
-@import "leaflet/dist/leaflet.css";
-@import "maplibre-gl/dist/maplibre-gl.css";
 
 @custom-variant dark (&:is(.dark *));
 

@@ -12,7 +12,7 @@ import { ThemeService } from './shared/services/theme.service';
   styleUrl: './app.component.css',
 })
 export class AppComponent {
-  title = 'Angular Ecommerce Dashboard | TailAdmin';
+  title = 'Civic Operations Platform';
 
   constructor(private themeService: ThemeService) {
     void this.themeService;
