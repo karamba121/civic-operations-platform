@@ -10,17 +10,18 @@ concluída quando comportamento, testes e operação local podem ser demonstrado
   observabilidade;
 - [x] padronizar Problem Details, validação, logs e correlação de traces;
 - [x] configurar testes unitários e de integração;
-- [ ] validar fronteiras dos módulos com testes de arquitetura;
-- [ ] criar CI para backend, frontend, validação das regras Prometheus e
+- [x] validar fronteiras dos módulos com testes de arquitetura;
+- [x] criar CI para backend, frontend, validação das regras Prometheus e
   construção e publicação das imagens Docker no Docker Hub.
 
 **Evidência atual:** os comandos estão documentados no
 [README do backend](../Backend/README.md) e a composição local em
 [compose.yaml](../compose.yaml) e o CI versionado em
-[`ci-dockerhub.yml`](../.github/workflows/ci-dockerhub.yml). Os testes de
-arquitetura permanecem pendentes e, portanto, impedem conclusão integral da
-fundação. O workflow está implementado e validado localmente; o item será
-concluído após a primeira execução remota publicar ambas as imagens.
+[`ci-dockerhub.yml`](../.github/workflows/ci-dockerhub.yml). As fronteiras
+são verificadas pelos nove testes do
+[`CivicOps.ArchitectureTests`](../Backend/tests/CivicOps.ArchitectureTests),
+incluídos na solução e no mesmo CI. O workflow remoto também publicou as
+imagens do backend e do frontend no Docker Hub.
 
 ## 2. Primeira fatia vertical: solicitações
 
@@ -75,9 +76,8 @@ anexo estão cobertos por
 
 ## 6. Governança e robustez pré-frontend
 
-Antes de iniciar a etapa 7, devem estar concluídas as pendências da
-[Fundação](#1-fundação) — testes de arquitetura e CI — e os itens operacionais
-abaixo.
+As pendências da [Fundação](#1-fundação) — testes de arquitetura e CI —
+foram concluídas. Permanecem nesta etapa os itens operacionais abaixo.
 
 - [x] transformar a fundação em checklist e corrigir a evidência da interface
   para refletir somente a integração realmente entregue;

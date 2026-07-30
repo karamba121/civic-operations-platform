@@ -231,6 +231,11 @@ Com PostgreSQL e RabbitMQ do Compose em execução:
 dotnet test CivicOperationsPlatform.sln
 ```
 
+Os nove testes de arquitetura em
+[`CivicOps.ArchitectureTests`](tests/CivicOps.ArchitectureTests) validam as
+dependências entre camadas, o isolamento dos módulos, o composition root e a
+propriedade dos `DbContext`. Eles não precisam da infraestrutura do Compose.
+
 Os testes de integração usam tenants aleatórios e verificam no PostgreSQL real:
 
 - sequências de protocolo independentes por tenant;

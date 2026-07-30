@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
+    <PackageReference Include="xunit.v3" Version="3.2.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/BuildingBlocks/CivicOps.BuildingBlocks.Domain/CivicOps.BuildingBlocks.Domain.csproj" />
+    <ProjectReference Include="../../src/BuildingBlocks/CivicOps.BuildingBlocks.Observability/CivicOps.BuildingBlocks.Observability.csproj" />
+    <ProjectReference Include="../../src/CivicOps.Api/CivicOps.Api.csproj" />
+    <ProjectReference Include="../../src/Modules/IdentityAccess/CivicOps.Modules.IdentityAccess.Core/CivicOps.Modules.IdentityAccess.Core.csproj" />
+    <ProjectReference Include="../../src/Modules/IdentityAccess/CivicOps.Modules.IdentityAccess.Infrastructure/CivicOps.Modules.IdentityAccess.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/Modules/Notifications/CivicOps.Modules.Notifications.Application/CivicOps.Modules.Notifications.Application.csproj" />
+    <ProjectReference Include="../../src/Modules/Notifications/CivicOps.Modules.Notifications.Domain/CivicOps.Modules.Notifications.Domain.csproj" />
+    <ProjectReference Include="../../src/Modules/Notifications/CivicOps.Modules.Notifications.Infrastructure/CivicOps.Modules.Notifications.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/Modules/Notifications/CivicOps.Modules.Notifications.Presentation/CivicOps.Modules.Notifications.Presentation.csproj" />
+    <ProjectReference Include="../../src/Modules/Requests/CivicOps.Modules.Requests.Application/CivicOps.Modules.Requests.Application.csproj" />
+    <ProjectReference Include="../../src/Modules/Requests/CivicOps.Modules.Requests.Domain/CivicOps.Modules.Requests.Domain.csproj" />
+    <ProjectReference Include="../../src/Modules/Requests/CivicOps.Modules.Requests.Infrastructure/CivicOps.Modules.Requests.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/Modules/Requests/CivicOps.Modules.Requests.Presentation/CivicOps.Modules.Requests.Presentation.csproj" />
+  </ItemGroup>
+</Project>

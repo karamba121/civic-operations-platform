@@ -68,6 +68,22 @@ flowchart TD
 O domínio não depende de ASP.NET Core, EF Core, RabbitMQ ou Redis. A camada de
 aplicação descreve casos de uso e portas. Infrastructure implementa essas portas.
 
+## Validação automática das fronteiras
+
+O projeto [`CivicOps.ArchitectureTests`](../../Backend/tests/CivicOps.ArchitectureTests)
+inspeciona as referências e os tipos dos assemblies durante o CI. A suíte bloqueia:
+
+- dependências de Domain ou Core em camadas externas;
+- dependências de Application em Infrastructure, Presentation ou API;
+- acesso entre módulos fora da allowlist de contratos explícitos;
+- uso de EF Core e `DbContext` fora da Infrastructure proprietária;
+- composição das infraestruturas fora da API;
+- exposição de tipos internos a outros módulos.
+
+O contrato síncrono atualmente permitido entre módulos é
+`Requests.Application -> IdentityAccess.Core`. Novas exceções exigem uma
+decisão arquitetural explícita e atualização da allowlist.
+
 ## Consistência
 
 Alterações dentro de um agregado e registros da Outbox participam da mesma
