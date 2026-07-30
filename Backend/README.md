@@ -154,6 +154,19 @@ invalidação, além da duração das operações do cache. A decisão e o ganho
 estão documentados em
 [`docs/performance/2026-07-29-request-dashboard-cache.md`](../docs/performance/2026-07-29-request-dashboard-cache.md).
 
+Para validar métricas e alertas localmente, use o perfil de observabilidade:
+
+```powershell
+docker compose --profile observability up -d --wait
+$env:OpenTelemetry__Otlp__Enabled = "true"
+$env:OpenTelemetry__Otlp__Endpoint = "http://localhost:4317"
+dotnet run --project src/CivicOps.Api/CivicOps.Api.csproj
+```
+
+O Prometheus fica em `http://localhost:9090`. Objetivos, orçamentos de erro,
+severidades e runbooks estão no
+[guia operacional](../docs/operations/service-objectives-and-alerts.md).
+
 ## Identity & Access
 
 As associações são independentes por tenant e usam os papéis

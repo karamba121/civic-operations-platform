@@ -52,7 +52,7 @@ vida do anexo.
 - [x] definir índices a partir de planos de execução;
 - [x] introduzir cache apenas onde houver ganho medido;
 - [x] executar testes de carga reproduzíveis;
-- documentar objetivos de serviço e alertas.
+- [x] documentar objetivos de serviço e alertas.
 
 **Evidência:** relatório versionado com dataset, hardware, parâmetros, latências
 percentis, throughput, erros e comparação antes/depois.

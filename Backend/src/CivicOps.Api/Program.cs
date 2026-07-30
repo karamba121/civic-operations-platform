@@ -53,6 +53,7 @@ builder.Services
     })
     .WithMetrics(metrics =>
     {
+        metrics.AddAspNetCoreInstrumentation();
         metrics.AddMeter(RequestDashboardCacheDiagnostics.MeterName);
 
         if (builder.Configuration.GetValue<bool>(

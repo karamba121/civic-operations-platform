@@ -1,0 +1,169 @@
+groups:
+  - name: civicops-service-objectives
+    interval: 30s
+    rules:
+      - alert: CivicOpsApiUnavailable
+        expr: probe_success{job="civicops-health"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: civic-operations-platform
+        annotations:
+          summary: CivicOps API não responde ao health check
+          description: O endpoint /health falhou continuamente por 2 minutos.
+          runbook: docs/operations/service-objectives-and-alerts.md#civicopsapiunavailable
+
+      - alert: CivicOpsDashboardFastErrorBudgetBurn
+        expr: |
+          (
+            (
+              1 -
+              (
+                sum(rate(http_server_request_duration_seconds_count{
+                  http_route="/api/v1/requests/dashboard",
+                  http_response_status_code!~"5.."
+                }[5m]))
+                /
+                sum(rate(http_server_request_duration_seconds_count{
+                  http_route="/api/v1/requests/dashboard"
+                }[5m]))
+              )
+            ) > (14.4 * 0.001)
+          )
+          and
+          (
+            (
+              1 -
+              (
+                sum(rate(http_server_request_duration_seconds_count{
+                  http_route="/api/v1/requests/dashboard",
+                  http_response_status_code!~"5.."
+                }[1h]))
+                /
+                sum(rate(http_server_request_duration_seconds_count{
+                  http_route="/api/v1/requests/dashboard"
+                }[1h]))
+              )
+            ) > (14.4 * 0.001)
+          )
+        for: 2m
+        labels:
+          severity: critical
+          service: civic-operations-platform
+          objective: availability
+        annotations:
+          summary: Queima rápida do orçamento de erros do dashboard
+          description: A taxa de 5xx excede 14,4 vezes o orçamento nas janelas de 5 minutos e 1 hora.
+          runbook: docs/operations/service-objectives-and-alerts.md#civicopsdashboardfasterrorbudgetburn
+
+      - alert: CivicOpsDashboardSlowErrorBudgetBurn
+        expr: |
+          (
+            (
+              1 -
+              (
+                sum(rate(http_server_request_duration_seconds_count{
+                  http_route="/api/v1/requests/dashboard",
+                  http_response_status_code!~"5.."
+                }[30m]))
+                /
+                sum(rate(http_server_request_duration_seconds_count{
+                  http_route="/api/v1/requests/dashboard"
+                }[30m]))
+              )
+            ) > (6 * 0.001)
+          )
+          and
+          (
+            (
+              1 -
+              (
+                sum(rate(http_server_request_duration_seconds_count{
+                  http_route="/api/v1/requests/dashboard",
+                  http_response_status_code!~"5.."
+                }[6h]))
+                /
+                sum(rate(http_server_request_duration_seconds_count{
+                  http_route="/api/v1/requests/dashboard"
+                }[6h]))
+              )
+            ) > (6 * 0.001)
+          )
+        for: 15m
+        labels:
+          severity: warning
+          service: civic-operations-platform
+          objective: availability
+        annotations:
+          summary: Queima sustentada do orçamento de erros do dashboard
+          description: A taxa de 5xx excede 6 vezes o orçamento nas janelas de 30 minutos e 6 horas.
+          runbook: docs/operations/service-objectives-and-alerts.md#civicopsdashboardslowerrorbudgetburn
+
+      - alert: CivicOpsDashboardLatencyHigh
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le) (
+              rate(http_server_request_duration_seconds_bucket{
+                http_route="/api/v1/requests/dashboard"
+              }[10m])
+            )
+          ) > 0.250
+        for: 10m
+        labels:
+          severity: warning
+          service: civic-operations-platform
+          objective: latency
+        annotations:
+          summary: p95 do dashboard acima do objetivo
+          description: A latência p95 excedeu 250 ms por 10 minutos.
+          runbook: docs/operations/service-objectives-and-alerts.md#civicopsdashboardlatencyhigh
+
+  - name: civicops-cache
+    interval: 30s
+    rules:
+      - alert: CivicOpsDashboardCacheFailures
+        expr: |
+          increase(civicops_requests_dashboard_cache_failures_total[5m]) > 0
+          or
+          (
+            civicops_requests_dashboard_cache_failures_total > 0
+            unless
+            civicops_requests_dashboard_cache_failures_total offset 5m
+          )
+        for: 2m
+        labels:
+          severity: warning
+          service: civic-operations-platform
+          dependency: redis
+        annotations:
+          summary: Falhas nas operações de cache do dashboard
+          description: O fallback para PostgreSQL está ativo por falhas no Redis.
+          runbook: docs/operations/service-objectives-and-alerts.md#civicopsdashboardcachefailures
+
+      - alert: CivicOpsDashboardCacheHitRatioLow
+        expr: |
+          (
+            sum(increase(civicops_requests_dashboard_cache_hits_total[15m]))
+            /
+            (
+              sum(increase(civicops_requests_dashboard_cache_hits_total[15m]))
+              +
+              sum(increase(civicops_requests_dashboard_cache_misses_total[15m]))
+            )
+          ) < 0.80
+          and
+          (
+            sum(increase(civicops_requests_dashboard_cache_hits_total[15m]))
+            +
+            sum(increase(civicops_requests_dashboard_cache_misses_total[15m]))
+          ) >= 100
+        for: 15m
+        labels:
+          severity: warning
+          service: civic-operations-platform
+          dependency: redis
+        annotations:
+          summary: Taxa de hit do dashboard abaixo de 80%
+          description: O cache recebe volume suficiente, mas evita menos de 80% das consultas ao PostgreSQL.
+          runbook: docs/operations/service-objectives-and-alerts.md#civicopsdashboardcachehit-ratio-low

@@ -1,0 +1,120 @@
+rule_files:
+  - ../rules/civicops-alerts.yaml
+
+evaluation_interval: 1m
+
+tests:
+  - name: API indisponível dispara alerta crítico após dois minutos
+    interval: 1m
+    input_series:
+      - series: probe_success{job="civicops-health",instance="http://api/health"}
+        values: 0x5
+    alert_rule_test:
+      - eval_time: 1m
+        alertname: CivicOpsApiUnavailable
+        exp_alerts: []
+      - eval_time: 3m
+        alertname: CivicOpsApiUnavailable
+        exp_alerts:
+          - exp_labels:
+              instance: http://api/health
+              job: civicops-health
+              severity: critical
+              service: civic-operations-platform
+            exp_annotations:
+              summary: CivicOps API não responde ao health check
+              description: O endpoint /health falhou continuamente por 2 minutos.
+              runbook: docs/operations/service-objectives-and-alerts.md#civicopsapiunavailable
+
+  - name: p95 acima de 250 ms dispara alerta após dez minutos
+    interval: 1m
+    input_series:
+      - series: http_server_request_duration_seconds_bucket{http_route="/api/v1/requests/dashboard",le="0.25"}
+        values: 0+0x15
+      - series: http_server_request_duration_seconds_bucket{http_route="/api/v1/requests/dashboard",le="0.5"}
+        values: 0+100x15
+      - series: http_server_request_duration_seconds_bucket{http_route="/api/v1/requests/dashboard",le="+Inf"}
+        values: 0+100x15
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: CivicOpsDashboardLatencyHigh
+        exp_alerts: []
+      - eval_time: 12m
+        alertname: CivicOpsDashboardLatencyHigh
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              service: civic-operations-platform
+              objective: latency
+            exp_annotations:
+              summary: p95 do dashboard acima do objetivo
+              description: A latência p95 excedeu 250 ms por 10 minutos.
+              runbook: docs/operations/service-objectives-and-alerts.md#civicopsdashboardlatencyhigh
+
+  - name: queima rápida do orçamento dispara alerta crítico
+    interval: 1m
+    input_series:
+      - series: http_server_request_duration_seconds_count{http_route="/api/v1/requests/dashboard",http_response_status_code="200"}
+        values: 0+980x10
+      - series: http_server_request_duration_seconds_count{http_route="/api/v1/requests/dashboard",http_response_status_code="500"}
+        values: 0+20x10
+    alert_rule_test:
+      - eval_time: 1m
+        alertname: CivicOpsDashboardFastErrorBudgetBurn
+        exp_alerts: []
+      - eval_time: 4m
+        alertname: CivicOpsDashboardFastErrorBudgetBurn
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              service: civic-operations-platform
+              objective: availability
+            exp_annotations:
+              summary: Queima rápida do orçamento de erros do dashboard
+              description: A taxa de 5xx excede 14,4 vezes o orçamento nas janelas de 5 minutos e 1 hora.
+              runbook: docs/operations/service-objectives-and-alerts.md#civicopsdashboardfasterrorbudgetburn
+
+  - name: queima sustentada do orçamento dispara alerta de warning
+    interval: 1m
+    input_series:
+      - series: http_server_request_duration_seconds_count{http_route="/api/v1/requests/dashboard",http_response_status_code="200"}
+        values: 0+990x25
+      - series: http_server_request_duration_seconds_count{http_route="/api/v1/requests/dashboard",http_response_status_code="500"}
+        values: 0+10x25
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CivicOpsDashboardSlowErrorBudgetBurn
+        exp_alerts: []
+      - eval_time: 20m
+        alertname: CivicOpsDashboardSlowErrorBudgetBurn
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              service: civic-operations-platform
+              objective: availability
+            exp_annotations:
+              summary: Queima sustentada do orçamento de erros do dashboard
+              description: A taxa de 5xx excede 6 vezes o orçamento nas janelas de 30 minutos e 6 horas.
+              runbook: docs/operations/service-objectives-and-alerts.md#civicopsdashboardslowerrorbudgetburn
+
+  - name: primeira falha do cache também é detectada
+    interval: 1m
+    input_series:
+      - series: civicops_requests_dashboard_cache_failures_total{operation="read"}
+        values: _ _ 1 1 1 1 1
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: CivicOpsDashboardCacheFailures
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: CivicOpsDashboardCacheFailures
+        exp_alerts:
+          - exp_labels:
+              operation: read
+              severity: warning
+              service: civic-operations-platform
+              dependency: redis
+            exp_annotations:
+              summary: Falhas nas operações de cache do dashboard
+              description: O fallback para PostgreSQL está ativo por falhas no Redis.
+              runbook: docs/operations/service-objectives-and-alerts.md#civicopsdashboardcachefailures
