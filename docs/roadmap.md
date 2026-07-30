@@ -86,13 +86,14 @@ foram concluídas. Permanecem nesta etapa os itens operacionais abaixo.
 - [x] definir a [política de retenção](operations/data-retention.md) para Outbox
   e auditorias;
 - [x] publicar métricas de idade, quantidade, tentativas e falhas da Outbox;
-- [ ] automatizar retenção em lotes e recuperação segura da Outbox, com testes e
+- [x] automatizar retenção em lotes e recuperação segura da Outbox, com testes e
   procedimento operacional.
 
 **Evidência atual:** testes de arquitetura e workflow estão executáveis; as
-métricas da Outbox possuem teste unitário, consulta real no PostgreSQL e cinco
-alertas validados pelo `promtool`. Permanecem pendentes os cenários automatizados
-de expiração, recuperação e retenção em lotes.
+métricas da Outbox possuem teste unitário, consulta real no PostgreSQL e seis
+alertas validados pelo `promtool`. A retenção possui teste de unidade para
+lotes, limite e falhas, teste PostgreSQL que preserva mensagens recentes e não
+processadas e procedimento operacional de suspensão, retomada e recuperação.
 
 ## 7. Painel administrativo Angular
 

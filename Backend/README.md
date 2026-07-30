@@ -125,6 +125,12 @@ publicações confirmadas, falhas, leases expirados e falhas da própria coleta.
 Nenhuma série contém tenant, payload ou texto de exceção. Configure com
 `OutboxMetrics:Enabled` e `OutboxMetrics:CollectionInterval`.
 
+A retenção remove somente mensagens processadas há mais de 30 dias. O worker
+executa em intervalos configuráveis, usa lotes ordenados com
+`FOR UPDATE SKIP LOCKED`, limita a quantidade de lotes por ciclo e registra
+remoções e falhas em métricas. Mensagens pendentes ou com falha nunca são
+expiradas. Configure pela seção `OutboxRetention`.
+
 O módulo `Notifications` mantém schema, domínio e migrations próprios dentro do
 mesmo processo. O consumidor da fila
 `civicops.notifications.request-assigned` trata

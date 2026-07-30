@@ -179,6 +179,39 @@ internal sealed class PostgresOutboxMessageStore(RequestsDbContext dbContext)
             reader.GetInt64(4));
     }
 
+    public async Task<int> DeleteProcessedBatchAsync(
+        DateTimeOffset cutoffUtc,
+        int batchSize,
+        CancellationToken cancellationToken)
+    {
+        var connection = await GetOpenConnectionAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            WITH candidates AS (
+                SELECT id
+                FROM requests.outbox_messages
+                WHERE processed_at_utc IS NOT NULL
+                  AND processed_at_utc < @cutoff_utc
+                ORDER BY processed_at_utc, id
+                LIMIT @batch_size
+                FOR UPDATE SKIP LOCKED
+            )
+            DELETE FROM requests.outbox_messages AS message
+            USING candidates
+            WHERE message.id = candidates.id;
+            """;
+        command.Parameters.AddWithValue(
+            "cutoff_utc",
+            NpgsqlDbType.TimestampTz,
+            cutoffUtc);
+        command.Parameters.AddWithValue(
+            "batch_size",
+            NpgsqlDbType.Integer,
+            batchSize);
+
+        return await command.ExecuteNonQueryAsync(cancellationToken);
+    }
     private async Task<bool> ExecuteUpdateAsync(
         string commandText,
         Guid messageId,

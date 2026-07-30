@@ -146,6 +146,13 @@ public sealed class OutboxProcessorMetricsTests
             return Task.FromResult(MarkFailedResult);
         }
 
+        public Task<int> DeleteProcessedBatchAsync(
+            DateTimeOffset cutoffUtc,
+            int batchSize,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(0);
+        }
         public Task<OutboxMetricsSnapshot> GetMetricsAsync(
             DateTimeOffset nowUtc,
             CancellationToken cancellationToken) =>

@@ -11,6 +11,8 @@ public sealed class OutboxDiagnostics : IDisposable
     private readonly Counter<long> _publishFailures;
     private readonly Counter<long> _leaseExpirations;
     private readonly Counter<long> _collectionFailures;
+    private readonly Counter<long> _retentionRemovedMessages;
+    private readonly Counter<long> _retentionFailures;
     private long _pendingMessages;
     private long _retryingMessages;
     private long _leasedMessages;
@@ -29,6 +31,10 @@ public sealed class OutboxDiagnostics : IDisposable
             "civicops.requests.outbox.lease.expirations");
         _collectionFailures = _meter.CreateCounter<long>(
             "civicops.requests.outbox.metrics.collection.failures");
+        _retentionRemovedMessages = _meter.CreateCounter<long>(
+            "civicops.requests.outbox.retention.removed.messages");
+        _retentionFailures = _meter.CreateCounter<long>(
+            "civicops.requests.outbox.retention.failures");
 
         _meter.CreateObservableGauge(
             "civicops.requests.outbox.pending.messages",
@@ -55,6 +61,16 @@ public sealed class OutboxDiagnostics : IDisposable
     internal void RecordLeaseExpiration() => _leaseExpirations.Add(1);
 
     internal void RecordCollectionFailure() => _collectionFailures.Add(1);
+
+    internal void RecordRetentionRemoved(int count)
+    {
+        if (count > 0)
+        {
+            _retentionRemovedMessages.Add(count);
+        }
+    }
+
+    internal void RecordRetentionFailure() => _retentionFailures.Add(1);
 
     internal void UpdateSnapshot(OutboxMetricsSnapshot snapshot)
     {

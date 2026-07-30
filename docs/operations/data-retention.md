@@ -31,13 +31,43 @@ configurados por ambiente antes de produção.
 
 ## Operação e evidência
 
-As métricas operacionais de backlog, idade, tentativas, falhas e leases da
-Outbox já estão implementadas. A automação de retenção ainda não está. Para
-considerar este item concluído, o projeto deve fornecer:
+A automação executa a cada hora e remove somente mensagens cujo
+`processed_at_utc` é anterior ao período configurado, 30 dias por padrão. Cada
+comando exclui no máximo 500 registros, em ordem de processamento, usando
+`FOR UPDATE SKIP LOCKED`. Um ciclo processa no máximo 20 lotes e aguarda 100 ms
+entre lotes para limitar contenção e carga no PostgreSQL.
 
-- configuração validada dos prazos por ambiente;
-- rotina idempotente de expiração com execução em lotes;
-- testes que preservem mensagens não processadas e registros sob retenção
-  legal;
-- métricas de remoções e falhas da rotina de expiração;
-- procedimento documentado de suspensão, retomada e recuperação.
+Configure por ambiente com:
+
+- `OutboxRetention:Enabled`;
+- `OutboxRetention:RetentionPeriod`;
+- `OutboxRetention:ExecutionInterval`;
+- `OutboxRetention:BatchDelay`;
+- `OutboxRetention:BatchSize`;
+- `OutboxRetention:MaxBatchesPerCycle`.
+
+Cada ciclo registra `OperationId`, `CutoffUtc` e quantidade removida, sem payload,
+tenant ou identificadores de mensagens. Os contadores
+`civicops_requests_outbox_retention_removed_messages_total` e
+`civicops_requests_outbox_retention_failures_total` fornecem a evidência
+agregada da rotina.
+
+### Suspensão, retomada e recuperação
+
+1. para suspender novos ciclos, defina `OutboxRetention:Enabled=false` e
+   reinicie a API; isso não altera mensagens existentes;
+2. não execute exclusões manuais enquanto investiga uma falha;
+3. restaure conectividade, permissões ou capacidade do PostgreSQL e valide que
+   pendências continuam sendo publicadas normalmente;
+4. reative a configuração e reinicie a API; a rotina é idempotente e retomará
+   do próximo lote expirado;
+5. acompanhe o contador de remoções, o alerta de falha e os logs pelo
+   `OperationId`; se o limite por ciclo for atingido, os lotes restantes serão
+   processados em execuções posteriores;
+6. para recuperar evidência, correlacione logs estruturados e métricas. O
+   conteúdo removido não é restaurável pela aplicação e depende do backup do
+   PostgreSQL quando houver obrigação de recuperação.
+
+Os testes automatizados comprovam que mensagens processadas expiradas são
+removidas e que mensagens recentes, pendentes ou com falha são preservadas.
+Retenção legal de auditorias permanece fora desta rotina dedicada à Outbox.

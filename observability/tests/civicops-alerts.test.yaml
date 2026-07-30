@@ -223,3 +223,23 @@ tests:
               summary: Falha na coleta de métricas da Outbox
               description: A visão operacional da Outbox pode estar desatualizada por falha na consulta agregada.
               runbook: docs/operations/service-objectives-and-alerts.md#civicopsoutboxmetricscollectionfailures
+  - name: falha na retenção da Outbox dispara alerta
+    interval: 1m
+    input_series:
+      - series: civicops_requests_outbox_retention_failures_total
+        values: 0 0 1 1 1 1 1
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: CivicOpsOutboxRetentionFailures
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: CivicOpsOutboxRetentionFailures
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              service: civic-operations-platform
+              component: outbox
+            exp_annotations:
+              summary: Falha na retenção da Outbox
+              description: Mensagens processadas expiradas não puderam ser removidas no ciclo de retenção.
+              runbook: docs/operations/service-objectives-and-alerts.md#civicopsoutboxretentionfailures

@@ -63,6 +63,11 @@ public static class DependencyInjection
             CreateOutboxMetricsOptions(
                 serviceProvider.GetRequiredService<IConfiguration>()));
         services.AddHostedService<OutboxMetricsCollector>();
+        services.AddScoped<OutboxRetentionProcessor>();
+        services.AddSingleton(serviceProvider =>
+            CreateOutboxRetentionOptions(
+                serviceProvider.GetRequiredService<IConfiguration>()));
+        services.AddHostedService<OutboxRetentionWorker>();
         services.AddSingleton(serviceProvider =>
             CreateOutboxOptions(
                 serviceProvider.GetRequiredService<IConfiguration>()));
@@ -170,6 +175,24 @@ public static class DependencyInjection
         return options;
     }
 
+    private static OutboxRetentionOptions CreateOutboxRetentionOptions(
+        IConfiguration configuration)
+    {
+        var options = new OutboxRetentionOptions();
+        configuration.GetSection("OutboxRetention").Bind(options);
+
+        if (options.RetentionPeriod < TimeSpan.FromDays(1)
+            || options.ExecutionInterval < TimeSpan.FromMinutes(1)
+            || options.BatchDelay < TimeSpan.Zero
+            || options.BatchSize is < 1 or > 10_000
+            || options.MaxBatchesPerCycle is < 1 or > 1_000)
+        {
+            throw new InvalidOperationException(
+                "A configuração OutboxRetention contém valores inválidos.");
+        }
+
+        return options;
+    }
     private static RabbitMqOptions CreateRabbitMqOptions(
         IConfiguration configuration)
     {

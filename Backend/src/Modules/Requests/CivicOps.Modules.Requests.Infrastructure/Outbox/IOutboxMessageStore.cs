@@ -25,4 +25,9 @@ internal interface IOutboxMessageStore
     Task<OutboxMetricsSnapshot> GetMetricsAsync(
         DateTimeOffset nowUtc,
         CancellationToken cancellationToken);
+
+    Task<int> DeleteProcessedBatchAsync(
+        DateTimeOffset cutoffUtc,
+        int batchSize,
+        CancellationToken cancellationToken);
 }

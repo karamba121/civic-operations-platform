@@ -17,6 +17,8 @@ public sealed class OutboxDiagnosticsTests
         diagnostics.RecordPublishFailure();
         diagnostics.RecordLeaseExpiration();
         diagnostics.RecordCollectionFailure();
+        diagnostics.RecordRetentionRemoved(7);
+        diagnostics.RecordRetentionFailure();
         diagnostics.UpdateSnapshot(
             new OutboxMetricsSnapshot(
                 PendingMessages: 12,
@@ -42,6 +44,14 @@ public sealed class OutboxDiagnosticsTests
         AssertMeasurement(
             measurements,
             "civicops.requests.outbox.metrics.collection.failures",
+            1);
+        AssertMeasurement(
+            measurements,
+            "civicops.requests.outbox.retention.removed.messages",
+            7);
+        AssertMeasurement(
+            measurements,
+            "civicops.requests.outbox.retention.failures",
             1);
         AssertMeasurement(
             measurements,

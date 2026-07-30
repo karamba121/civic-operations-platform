@@ -51,5 +51,9 @@ As métricas são implementadas por
 [`OutboxDiagnostics`](../../Backend/src/Modules/Requests/CivicOps.Modules.Requests.Infrastructure/Outbox/OutboxDiagnostics.cs),
 pela consulta agregada coberta em
 [`OutboxMetricsTests`](../../Backend/tests/CivicOps.Modules.Requests.IntegrationTests/OutboxMetricsTests.cs)
-e por alertas Prometheus testados. A automação de retenção permanece pendente no
-[roadmap](../roadmap.md).
+e por alertas Prometheus testados. A retenção em lotes é executada por
+[`OutboxRetentionWorker`](../../Backend/src/Modules/Requests/CivicOps.Modules.Requests.Infrastructure/Outbox/OutboxRetentionWorker.cs),
+com preservação de mensagens não processadas validada em
+[`OutboxRetentionTests`](../../Backend/tests/CivicOps.Modules.Requests.IntegrationTests/OutboxRetentionTests.cs)
+e comportamento de lote, limite por ciclo e falha coberto em
+[`OutboxRetentionProcessorTests`](../../Backend/tests/CivicOps.Modules.Requests.UnitTests/OutboxRetentionProcessorTests.cs).

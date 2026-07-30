@@ -57,6 +57,10 @@ O coletor executa uma consulta agregada ao PostgreSQL a cada 15 segundos por
 padrão e mantém o último snapshot em memória para observação pelo OpenTelemetry.
 Falhas de coleta não interrompem o publicador e preservam o último snapshot.
 
+O worker de retenção remove em lotes somente mensagens processadas expiradas.
+Cada ciclo registra evidência estruturada e incrementa contadores de remoção ou
+falha; ele não adiciona labels com dados da mensagem.
+
 | Métrica Prometheus | Tipo | Significado |
 | --- | --- | --- |
 | `civicops_requests_outbox_pending_messages` | gauge | Mensagens ainda não processadas |
@@ -68,6 +72,8 @@ Falhas de coleta não interrompem o publicador e preservam o último snapshot.
 | `civicops_requests_outbox_publish_failures_total` | counter | Falhas persistidas para nova tentativa |
 | `civicops_requests_outbox_lease_expirations_total` | counter | Atualizações recusadas por lease expirado |
 | `civicops_requests_outbox_metrics_collection_failures_total` | counter | Falhas da consulta agregada |
+| civicops_requests_outbox_retention_removed_messages_total | counter | Mensagens processadas expiradas removidas |
+| civicops_requests_outbox_retention_failures_total | counter | Falhas dos ciclos de retenção |
 
 As séries são globais por instância e não possuem labels de tenant, payload,
 identificador de mensagem ou exceção. Isso preserva privacidade e limita
@@ -224,6 +230,23 @@ bem-sucedido.
    contador de falhas estiver aumentando;
 5. confirmar nova coleta e atualização dos gauges depois da correção.
 
+### CivicOpsOutboxRetentionFailures
+
+**Severidade:** warning.
+
+Um ciclo de retenção falhou e mensagens processadas expiradas permaneceram no
+PostgreSQL. A publicação de mensagens pendentes não deve ser afetada.
+
+1. localizar o log do `OutboxRetentionProcessor` e anotar `OperationId`,
+   `CutoffUtc` e quantidade removida antes da falha;
+2. verificar conectividade, permissões, locks, espaço e latência do PostgreSQL;
+3. se a falha persistir, suspender a rotina com
+   `OutboxRetention:Enabled=false` e reiniciar a API;
+4. não apagar pendências nem alterar `processed_at_utc` manualmente;
+5. corrigir a causa, reativar a rotina e confirmar que o contador de remoções
+   volta a crescer sem novas falhas;
+6. se houver necessidade de recuperar registros já removidos, usar o backup do
+   PostgreSQL conforme a política de retenção; a aplicação não desfaz exclusões.
 ## Execução local
 
 Suba a aplicação, a infraestrutura e o perfil de observabilidade:
