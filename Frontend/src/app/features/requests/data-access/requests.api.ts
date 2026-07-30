@@ -8,6 +8,8 @@ import { catchError, Observable, throwError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { toCivicOpsApiError } from '../../../core/http/civic-ops-api-error';
 import {
+  AssignResponsibleInput,
+  ChangeRequestStatusInput,
   CreateRequestInput,
   CreateRequestResult,
   ListRequestsQuery,
@@ -15,6 +17,8 @@ import {
   PagedRequestComments,
   PagedRequests,
   RequestDetails,
+  RequestMutationResult,
+  SetRequestDueDateInput,
 } from './request.model';
 
 @Injectable({ providedIn: 'root' })
@@ -65,6 +69,27 @@ export class RequestsApi {
       );
   }
 
+  assignResponsible(
+    requestId: string,
+    input: AssignResponsibleInput,
+  ): Observable<RequestMutationResult> {
+    return this.patchMutation(requestId, 'assignment', input);
+  }
+
+  changeStatus(
+    requestId: string,
+    input: ChangeRequestStatusInput,
+  ): Observable<RequestMutationResult> {
+    return this.patchMutation(requestId, 'status', input);
+  }
+
+  setDueDate(
+    requestId: string,
+    input: SetRequestDueDateInput,
+  ): Observable<RequestMutationResult> {
+    return this.patchMutation(requestId, 'due-date', input);
+  }
+
   listComments(
     requestId: string,
     page: number,
@@ -90,6 +115,26 @@ export class RequestsApi {
     const params = new HttpParams().set('page', page).set('pageSize', pageSize);
     return this.http
       .get<PagedRequestAudit>(`${this.baseUrl}/${requestId}/audit`, { params })
+      .pipe(
+        catchError((error: HttpErrorResponse) =>
+          throwError(() => toCivicOpsApiError(error)),
+        ),
+      );
+  }
+
+  private patchMutation(
+    requestId: string,
+    action: string,
+    input:
+      | AssignResponsibleInput
+      | ChangeRequestStatusInput
+      | SetRequestDueDateInput,
+  ): Observable<RequestMutationResult> {
+    return this.http
+      .patch<RequestMutationResult>(
+        `${this.baseUrl}/${requestId}/${action}`,
+        input,
+      )
       .pipe(
         catchError((error: HttpErrorResponse) =>
           throwError(() => toCivicOpsApiError(error)),

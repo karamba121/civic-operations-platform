@@ -55,6 +55,30 @@ export interface CreateRequestResult {
   version: string;
 }
 
+export interface RequestMutationResult {
+  id: string;
+  protocolNumber: string;
+  status: RequestStatus;
+  responsibleUserId: string | null;
+  dueDateUtc: string | null;
+  version: string;
+}
+
+export interface AssignResponsibleInput {
+  responsibleUserId: string;
+  version: string;
+}
+
+export interface ChangeRequestStatusInput {
+  status: RequestStatus;
+  version: string;
+}
+
+export interface SetRequestDueDateInput {
+  dueDateUtc: string | null;
+  version: string;
+}
+
 export interface RequestComment {
   id: string;
   authorUserId: string;

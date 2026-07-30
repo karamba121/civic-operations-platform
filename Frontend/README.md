@@ -14,7 +14,9 @@ demonstrativas foram removidos.
 - dashboard operacional de solicitações;
 - listagem com busca, filtros e paginação;
 - criação idempotente com geração de protocolo;
-- detalhe com comentários e histórico de auditoria.
+- detalhe com comentários e histórico de auditoria;
+- atribuição de responsável, transições de situação e gestão de prazo;
+- recuperação orientada em conflitos de atualização simultânea.
 
 As próximas fatias estão versionadas no
 [roadmap](../docs/roadmap.md).

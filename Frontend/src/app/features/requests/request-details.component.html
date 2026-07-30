@@ -103,6 +103,30 @@
       </span>
     </header>
 
+    @if (successMessage) {
+      <div
+        role="status"
+        class="rounded-xl border border-success-200 bg-success-50 p-4 text-sm font-medium text-success-700 dark:border-success-500/30 dark:bg-success-500/10 dark:text-success-300"
+      >
+        {{ successMessage }}
+      </div>
+    }
+
+    @if (conflictMessage) {
+      <div
+        role="alert"
+        class="rounded-xl border border-warning-200 bg-warning-50 p-4 text-warning-700 dark:border-warning-500/30 dark:bg-warning-500/10 dark:text-warning-300"
+      >
+        <p class="font-medium">A solicitação foi atualizada por outra pessoa</p>
+        <p class="mt-1 text-sm">
+          {{ conflictMessage }}
+        </p>
+        @if (refreshingAfterConflict) {
+          <p class="mt-2 text-xs">Carregando os dados mais recentes...</p>
+        }
+      </div>
+    }
+
     <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
       <article
         class="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] sm:p-6"
@@ -149,6 +173,176 @@
         </dl>
       </aside>
     </div>
+
+    <section
+      aria-labelledby="request-actions-title"
+      class="space-y-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-white/[0.03] sm:p-6"
+    >
+      <header>
+        <h2
+          id="request-actions-title"
+          class="font-semibold text-gray-900 dark:text-white"
+        >
+          Atualizar atendimento
+        </h2>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          As alterações ficam registradas no histórico de auditoria.
+        </p>
+      </header>
+
+      @if (isTerminal) {
+        <div
+          class="rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300"
+        >
+          Esta solicitação está encerrada e não aceita novas alterações de
+          atendimento.
+        </div>
+      } @else {
+        <div class="grid gap-4 xl:grid-cols-3">
+          <form
+            (submit)="assignResponsible($event)"
+            class="flex flex-col rounded-xl border border-gray-200 p-4 dark:border-gray-700"
+          >
+            <h3 class="font-medium text-gray-800 dark:text-white/90">
+              Responsável
+            </h3>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Informe o identificador da pessoa que cuidará da solicitação.
+            </p>
+            <label class="mt-4 block">
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-300">
+                Identificador do usuário
+              </span>
+              <input
+                type="text"
+                [value]="responsibleUserId"
+                (input)="onResponsibleInput($event)"
+                maxlength="36"
+                autocomplete="off"
+                placeholder="00000000-0000-0000-0000-000000000000"
+                [attr.aria-invalid]="assignmentError ? 'true' : null"
+                [attr.aria-describedby]="
+                  assignmentError ? 'assignment-error' : null
+                "
+                class="mt-2 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 outline-none transition focus:border-brand-400 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:text-white/90"
+              />
+            </label>
+            @if (assignmentError) {
+              <p
+                id="assignment-error"
+                role="alert"
+                class="mt-2 text-xs text-error-600 dark:text-error-400"
+              >
+                {{ assignmentError }}
+              </p>
+            }
+            <button
+              type="submit"
+              [disabled]="activeMutation !== null"
+              class="mt-4 inline-flex h-10 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600 disabled:cursor-wait disabled:opacity-60 xl:mt-auto xl:translate-y-4"
+            >
+              {{ isMutating("assignment") ? "Salvando..." : "Atribuir" }}
+            </button>
+          </form>
+
+          <form
+            (submit)="changeStatus($event)"
+            class="flex flex-col rounded-xl border border-gray-200 p-4 dark:border-gray-700"
+          >
+            <h3 class="font-medium text-gray-800 dark:text-white/90">
+              Situação
+            </h3>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Avance o atendimento conforme o trabalho realizado.
+            </p>
+            <label class="mt-4 block">
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-300">
+                Próxima situação
+              </span>
+              <select
+                [value]="selectedStatus"
+                (change)="onStatusChange($event)"
+                [attr.aria-invalid]="statusError ? 'true' : null"
+                [attr.aria-describedby]="statusError ? 'status-error' : null"
+                class="mt-2 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 outline-none transition focus:border-brand-400 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+              >
+                <option value="">Selecione</option>
+                @for (status of availableStatuses; track status) {
+                  <option [value]="status">{{ statusLabels[status] }}</option>
+                }
+              </select>
+            </label>
+            @if (statusError) {
+              <p
+                id="status-error"
+                role="alert"
+                class="mt-2 text-xs text-error-600 dark:text-error-400"
+              >
+                {{ statusError }}
+              </p>
+            }
+            <button
+              type="submit"
+              [disabled]="activeMutation !== null"
+              class="mt-4 inline-flex h-10 items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600 disabled:cursor-wait disabled:opacity-60 xl:mt-auto xl:translate-y-4"
+            >
+              {{ isMutating("status") ? "Salvando..." : "Alterar situação" }}
+            </button>
+          </form>
+
+          <form
+            (submit)="saveDueDate($event)"
+            class="flex flex-col rounded-xl border border-gray-200 p-4 dark:border-gray-700"
+          >
+            <h3 class="font-medium text-gray-800 dark:text-white/90">Prazo</h3>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Defina uma data futura ou remova o prazo atual.
+            </p>
+            <label class="mt-4 block">
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-300">
+                Data e hora
+              </span>
+              <input
+                type="datetime-local"
+                [value]="dueDateLocal"
+                (input)="onDueDateInput($event)"
+                [attr.aria-invalid]="dueDateError ? 'true' : null"
+                [attr.aria-describedby]="dueDateError ? 'due-date-error' : null"
+                class="mt-2 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 outline-none transition focus:border-brand-400 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:text-white/90 dark:[color-scheme:dark]"
+              />
+            </label>
+            @if (dueDateError) {
+              <p
+                id="due-date-error"
+                role="alert"
+                class="mt-2 text-xs text-error-600 dark:text-error-400"
+              >
+                {{ dueDateError }}
+              </p>
+            }
+            <div class="mt-4 flex gap-2 xl:mt-auto xl:translate-y-4">
+              @if (request.dueDateUtc) {
+                <button
+                  type="button"
+                  (click)="clearDueDate()"
+                  [disabled]="activeMutation !== null"
+                  class="inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-gray-300 px-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-wait disabled:opacity-60 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5"
+                >
+                  Remover
+                </button>
+              }
+              <button
+                type="submit"
+                [disabled]="activeMutation !== null"
+                class="inline-flex h-10 flex-1 items-center justify-center rounded-lg bg-brand-500 px-3 text-sm font-medium text-white transition hover:bg-brand-600 disabled:cursor-wait disabled:opacity-60"
+              >
+                {{ isMutating("dueDate") ? "Salvando..." : "Salvar prazo" }}
+              </button>
+            </div>
+          </form>
+        </div>
+      }
+    </section>
 
     <div class="grid gap-6 xl:grid-cols-2">
       <section

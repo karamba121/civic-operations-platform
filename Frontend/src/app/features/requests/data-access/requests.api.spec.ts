@@ -106,6 +106,61 @@ describe(RequestsApi.name, () => {
     });
   });
 
+  it('sends mutations with the current request version', () => {
+    api
+      .assignResponsible('request-id', {
+        responsibleUserId: '22222222-2222-2222-2222-222222222222',
+        version: 'version-1',
+      })
+      .subscribe();
+    api
+      .changeStatus('request-id', {
+        status: 'InProgress',
+        version: 'version-2',
+      })
+      .subscribe();
+    api
+      .setDueDate('request-id', {
+        dueDateUtc: '2026-08-15T15:00:00.000Z',
+        version: 'version-3',
+      })
+      .subscribe();
+
+    const assignment = http.expectOne(
+      '/api/v1/requests/request-id/assignment',
+    );
+    const status = http.expectOne('/api/v1/requests/request-id/status');
+    const dueDate = http.expectOne('/api/v1/requests/request-id/due-date');
+
+    expect(assignment.request.method).toBe('PATCH');
+    expect(assignment.request.body).toEqual({
+      responsibleUserId: '22222222-2222-2222-2222-222222222222',
+      version: 'version-1',
+    });
+    expect(status.request.method).toBe('PATCH');
+    expect(status.request.body).toEqual({
+      status: 'InProgress',
+      version: 'version-2',
+    });
+    expect(dueDate.request.method).toBe('PATCH');
+    expect(dueDate.request.body).toEqual({
+      dueDateUtc: '2026-08-15T15:00:00.000Z',
+      version: 'version-3',
+    });
+
+    const response = {
+      id: 'request-id',
+      protocolNumber: 'REQ-2026-0001',
+      status: 'InProgress',
+      responsibleUserId: '22222222-2222-2222-2222-222222222222',
+      dueDateUtc: '2026-08-15T15:00:00.000Z',
+      version: 'version-4',
+    };
+    assignment.flush(response);
+    status.flush(response);
+    dueDate.flush(response);
+  });
+
   it('loads paged comments and audit records', () => {
     api.listComments('request-id', 2).subscribe();
     api.listAudit('request-id', 3).subscribe();

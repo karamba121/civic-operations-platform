@@ -107,7 +107,7 @@ concluído.
   navegação para o detalhe;
 - [x] implementar criação idempotente e detalhe da solicitação com protocolo,
   situação, responsável, prazo, comentários e auditoria;
-- [ ] implementar atribuição, transição de situação e alteração de prazo com
+- [x] implementar atribuição, transição de situação e alteração de prazo com
   tratamento de concorrência otimista;
 - [ ] implementar comentários e anexos, incluindo upload, validações, listagem,
   download e respostas `403`, `413` e `415`;
@@ -124,12 +124,13 @@ concluído.
 end-to-end contra a composição Docker, nenhum dado demonstrativo no bundle,
 auditoria das operações sensíveis e relatório de acessibilidade e tamanho.
 
-**Evidência atual do frontend:** shell, dashboard, listagem, criação idempotente
-e detalhe com comentários e auditoria compilados pela imagem Docker, bundle
-inicial de `364,69 kB` e quinze testes Angular cobrindo clientes HTTP, contexto
-provisório, Problem Details, estados do dashboard, busca com debounce, filtros
-sincronizados com a URL, reutilização da chave idempotente, validação do
-formulário e carregamento independente do detalhe, comentários e auditoria.
+**Evidência atual do frontend:** shell, dashboard, listagem, criação idempotente,
+detalhe, atribuição, transições de situação e gestão de prazo compilados pela
+imagem Docker, bundle inicial de `365,38 kB` e dezoito testes Angular cobrindo
+clientes HTTP, contexto provisório, Problem Details, estados do dashboard,
+busca com debounce, filtros sincronizados com a URL, reutilização da chave
+idempotente, validações, carregamento independente de comentários e auditoria,
+encadeamento de versões e recuperação de conflitos de concorrência.
 
 ## Fora do escopo inicial
 
