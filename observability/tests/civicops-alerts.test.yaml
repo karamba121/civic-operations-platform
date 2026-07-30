@@ -118,3 +118,108 @@ tests:
               summary: Falhas nas operações de cache do dashboard
               description: O fallback para PostgreSQL está ativo por falhas no Redis.
               runbook: docs/operations/service-objectives-and-alerts.md#civicopsdashboardcachefailures
+
+  - name: backlog da Outbox dispara alerta após dez minutos
+    interval: 1m
+    input_series:
+      - series: civicops_requests_outbox_pending_messages
+        values: 150x15
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: CivicOpsOutboxBacklogHigh
+        exp_alerts: []
+      - eval_time: 12m
+        alertname: CivicOpsOutboxBacklogHigh
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              service: civic-operations-platform
+              component: outbox
+            exp_annotations:
+              summary: Backlog da Outbox acima do limite
+              description: A Outbox manteve mais de 100 mensagens pendentes por 10 minutos.
+              runbook: docs/operations/service-objectives-and-alerts.md#civicopsoutboxbackloghigh
+
+  - name: mensagem antiga na Outbox dispara alerta crítico
+    interval: 1m
+    input_series:
+      - series: civicops_requests_outbox_oldest_pending_age_seconds
+        values: 600x15
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: CivicOpsOutboxOldestPendingHigh
+        exp_alerts: []
+      - eval_time: 12m
+        alertname: CivicOpsOutboxOldestPendingHigh
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              service: civic-operations-platform
+              component: outbox
+            exp_annotations:
+              summary: Mensagem antiga permanece pendente na Outbox
+              description: A mensagem pendente mais antiga ultrapassou 5 minutos por 10 minutos.
+              runbook: docs/operations/service-objectives-and-alerts.md#civicopsoutboxoldestpendinghigh
+
+  - name: primeira falha de publicação da Outbox é detectada
+    interval: 1m
+    input_series:
+      - series: civicops_requests_outbox_publish_failures_total
+        values: _ _ 1 1 1 1 1
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: CivicOpsOutboxPublishFailures
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: CivicOpsOutboxPublishFailures
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              service: civic-operations-platform
+              component: outbox
+            exp_annotations:
+              summary: Falhas ao publicar mensagens da Outbox
+              description: O publicador registrou falhas e reagendou mensagens para nova tentativa.
+              runbook: docs/operations/service-objectives-and-alerts.md#civicopsoutboxpublishfailures
+
+  - name: primeiro lease expirado da Outbox é detectado
+    interval: 1m
+    input_series:
+      - series: civicops_requests_outbox_lease_expirations_total
+        values: _ _ 1 1 1 1 1
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: CivicOpsOutboxLeaseExpirations
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: CivicOpsOutboxLeaseExpirations
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              service: civic-operations-platform
+              component: outbox
+            exp_annotations:
+              summary: Leases da Outbox expiraram durante processamento
+              description: Mensagens podem ser republicadas porque o lease expirou antes da confirmação no banco.
+              runbook: docs/operations/service-objectives-and-alerts.md#civicopsoutboxleaseexpirations
+
+  - name: primeira falha da coleta de métricas da Outbox é detectada
+    interval: 1m
+    input_series:
+      - series: civicops_requests_outbox_metrics_collection_failures_total
+        values: _ _ 1 1 1 1 1
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: CivicOpsOutboxMetricsCollectionFailures
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: CivicOpsOutboxMetricsCollectionFailures
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              service: civic-operations-platform
+              component: outbox
+            exp_annotations:
+              summary: Falha na coleta de métricas da Outbox
+              description: A visão operacional da Outbox pode estar desatualizada por falha na consulta agregada.
+              runbook: docs/operations/service-objectives-and-alerts.md#civicopsoutboxmetricscollectionfailures

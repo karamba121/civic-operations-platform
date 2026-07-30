@@ -220,8 +220,8 @@ public sealed class ArchitectureTests
                         attribute.AssemblyName.StartsWith(
                             "CivicOps.Modules.",
                             StringComparison.Ordinal)
-                        && !attribute.AssemblyName.Contains(
-                            ".Tests",
+                        && !attribute.AssemblyName.EndsWith(
+                            "Tests",
                             StringComparison.Ordinal))
                     .Select(attribute =>
                         $"{AssemblyNameOf(assembly)} -> "

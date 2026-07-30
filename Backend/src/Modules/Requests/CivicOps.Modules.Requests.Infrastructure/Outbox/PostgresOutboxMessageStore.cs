@@ -135,6 +135,50 @@ internal sealed class PostgresOutboxMessageStore(RequestsDbContext dbContext)
             cancellationToken);
     }
 
+    public async Task<OutboxMetricsSnapshot> GetMetricsAsync(
+        DateTimeOffset nowUtc,
+        CancellationToken cancellationToken)
+    {
+        var connection = await GetOpenConnectionAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT COUNT(*) FILTER (WHERE processed_at_utc IS NULL),
+                   COALESCE(
+                       EXTRACT(
+                           EPOCH FROM (
+                               @now_utc - MIN(occurred_at_utc) FILTER (
+                                   WHERE processed_at_utc IS NULL))),
+                       0),
+                   COUNT(*) FILTER (
+                       WHERE processed_at_utc IS NULL
+                         AND attempt_count > 0),
+                   COUNT(*) FILTER (
+                       WHERE processed_at_utc IS NULL
+                         AND locked_until_utc >= @now_utc),
+                   COALESCE(
+                       SUM(attempt_count) FILTER (
+                           WHERE processed_at_utc IS NULL),
+                       0)
+              FROM requests.outbox_messages;
+            """;
+        command.Parameters.AddWithValue(
+            "now_utc",
+            NpgsqlDbType.TimestampTz,
+            nowUtc);
+
+        await using var reader = await command.ExecuteReaderAsync(
+            cancellationToken);
+        await reader.ReadAsync(cancellationToken);
+
+        return new OutboxMetricsSnapshot(
+            reader.GetInt64(0),
+            Math.Max(0, reader.GetDouble(1)),
+            reader.GetInt64(2),
+            reader.GetInt64(3),
+            reader.GetInt64(4));
+    }
+
     private async Task<bool> ExecuteUpdateAsync(
         string commandText,
         Guid messageId,

@@ -47,5 +47,9 @@ a publicação confirmada e a propagação do trace por
 [OutboxRabbitMqPublishingTests](../../Backend/tests/CivicOps.Modules.Requests.IntegrationTests/OutboxRabbitMqPublishingTests.cs);
 idempotência, retries e dead letter por
 [NotificationIdempotencyTests](../../Backend/tests/CivicOps.Modules.Notifications.IntegrationTests/NotificationIdempotencyTests.cs).
-As métricas completas e a automação de retenção permanecem pendentes no
+As métricas são implementadas por
+[`OutboxDiagnostics`](../../Backend/src/Modules/Requests/CivicOps.Modules.Requests.Infrastructure/Outbox/OutboxDiagnostics.cs),
+pela consulta agregada coberta em
+[`OutboxMetricsTests`](../../Backend/tests/CivicOps.Modules.Requests.IntegrationTests/OutboxMetricsTests.cs)
+e por alertas Prometheus testados. A automação de retenção permanece pendente no
 [roadmap](../roadmap.md).

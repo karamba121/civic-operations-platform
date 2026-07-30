@@ -51,6 +51,29 @@ sum(rate(http_server_request_duration_seconds_count{
 Produção precisa reter métricas por pelo menos 30 dias. O Prometheus local
 retém sete dias porque existe para desenvolvimento e validação das regras.
 
+## Sinais operacionais da Outbox
+
+O coletor executa uma consulta agregada ao PostgreSQL a cada 15 segundos por
+padrão e mantém o último snapshot em memória para observação pelo OpenTelemetry.
+Falhas de coleta não interrompem o publicador e preservam o último snapshot.
+
+| Métrica Prometheus | Tipo | Significado |
+| --- | --- | --- |
+| `civicops_requests_outbox_pending_messages` | gauge | Mensagens ainda não processadas |
+| `civicops_requests_outbox_oldest_pending_age_seconds` | gauge | Idade da mensagem pendente mais antiga |
+| `civicops_requests_outbox_retrying_messages` | gauge | Pendências com pelo menos uma falha |
+| `civicops_requests_outbox_leased_messages` | gauge | Pendências atualmente reivindicadas |
+| `civicops_requests_outbox_pending_attempts` | gauge | Soma das tentativas das mensagens pendentes |
+| `civicops_requests_outbox_published_messages_total` | counter | Publicações confirmadas e marcadas como processadas |
+| `civicops_requests_outbox_publish_failures_total` | counter | Falhas persistidas para nova tentativa |
+| `civicops_requests_outbox_lease_expirations_total` | counter | Atualizações recusadas por lease expirado |
+| `civicops_requests_outbox_metrics_collection_failures_total` | counter | Falhas da consulta agregada |
+
+As séries são globais por instância e não possuem labels de tenant, payload,
+identificador de mensagem ou exceção. Isso preserva privacidade e limita
+cardinalidade. Os gauges devem ser agregados com `max` entre réplicas; counters
+devem ser agregados com `sum(rate(...))`.
+
 ## Política de alertas
 
 - `critical`: aciona plantão imediatamente e exige confirmação;
@@ -136,6 +159,70 @@ A taxa de hit ficou abaixo de 80% por 15 minutos, com pelo menos 100 leituras.
 2. confirmar que as chaves continuam isoladas por tenant e geração;
 3. comparar o custo do cache com o ganho observado;
 4. ajustar TTL apenas com nova medição e revisão da tolerância a defasagem.
+
+### CivicOpsOutboxBacklogHigh
+
+**Severidade:** warning.
+
+Mais de 100 mensagens permaneceram pendentes por dez minutos.
+
+1. comparar backlog, idade da mais antiga, retries e tentativas pendentes;
+2. confirmar que o publicador está habilitado e possui réplicas saudáveis;
+3. verificar RabbitMQ, publisher confirms, PostgreSQL e saturação de recursos;
+4. identificar o primeiro intervalo de crescimento e correlacionar com deploys;
+5. não excluir pendências para encerrar o alerta.
+
+### CivicOpsOutboxOldestPendingHigh
+
+**Severidade:** critical.
+
+A mensagem pendente mais antiga permaneceu acima de cinco minutos por dez
+minutos.
+
+1. confirmar execução do worker e conectividade com RabbitMQ;
+2. verificar falhas recorrentes e o agendamento de `next_attempt_at_utc`;
+3. inspecionar leases presos, pausas do processo e latência do PostgreSQL;
+4. restaurar a publicação e acompanhar a idade cair até o valor normal;
+5. não marcar mensagens manualmente como processadas.
+
+### CivicOpsOutboxPublishFailures
+
+**Severidade:** warning.
+
+O publicador persistiu falhas e reagendou mensagens.
+
+1. verificar disponibilidade, credenciais e exchange do RabbitMQ;
+2. correlacionar os logs pelo identificador da mensagem e pelo trace;
+3. confirmar que `attempt_count` cresce e que o backoff evita loop apertado;
+4. acompanhar backlog e idade para decidir escalonamento;
+5. validar uma publicação confirmada depois da correção.
+
+### CivicOpsOutboxLeaseExpirations
+
+**Severidade:** warning.
+
+O lease expirou antes de a publicação ser confirmada no banco. A entrega
+`at-least-once` permite republicação, mas o evento pode chegar duplicado.
+
+1. comparar duração do lease com latência do broker e do PostgreSQL;
+2. verificar pausas de CPU, reinicializações e perda de conectividade;
+3. confirmar que consumidores continuam idempotentes;
+4. aumentar `LockDuration` somente após medir o tempo de publicação;
+5. acompanhar duplicidades e estabilização do contador.
+
+### CivicOpsOutboxMetricsCollectionFailures
+
+**Severidade:** warning.
+
+A consulta agregada falhou e os gauges podem representar o último snapshot
+bem-sucedido.
+
+1. verificar conectividade e permissões no schema `requests`;
+2. confirmar que migrations da Outbox foram aplicadas;
+3. inspecionar logs do `OutboxMetricsCollector`;
+4. não interpretar gauges estáveis como ausência de crescimento enquanto o
+   contador de falhas estiver aumentando;
+5. confirmar nova coleta e atualização dos gauges depois da correção.
 
 ## Execução local
 

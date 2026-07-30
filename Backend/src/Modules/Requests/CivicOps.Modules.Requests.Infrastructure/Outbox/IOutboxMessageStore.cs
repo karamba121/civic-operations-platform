@@ -21,4 +21,8 @@ internal interface IOutboxMessageStore
         string error,
         DateTimeOffset nextAttemptAtUtc,
         CancellationToken cancellationToken);
+
+    Task<OutboxMetricsSnapshot> GetMetricsAsync(
+        DateTimeOffset nowUtc,
+        CancellationToken cancellationToken);
 }

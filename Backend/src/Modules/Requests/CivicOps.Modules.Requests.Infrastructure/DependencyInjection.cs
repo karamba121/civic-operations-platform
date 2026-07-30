@@ -58,6 +58,11 @@ public static class DependencyInjection
         services.AddScoped<IRequestsUnitOfWork, RequestsUnitOfWork>();
         services.AddScoped<IOutboxMessageStore, PostgresOutboxMessageStore>();
         services.AddScoped<OutboxProcessor>();
+        services.AddSingleton<OutboxDiagnostics>();
+        services.AddSingleton(serviceProvider =>
+            CreateOutboxMetricsOptions(
+                serviceProvider.GetRequiredService<IConfiguration>()));
+        services.AddHostedService<OutboxMetricsCollector>();
         services.AddSingleton(serviceProvider =>
             CreateOutboxOptions(
                 serviceProvider.GetRequiredService<IConfiguration>()));
@@ -143,6 +148,23 @@ public static class DependencyInjection
         {
             throw new InvalidOperationException(
                 "Os intervalos do publicador da Outbox devem ser positivos.");
+        }
+
+        return options;
+    }
+
+    private static OutboxMetricsOptions CreateOutboxMetricsOptions(
+        IConfiguration configuration)
+    {
+        var options = new OutboxMetricsOptions();
+        configuration.GetSection("OutboxMetrics").Bind(options);
+
+        if (options.CollectionInterval < TimeSpan.FromSeconds(1)
+            || options.CollectionInterval > TimeSpan.FromMinutes(5))
+        {
+            throw new InvalidOperationException(
+                "OutboxMetrics:CollectionInterval deve estar entre "
+                + "1 segundo e 5 minutos.");
         }
 
         return options;

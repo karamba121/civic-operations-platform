@@ -118,6 +118,13 @@ duplicados. Um `BackgroundService` reivindica lotes com lease e
 `civicops.events` e só registra `processed_at_utc` depois da confirmação do
 broker. O contrato é `at-least-once`.
 
+Uma consulta agregada ao PostgreSQL, executada a cada 15 segundos por padrão,
+publica métricas de mensagens pendentes, idade da mais antiga, mensagens em
+retry, leases ativos e tentativas acumuladas. O processor também conta
+publicações confirmadas, falhas, leases expirados e falhas da própria coleta.
+Nenhuma série contém tenant, payload ou texto de exceção. Configure com
+`OutboxMetrics:Enabled` e `OutboxMetrics:CollectionInterval`.
+
 O módulo `Notifications` mantém schema, domínio e migrations próprios dentro do
 mesmo processo. O consumidor da fila
 `civicops.notifications.request-assigned` trata

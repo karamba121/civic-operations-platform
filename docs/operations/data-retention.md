@@ -31,12 +31,13 @@ configurados por ambiente antes de produção.
 
 ## Operação e evidência
 
-A automação ainda não está implementada. Para considerar este item concluído,
-o projeto deve fornecer:
+As métricas operacionais de backlog, idade, tentativas, falhas e leases da
+Outbox já estão implementadas. A automação de retenção ainda não está. Para
+considerar este item concluído, o projeto deve fornecer:
 
 - configuração validada dos prazos por ambiente;
 - rotina idempotente de expiração com execução em lotes;
 - testes que preservem mensagens não processadas e registros sob retenção
   legal;
-- métricas de quantidade, idade do registro mais antigo, remoções e falhas;
+- métricas de remoções e falhas da rotina de expiração;
 - procedimento documentado de suspensão, retomada e recuperação.

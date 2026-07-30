@@ -14,5 +14,6 @@
   <ItemGroup>
     <ProjectReference Include="../../src/Modules/Requests/CivicOps.Modules.Requests.Application/CivicOps.Modules.Requests.Application.csproj" />
     <ProjectReference Include="../../src/Modules/Requests/CivicOps.Modules.Requests.Domain/CivicOps.Modules.Requests.Domain.csproj" />
+    <ProjectReference Include="../../src/Modules/Requests/CivicOps.Modules.Requests.Infrastructure/CivicOps.Modules.Requests.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

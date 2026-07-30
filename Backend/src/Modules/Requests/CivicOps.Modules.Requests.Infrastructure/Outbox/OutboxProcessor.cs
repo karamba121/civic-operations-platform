@@ -7,6 +7,7 @@ internal sealed class OutboxProcessor(
     IIntegrationEventPublisher publisher,
     OutboxPublisherOptions options,
     TimeProvider timeProvider,
+    OutboxDiagnostics diagnostics,
     ILogger<OutboxProcessor> logger)
 {
     public async Task<int> ProcessBatchAsync(CancellationToken cancellationToken)
@@ -33,9 +34,14 @@ internal sealed class OutboxProcessor(
 
                 if (!marked)
                 {
+                    diagnostics.RecordLeaseExpiration();
                     logger.LogWarning(
                         "O lease da mensagem Outbox {MessageId} expirou após a publicação.",
                         message.Id);
+                }
+                else
+                {
+                    diagnostics.RecordPublished();
                 }
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -51,12 +57,22 @@ internal sealed class OutboxProcessor(
                     error = error[..4_000];
                 }
 
-                await store.MarkFailedAsync(
+                var marked = await store.MarkFailedAsync(
                     message.Id,
                     lockId,
                     error,
                     timeProvider.GetUtcNow().Add(options.FailureDelay),
                     cancellationToken);
+
+                if (marked)
+                {
+                    diagnostics.RecordPublishFailure();
+                }
+                else
+                {
+                    diagnostics.RecordLeaseExpiration();
+                }
+
                 logger.LogError(
                     exception,
                     "Falha ao publicar a mensagem Outbox {MessageId}.",

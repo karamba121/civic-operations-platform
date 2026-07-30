@@ -85,14 +85,14 @@ foram concluídas. Permanecem nesta etapa os itens operacionais abaixo.
   relatórios existentes;
 - [x] definir a [política de retenção](operations/data-retention.md) para Outbox
   e auditorias;
-- [ ] publicar métricas de idade, quantidade, tentativas e falhas da Outbox;
+- [x] publicar métricas de idade, quantidade, tentativas e falhas da Outbox;
 - [ ] automatizar retenção em lotes e recuperação segura da Outbox, com testes e
   procedimento operacional.
 
-**Evidência exigida:** testes de arquitetura executáveis, workflow versionado,
-regras Prometheus validadas, imagens construídas e cenários automatizados de
-acúmulo, falha, recuperação e retenção. Os itens de implementação permanecem
-desmarcados até que código e testes correspondentes existam.
+**Evidência atual:** testes de arquitetura e workflow estão executáveis; as
+métricas da Outbox possuem teste unitário, consulta real no PostgreSQL e cinco
+alertas validados pelo `promtool`. Permanecem pendentes os cenários automatizados
+de expiração, recuperação e retenção em lotes.
 
 ## 7. Painel administrativo Angular
 

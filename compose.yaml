@@ -92,6 +92,10 @@ services:
       RabbitMq__UserName: ${RABBITMQ_USER:-civic_ops}
       RabbitMq__Password: ${RABBITMQ_PASSWORD:-civic_ops_dev}
       Database__ApplyMigrations: "true"
+      OutboxMetrics__Enabled: "true"
+      OutboxMetrics__CollectionInterval: "00:00:15"
+      OutboxPublisher__Enabled: "true"
+      NotificationsConsumer__Enabled: "true"
       Authentication__Enabled: "true"
       Authentication__Authority: http://localhost:${FRONTEND_PORT:-4200}/auth/realms/civicops
       Authentication__MetadataAddress: http://keycloak:8080/auth/realms/civicops/.well-known/openid-configuration

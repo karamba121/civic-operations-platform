@@ -9,6 +9,7 @@ using CivicOps.Modules.Requests.Application.ListRequests;
 using CivicOps.Modules.Requests.Domain.Requests;
 using CivicOps.Modules.Requests.Infrastructure;
 using CivicOps.Modules.Requests.Infrastructure.Caching;
+using CivicOps.Modules.Requests.Infrastructure.Outbox;
 using CivicOps.Modules.Requests.Presentation;
 using CivicOps.Modules.Notifications.Application.ListNotifications;
 using CivicOps.Modules.Notifications.Infrastructure;
@@ -57,6 +58,7 @@ builder.Services
     {
         metrics.AddAspNetCoreInstrumentation();
         metrics.AddMeter(RequestDashboardCacheDiagnostics.MeterName);
+        metrics.AddMeter(OutboxDiagnostics.MeterName);
 
         if (builder.Configuration.GetValue<bool>(
                 "OpenTelemetry:Otlp:Enabled"))

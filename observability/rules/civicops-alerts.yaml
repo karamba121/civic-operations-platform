@@ -167,3 +167,87 @@ groups:
           summary: Taxa de hit do dashboard abaixo de 80%
           description: O cache recebe volume suficiente, mas evita menos de 80% das consultas ao PostgreSQL.
           runbook: docs/operations/service-objectives-and-alerts.md#civicopsdashboardcachehit-ratio-low
+
+  - name: civicops-outbox
+    interval: 30s
+    rules:
+      - alert: CivicOpsOutboxBacklogHigh
+        expr: max(civicops_requests_outbox_pending_messages) > 100
+        for: 10m
+        labels:
+          severity: warning
+          service: civic-operations-platform
+          component: outbox
+        annotations:
+          summary: Backlog da Outbox acima do limite
+          description: A Outbox manteve mais de 100 mensagens pendentes por 10 minutos.
+          runbook: docs/operations/service-objectives-and-alerts.md#civicopsoutboxbackloghigh
+
+      - alert: CivicOpsOutboxOldestPendingHigh
+        expr: max(civicops_requests_outbox_oldest_pending_age_seconds) > 300
+        for: 10m
+        labels:
+          severity: critical
+          service: civic-operations-platform
+          component: outbox
+        annotations:
+          summary: Mensagem antiga permanece pendente na Outbox
+          description: A mensagem pendente mais antiga ultrapassou 5 minutos por 10 minutos.
+          runbook: docs/operations/service-objectives-and-alerts.md#civicopsoutboxoldestpendinghigh
+
+      - alert: CivicOpsOutboxPublishFailures
+        expr: |
+          sum(increase(civicops_requests_outbox_publish_failures_total[5m])) > 0
+          or
+          (
+            sum(civicops_requests_outbox_publish_failures_total) > 0
+            unless
+            sum(civicops_requests_outbox_publish_failures_total offset 5m)
+          )
+        for: 2m
+        labels:
+          severity: warning
+          service: civic-operations-platform
+          component: outbox
+        annotations:
+          summary: Falhas ao publicar mensagens da Outbox
+          description: O publicador registrou falhas e reagendou mensagens para nova tentativa.
+          runbook: docs/operations/service-objectives-and-alerts.md#civicopsoutboxpublishfailures
+
+      - alert: CivicOpsOutboxLeaseExpirations
+        expr: |
+          sum(increase(civicops_requests_outbox_lease_expirations_total[5m])) > 0
+          or
+          (
+            sum(civicops_requests_outbox_lease_expirations_total) > 0
+            unless
+            sum(civicops_requests_outbox_lease_expirations_total offset 5m)
+          )
+        for: 2m
+        labels:
+          severity: warning
+          service: civic-operations-platform
+          component: outbox
+        annotations:
+          summary: Leases da Outbox expiraram durante processamento
+          description: Mensagens podem ser republicadas porque o lease expirou antes da confirmação no banco.
+          runbook: docs/operations/service-objectives-and-alerts.md#civicopsoutboxleaseexpirations
+
+      - alert: CivicOpsOutboxMetricsCollectionFailures
+        expr: |
+          sum(increase(civicops_requests_outbox_metrics_collection_failures_total[5m])) > 0
+          or
+          (
+            sum(civicops_requests_outbox_metrics_collection_failures_total) > 0
+            unless
+            sum(civicops_requests_outbox_metrics_collection_failures_total offset 5m)
+          )
+        for: 2m
+        labels:
+          severity: warning
+          service: civic-operations-platform
+          component: outbox
+        annotations:
+          summary: Falha na coleta de métricas da Outbox
+          description: A visão operacional da Outbox pode estar desatualizada por falha na consulta agregada.
+          runbook: docs/operations/service-objectives-and-alerts.md#civicopsoutboxmetricscollectionfailures
