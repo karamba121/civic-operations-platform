@@ -21,4 +21,8 @@ export class AppHeaderComponent {
       this.sidebarService.toggleMobileOpen();
     }
   }
+
+  logout(): void {
+    void this.actorContext.logout();
+  }
 }

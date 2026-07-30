@@ -7,7 +7,8 @@ import {
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { civicOpsContextInterceptor } from '../../../core/http/civic-ops-context.interceptor';
+import { AuthService } from '../../../core/auth/auth.service';
+import { civicOpsAuthInterceptor } from '../../../core/http/civic-ops-auth.interceptor';
 import { NotificationsApi } from './notifications.api';
 
 describe(NotificationsApi.name, () => {
@@ -17,8 +18,15 @@ describe(NotificationsApi.name, () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(withInterceptors([civicOpsContextInterceptor])),
+        provideHttpClient(withInterceptors([civicOpsAuthInterceptor])),
         provideHttpClientTesting(),
+        {
+          provide: AuthService,
+          useValue: {
+            accessToken: 'test-access-token',
+            ensureValidToken: () => Promise.resolve('test-access-token'),
+          },
+        },
       ],
     });
     api = TestBed.inject(NotificationsApi);
@@ -37,12 +45,11 @@ describe(NotificationsApi.name, () => {
         candidate.params.get('pageSize') === '10',
     );
     expect(request.request.method).toBe('GET');
-    expect(request.request.headers.get('X-Tenant-Id')).toBe(
-      '11111111-1111-1111-1111-111111111111',
+    expect(request.request.headers.get('Authorization')).toBe(
+      'Bearer test-access-token',
     );
-    expect(request.request.headers.get('X-User-Id')).toBe(
-      '33333333-3333-3333-3333-333333333333',
-    );
+    expect(request.request.headers.has('X-Tenant-Id')).toBeFalse();
+    expect(request.request.headers.has('X-User-Id')).toBeFalse();
     request.flush({
       items: [],
       page: 2,

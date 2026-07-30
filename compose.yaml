@@ -55,6 +55,29 @@ services:
       start_period: 5s
     restart: unless-stopped
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.2.4
+    container_name: civic-operations-keycloak
+    command: ["start-dev", "--http-relative-path=/auth", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-civic_ops_dev}
+      KC_HOSTNAME: http://localhost:${FRONTEND_PORT:-4200}/auth
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      KC_HTTP_ENABLED: "true"
+    ports:
+      - "${AUTH_PORT:-8081}:8080"
+    volumes:
+      - ./identity/keycloak/civicops-realm.json:/opt/keycloak/data/import/civicops-realm.json:ro
+      - civic_operations_keycloak_data:/opt/keycloak/data
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8080"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 20s
+    restart: unless-stopped
+
   api:
     build:
       context: ./Backend
@@ -69,6 +92,13 @@ services:
       RabbitMq__UserName: ${RABBITMQ_USER:-civic_ops}
       RabbitMq__Password: ${RABBITMQ_PASSWORD:-civic_ops_dev}
       Database__ApplyMigrations: "true"
+      Authentication__Enabled: "true"
+      Authentication__Authority: http://localhost:${FRONTEND_PORT:-4200}/auth/realms/civicops
+      Authentication__MetadataAddress: http://keycloak:8080/auth/realms/civicops/.well-known/openid-configuration
+      Authentication__Issuer: http://localhost:${FRONTEND_PORT:-4200}/auth/realms/civicops
+      Authentication__Audience: civicops-api
+      Authentication__RequireHttpsMetadata: "false"
+      IdentityAccess__BootstrapEnabled: "true"
       AttachmentStorage__RootPath: /data/attachments
       OpenTelemetry__Otlp__Enabled: ${OTEL_ENABLED:-false}
       OpenTelemetry__Otlp__Endpoint: http://otel-collector:4317
@@ -78,6 +108,8 @@ services:
       rabbitmq:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      keycloak:
         condition: service_healthy
     ports:
       - "${API_PORT:-5080}:8080"
@@ -105,6 +137,8 @@ services:
     container_name: civic-operations-frontend
     depends_on:
       api:
+        condition: service_healthy
+      keycloak:
         condition: service_healthy
     ports:
       - "${FRONTEND_PORT:-4200}:8080"
@@ -162,5 +196,6 @@ volumes:
   civic_operations_postgres_data:
   civic_operations_rabbitmq_data:
   civic_operations_redis_data:
+  civic_operations_keycloak_data:
   civic_operations_attachments:
   civic_operations_prometheus_data:

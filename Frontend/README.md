@@ -9,7 +9,8 @@ demonstrativas foram removidos.
 - shell administrativo adaptado ao domínio cívico;
 - configuração de desenvolvimento e produção;
 - proxy local de `/api` para a API;
-- contexto provisório de tenant e usuário;
+- autenticação OpenID Connect com Authorization Code e PKCE;
+- tenant e usuário obtidos de claims confiáveis do token de acesso;
 - cliente HTTP tipado com tratamento de Problem Details;
 - dashboard operacional de solicitações;
 - listagem com busca, filtros e paginação;
@@ -33,8 +34,18 @@ Na raiz do repositório:
 docker compose up -d --build --wait
 ```
 
-O frontend estará em `http://localhost:4200`. O Nginx serve a aplicação e
-encaminha `/api` para o serviço da API.
+O frontend estará em `http://localhost:4200`. O Nginx serve a aplicação,
+encaminha `/api` para o serviço da API e `/auth` para o provedor de identidade.
+
+O ambiente local contém um usuário demonstrativo:
+
+- usuário: `admin`;
+- senha: `civic_ops_dev`;
+- organização: `Prefeitura Municipal`.
+
+Essas credenciais existem somente no realm local versionado em
+`identity/keycloak/civicops-realm.json` e devem ser substituídas em qualquer
+ambiente compartilhado.
 
 ## Desenvolvimento
 
@@ -44,7 +55,12 @@ npm start
 ```
 
 O servidor de desenvolvimento usa `proxy.conf.json` e fica disponível em
-`http://localhost:4200`.
+`http://localhost:4200`. Para autenticar, mantenha também o Keycloak local em
+execução:
+
+```powershell
+docker compose up -d --wait keycloak
+```
 
 ## Validação
 

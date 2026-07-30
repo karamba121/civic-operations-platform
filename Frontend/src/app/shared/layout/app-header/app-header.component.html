@@ -48,14 +48,21 @@
           {{ actorContext.userName }}
         </p>
         <p class="text-xs text-gray-500 dark:text-gray-400">
-          Identidade provisória
+          Sessão autenticada
         </p>
       </div>
       <span
         class="flex size-10 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold text-brand-700 dark:bg-brand-500/20 dark:text-brand-300"
       >
-        AL
+        {{ actorContext.initials }}
       </span>
+      <button
+        type="button"
+        (click)="logout()"
+        class="hidden h-10 items-center justify-center rounded-lg border border-gray-200 px-3 text-sm font-medium text-gray-600 transition hover:bg-gray-50 sm:inline-flex dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-800"
+      >
+        Sair
+      </button>
     </div>
   </div>
 </header>

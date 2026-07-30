@@ -7,7 +7,8 @@ import {
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { civicOpsContextInterceptor } from '../../../core/http/civic-ops-context.interceptor';
+import { AuthService } from '../../../core/auth/auth.service';
+import { civicOpsAuthInterceptor } from '../../../core/http/civic-ops-auth.interceptor';
 import { RequestsApi } from './requests.api';
 
 describe(RequestsApi.name, () => {
@@ -17,8 +18,15 @@ describe(RequestsApi.name, () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(withInterceptors([civicOpsContextInterceptor])),
+        provideHttpClient(withInterceptors([civicOpsAuthInterceptor])),
         provideHttpClientTesting(),
+        {
+          provide: AuthService,
+          useValue: {
+            accessToken: 'test-access-token',
+            ensureValidToken: () => Promise.resolve('test-access-token'),
+          },
+        },
       ],
     });
 
@@ -28,7 +36,7 @@ describe(RequestsApi.name, () => {
 
   afterEach(() => http.verify());
 
-  it('sends pagination, search, status and tenant context', () => {
+  it('sends pagination, filters and the authenticated token', () => {
     api
       .list({
         page: 2,
@@ -46,9 +54,11 @@ describe(RequestsApi.name, () => {
     expect(request.request.params.get('pageSize')).toBe('10');
     expect(request.request.params.get('search')).toBe('iluminação');
     expect(request.request.params.get('status')).toBe('InProgress');
-    expect(request.request.headers.get('X-Tenant-Id')).toBe(
-      '11111111-1111-1111-1111-111111111111',
+    expect(request.request.headers.get('Authorization')).toBe(
+      'Bearer test-access-token',
     );
+    expect(request.request.headers.has('X-Tenant-Id')).toBeFalse();
+    expect(request.request.headers.has('X-User-Id')).toBeFalse();
 
     request.flush({
       items: [],

@@ -1,5 +1,6 @@
 using CivicOps.BuildingBlocks.Domain;
 using CivicOps.BuildingBlocks.Observability;
+using CivicOps.Api.Authentication;
 using CivicOps.Modules.IdentityAccess;
 using CivicOps.Modules.IdentityAccess.Infrastructure;
 using CivicOps.Modules.Requests.Application;
@@ -21,6 +22,7 @@ using OpenTelemetry.Trace;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddProblemDetails();
+builder.Services.AddCivicOpsAuthentication(builder.Configuration);
 builder.Services
     .AddOpenTelemetry()
     .ConfigureResource(resource => resource.AddService(
@@ -89,8 +91,12 @@ builder.Services.AddRequestsModule(builder.Configuration);
 var app = builder.Build();
 
 app.UseExceptionHandler();
+app.UseAuthentication();
+app.UseCivicOpsClaimsContext();
+app.UseAuthorization();
 
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" }))
+    .AllowAnonymous()
     .WithName("Health");
 
 app.MapRequestEndpoints();

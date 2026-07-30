@@ -7,7 +7,8 @@ import {
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { civicOpsContextInterceptor } from '../../../core/http/civic-ops-context.interceptor';
+import { AuthService } from '../../../core/auth/auth.service';
+import { civicOpsAuthInterceptor } from '../../../core/http/civic-ops-auth.interceptor';
 import { CivicOpsApiError } from '../../../core/http/civic-ops-api-error';
 import { RequestDashboardApi } from './request-dashboard.api';
 import { RequestDashboard } from './request-dashboard.model';
@@ -19,8 +20,15 @@ describe(RequestDashboardApi.name, () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(withInterceptors([civicOpsContextInterceptor])),
+        provideHttpClient(withInterceptors([civicOpsAuthInterceptor])),
         provideHttpClientTesting(),
+        {
+          provide: AuthService,
+          useValue: {
+            accessToken: 'test-access-token',
+            ensureValidToken: () => Promise.resolve('test-access-token'),
+          },
+        },
       ],
     });
 
@@ -30,7 +38,7 @@ describe(RequestDashboardApi.name, () => {
 
   afterEach(() => http.verify());
 
-  it('loads the dashboard with the provisional civic context', () => {
+  it('loads the dashboard with the authenticated access token', () => {
     const response: RequestDashboard = {
       total: 0,
       submitted: 0,
@@ -48,12 +56,11 @@ describe(RequestDashboardApi.name, () => {
     });
 
     const request = http.expectOne('/api/v1/requests/dashboard');
-    expect(request.request.headers.get('X-Tenant-Id')).toBe(
-      '11111111-1111-1111-1111-111111111111',
+    expect(request.request.headers.get('Authorization')).toBe(
+      'Bearer test-access-token',
     );
-    expect(request.request.headers.get('X-User-Id')).toBe(
-      '33333333-3333-3333-3333-333333333333',
-    );
+    expect(request.request.headers.has('X-Tenant-Id')).toBeFalse();
+    expect(request.request.headers.has('X-User-Id')).toBeFalse();
     request.flush(response);
   });
 

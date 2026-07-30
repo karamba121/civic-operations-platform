@@ -21,14 +21,15 @@ Na raiz do repositório:
 docker compose up -d --build --wait
 ```
 
-A API estará em `http://localhost:5080` e o frontend em
-`http://localhost:4200`. As migrations são aplicadas pela API durante a
-inicialização da composição.
+A API estará em `http://localhost:5080`, o frontend em
+`http://localhost:4200` e o provedor de identidade será exposto pelo frontend
+em `http://localhost:4200/auth`. As migrations são aplicadas pela API durante
+a inicialização da composição.
 
 Para executar a API diretamente com hot reload, suba somente as dependências:
 
 ```powershell
-docker compose up -d --wait postgres rabbitmq redis
+docker compose up -d --wait postgres rabbitmq redis keycloak
 cd Backend
 dotnet tool restore
 dotnet restore CivicOperationsPlatform.sln
@@ -38,13 +39,11 @@ dotnet run --project src/CivicOps.Api/CivicOps.Api.csproj
 O painel local do RabbitMQ fica em
 `http://localhost:15672`, com as credenciais definidas no Compose.
 
-Uma requisição de exemplo está em [CivicOps.Api.http](CivicOps.Api.http). O
-cabeçalho `X-Tenant-Id` é provisório e será substituído pelo tenant obtido da
-identidade autenticada. Escritas também exigem `X-User-Id`, usado como autor da
-operação na auditoria e igualmente provisório até a integração de autenticação.
-As
-operações de anexos exigem ambos os cabeçalhos também nas leituras para aplicar
-a autorização do autor ou responsável.
+Todas as rotas sob `/api` exigem um token Bearer emitido pelo provedor OpenID
+Connect. A API valida assinatura, emissor, audiência e validade do token; o
+usuário vem do claim `sub` e o tenant do claim `tenant_id`. Cabeçalhos
+`X-Tenant-Id` e `X-User-Id` enviados pelo cliente são descartados e não podem
+sobrescrever a identidade autenticada.
 
 O endpoint `POST /api/v1/requests` também exige `Idempotency-Key`. Repetir a
 mesma chave, tenant e conteúdo retorna a solicitação originalmente criada sem
@@ -65,8 +64,8 @@ As leituras disponíveis são:
 - `GET /api/v1/requests/{id}/attachments`: metadados dos anexos;
 - `GET /api/v1/requests/{id}/attachments/{attachmentId}/content`: conteúdo do
   anexo com suporte a range;
-- `GET /api/v1/notifications`: notificações do usuário informado em
-  `X-User-Id`, sempre isoladas pelo tenant;
+- `GET /api/v1/notifications`: notificações do usuário autenticado, sempre
+  isoladas pelo tenant;
 - `GET /api/v1/access/members`: associações, papéis e permissões do tenant.
 
 O dashboard usa cache-aside no Redis, isolado por tenant e com TTL padrão de
@@ -171,6 +170,17 @@ severidades e runbooks estão no
 [guia operacional](../docs/operations/service-objectives-and-alerts.md).
 
 ## Identity & Access
+
+A autenticação usa OpenID Connect com Authorization Code e PKCE no frontend e
+JWT Bearer na API. O Compose fornece um Keycloak de desenvolvimento com realm,
+clientes e usuário demonstrativo importados de
+`identity/keycloak/civicops-realm.json`. Em ambientes reais, configure
+`Authentication:Authority`, `Authentication:Audience` e HTTPS para o provedor
+corporativo.
+
+Os testes de integração executam no ambiente `IntegrationTests`, onde um
+handler restrito ao processo de teste converte os cabeçalhos existentes em
+claims. Esse modo não é habilitado pela configuração de execução normal.
 
 As associações são independentes por tenant e usam os papéis
 `Administrator`, `Operator` e `Reader`. O catálogo de permissões é versionado

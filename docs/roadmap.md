@@ -113,7 +113,7 @@ concluído.
   download e respostas `403`, `413` e `415`;
 - [x] implementar central de notificações e administração de membros, papéis e
   permissões por tenant;
-- [ ] substituir os cabeçalhos provisórios por identidade autenticada e obter
+- [x] substituir os cabeçalhos provisórios por identidade autenticada e obter
   tenant e usuário de claims confiáveis;
 - [ ] cobrir os fluxos com testes unitários, de componentes e end-to-end,
   incluindo autorização negativa, acessibilidade e regressão responsiva;
@@ -126,8 +126,9 @@ auditoria das operações sensíveis e relatório de acessibilidade e tamanho.
 
 **Evidência atual do frontend:** shell, dashboard, solicitações, gestão do
 atendimento, comentários, anexos, notificações e administração de membros
-compilados pela imagem Docker, bundle inicial de `369,98 kB` e trinta e dois
-testes Angular cobrindo clientes HTTP, contexto provisório, Problem Details,
+compilados pela imagem Docker, bundle inicial de `398,98 kB`, autenticação OIDC
+validada no navegador e trinta e dois testes Angular cobrindo clientes HTTP,
+Bearer token, ausência dos cabeçalhos provisórios, Problem Details,
 estados de interface, filtros sincronizados com a URL, idempotência, validações,
 encadeamento de versões, conflitos de concorrência, multipart, download,
 respostas negativas, paginação de notificações e concessão de papéis com suas

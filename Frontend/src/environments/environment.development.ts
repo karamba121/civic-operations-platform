@@ -1,10 +1,9 @@
 export const environment = {
   production: false,
   apiBaseUrl: '/api/v1',
-  provisionalContext: {
-    tenantId: '11111111-1111-1111-1111-111111111111',
-    userId: '33333333-3333-3333-3333-333333333333',
-    tenantName: 'Prefeitura Municipal',
-    userName: 'Administrador local',
+  auth: {
+    url: 'http://localhost:4200/auth',
+    realm: 'civicops',
+    clientId: 'civicops-frontend',
   },
 } as const;

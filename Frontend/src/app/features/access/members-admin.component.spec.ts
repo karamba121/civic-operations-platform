@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
+import { ActorContextService } from '../../core/context/actor-context.service';
 import { CivicOpsApiError } from '../../core/http/civic-ops-api-error';
 import { AccessApi } from './data-access/access.api';
 import { TenantMembership, TenantRole } from './data-access/access.model';
@@ -44,6 +45,12 @@ describe(MembersAdminComponent.name, () => {
     await TestBed.configureTestingModule({
       imports: [MembersAdminComponent],
       providers: [
+        {
+          provide: ActorContextService,
+          useValue: {
+            userId: '33333333-3333-3333-3333-333333333333',
+          },
+        },
         {
           provide: AccessApi,
           useValue: { listMembers, setMemberRole },
