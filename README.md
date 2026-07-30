@@ -137,4 +137,4 @@ para desenvolvimento fora dos containers.
 
 ## Licença
 
-A licença será definida antes da primeira versão pública.
+MIT - veja [LICENSE](LICENSE).
