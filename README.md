@@ -1,5 +1,13 @@
 # Civic Operations Platform
 
+[![CI](https://github.com/karamba121/civic-operations-platform/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/karamba121/civic-operations-platform/actions/workflows/ci.yml)
+![Status](https://img.shields.io/badge/status-em%20desenvolvimento-yellow)
+![.NET](https://img.shields.io/badge/.NET-8-512BD4?logo=dotnet)
+![Angular](https://img.shields.io/badge/Angular-20-DD0031?logo=angular)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql)
+![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker)
+![License](https://img.shields.io/github/license/karamba121/civic-operations-platform)
+
 Plataforma empresarial para gestão de processos administrativos: solicitações,
 protocolos, responsáveis, comentários, anexos, prazos, auditoria e notificações.
 
